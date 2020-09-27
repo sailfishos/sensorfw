@@ -47,7 +47,7 @@ Summary:    Unit test cases for sensord
 Requires:   %{name} = %{version}-%{release}
 Requires:   qt5-qttest-devel
 Requires:   testrunner-lite
-Requires:   python
+Requires:   python(abi) > 3.0
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
