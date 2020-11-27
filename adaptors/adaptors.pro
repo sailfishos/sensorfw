@@ -14,7 +14,7 @@ contains(CONFIG,hybris) {
     SUBDIRS += hybrisgeorotationadaptor
     SUBDIRS += hybrisstepcounteradaptor
 
-    } else {
+} else {
 
 SUBDIRS = alsadaptor \
           alsadaptor-evdev \
@@ -25,16 +25,24 @@ SUBDIRS = alsadaptor \
           magnetometeradaptor \
           magnetometeradaptor-ascii \
           magnetometeradaptor-evdev \
-          magnetometeradaptor-ncdk \
           touchadaptor \
           kbslideradaptor \
           proximityadaptor \
           proximityadaptor-evdev \
           proximityadaptor-ascii \
-          mrstaccelerometer \
           gyroscopeadaptor \
           gyroscopeadaptor-evdev
 
+SUBDIRS += lidsensoradaptor-evdev
+SUBDIRS += iioadaptor
+SUBDIRS += humidityadaptor
+SUBDIRS += pressureadaptor
+SUBDIRS += temperatureadaptor
+
+contains(CONFIG,legacy) {
+
+SUBDIRS += mrstaccelerometer
+SUBDIRS += magnetometeradaptor-ncdk
 SUDBIRS += oemtabletmagnetometeradaptor
 SUBDIRS += pegatronaccelerometeradaptor
 SUBDIRS += oemtabletalsadaptor-ascii
@@ -43,24 +51,9 @@ SUBDIRS += oemtabletaccelerometer
 SUDBIRS += oemtabletgyroscopeadaptor
 SUBDIRS += steaccelerometeradaptor
 SUBDIRS += mpu6050accelerometer
-SUBDIRS += lidsensoradaptor-evdev
-SUBDIRS += iioadaptor
-SUBDIRS += humidityadaptor
-SUBDIRS += pressureadaptor
-SUBDIRS += temperatureadaptor
 
-config_hybris {
-    SUBDIRS += hybrisaccelerometer
-    SUBDIRS += hybrisalsadaptor
-    SUBDIRS += hybrisgyroscopeadaptor
-    SUBDIRS += hybrismagnetometeradaptor
-    SUBDIRS += hybrispressureadaptor
-    SUBDIRS += hybrisproximityadaptor
-    SUBDIRS += hybrisorientationadaptor
-    SUBDIRS += hybrisrotationadaptor
-    SUBDIRS += hybrisgeorotationadaptor
-    SUBDIRS += hybrisstepcounteradaptor
- }
+}
+
 }
 
 
