@@ -96,7 +96,11 @@ contains(CONFIG,hybris) {
     SENSORDCONFIGFILES.files += config/20-sensors-default.conf
     SENSORDCONFIGFILES.path = /etc/sensorfw/sensord.conf.d
     INSTALLS += SENSORDCONFIGFILES
+}
 
+contains(CONFIG,systemdunit) {
+    # Install service files through packaging to take into account
+    # units file location unless called with CONFIG+=systemdunit
     SENSORSYSTEMD.files = rpm/sensorfwd.service
     SENSORSYSTEMD.path = /lib/systemd/system
     INSTALLS += SENSORSYSTEMD

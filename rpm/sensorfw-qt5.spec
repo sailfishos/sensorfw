@@ -7,7 +7,6 @@ URL:        https://git.sailfishos.org/mer-core/sensorfw
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    sensorfwd.service
 Source2:    sensorfw-qt5-hybris.inc
-Requires:   qt5-qtcore
 Requires:   sensord-configs
 Requires:   systemd
 Requires(preun): systemd
@@ -34,9 +33,9 @@ Sensor Framework provides an interface to hardware sensor drivers through logica
 %package devel
 Summary:    Sensor framework daemon libraries development headers
 Requires:   %{name} = %{version}-%{release}
-Requires:   qt5-qtcore-devel
-Requires:   qt5-qtdbus-devel
-Requires:   qt5-qtnetwork-devel
+Requires:   pkgconfig(Qt5Core)
+Requires:   pkgconfig(Qt5DBus)
+Requires:   pkgconfig(Qt5Network)
 
 %description devel
 Development headers for sensor framework daemon and libraries.
@@ -45,9 +44,9 @@ Development headers for sensor framework daemon and libraries.
 %package tests
 Summary:    Unit test cases for sensord
 Requires:   %{name} = %{version}-%{release}
-Requires:   qt5-qttest-devel
+Requires:   pkgconfig(Qt5Test)
 Requires:   testrunner-lite
-Requires:   python
+Requires:   python(abi) > 3.0
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
