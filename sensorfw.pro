@@ -27,11 +27,14 @@ SUBDIRS = datatypes \
           examples
 
 contains(CONFIG,configs) {
-   # !contains(CONFIG,hybris) {
+    contains(CONFIG,hybris) {
         SENSORDHYBRISCONFIGFILE.files = config/sensord-hybris.conf
         SENSORDHYBRISCONFIGFILE.path = /etc/sensorfw
         INSTALLS += SENSORDHYBRISCONFIGFILE
-    # }
+    }
+
+    contains(CONFIG,legacy) {
+
         SENSORFWCONFIGFILES.files = config/sensord-rx_51.conf \
                config/sensord-oaktrail.conf \
                config/sensord-exopc.conf \
@@ -46,12 +49,14 @@ contains(CONFIG,configs) {
                config/sensord-u8500.conf \
 
         SENSORFWCONFIGFILES.path = /etc/sensorfw
+        INSTALLS += SENSORFWCONFIGFILES
+    }
 
     SENSORCONFIG_SETUP.files = config/sensord-daemon-conf-setup
     SENSORCONFIG_SETUP.path = /usr/bin
 
-     INSTALLS +=  SENSORFWCONFIGFILES SENSORCONFIG_SETUP
- }
+    INSTALLS += SENSORCONFIG_SETUP
+}
 
 contains(CONFIG,hybris) {
 

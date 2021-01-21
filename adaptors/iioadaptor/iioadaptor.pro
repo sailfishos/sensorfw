@@ -8,8 +8,6 @@ SOURCES += iioadaptor.cpp \
 
 CONFIG += qt debug warn_on link_prl link_pkgconfig plugin
 
-CONFIG += link_pkgconfig
-PKGCONFIG += udev
-LIBS += -ludev
+PKGCONFIG += libudev
 
 include( ../adaptor-config.pri )
