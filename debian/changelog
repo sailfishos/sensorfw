@@ -1,3 +1,12 @@
+sensorfw-qt5 (0.12.2) unstable; urgency=medium
+
+[sensorfw] Move sensord.sock to /run
+[sensorfw] Properly handle angle rollover in built-in compass support
+[sensorfw] Cleanup Qt project files
+[packaging] Refine systemd unit install and test cleanup
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Thu, 21 Jan 2021 22:34:31 +0300
+
 sensorfw-qt5 (0.12.1) unstable; urgency=medium
 
 [hybrisadaptor] Fix building rotation vector adaptors with old Android versions

@@ -1,6 +1,6 @@
 Name:       sensorfw-qt5
 Summary:    Sensor Framework Qt5
-Version:    0.12.1
+Version:    0.12.2
 Release:    0
 License:    LGPLv2+
 URL:        https://git.sailfishos.org/mer-core/sensorfw
