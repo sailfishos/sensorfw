@@ -50,7 +50,7 @@ bool SocketReader::initiateConnection(int sessionId)
     }
 
     socket_ = new QLocalSocket(this);
-    const char* SOCKET_NAME = "/var/run/sensord.sock";
+    const char* SOCKET_NAME = "/run/sensord.sock";
     QByteArray env = qgetenv("SENSORFW_SOCKET_PATH");
     if (!env.isEmpty()) {
         env += SOCKET_NAME;
