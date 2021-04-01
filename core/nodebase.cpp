@@ -231,10 +231,10 @@ bool NodeBase::hasLocalRange() const
 DataRangeList NodeBase::parseDataRangeList(const QString& input, int defaultResolution) const
 {
     DataRangeList list;
-    foreach(const QString& fragment, input.split(",", QString::SkipEmptyParts))
+    foreach(const QString& fragment, input.split(QLatin1Char(','), Qt::SkipEmptyParts))
     {
-        QStringList pair(fragment.split("=>"));
-        QStringList pair2(fragment.split(":"));
+        QStringList pair(fragment.split(QLatin1String("=>")));
+        QStringList pair2(fragment.split(QLatin1Char(':')));
         DataRange range;
         range.resolution = defaultResolution;
         if(pair.size() == 1)

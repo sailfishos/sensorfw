@@ -36,5 +36,5 @@ void ProximityPlugin::Register(class Loader&)
 }
 
 QStringList ProximityPlugin::Dependencies() {
-    return QString("proximityadaptor").split(":", QString::SkipEmptyParts);
+    return QString("proximityadaptor").split(":", Qt::SkipEmptyParts);
 }

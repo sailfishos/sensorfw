@@ -43,5 +43,5 @@ void ALSPlugin::Init(class Loader& l)
 }
 
 QStringList ALSPlugin::Dependencies() {
-    return QString("alsadaptor").split(":", QString::SkipEmptyParts);
+    return QString("alsadaptor").split(":", Qt::SkipEmptyParts);
 }

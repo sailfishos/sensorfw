@@ -37,5 +37,5 @@ void GyroscopePlugin::Register(class Loader&)
 }
 
 QStringList GyroscopePlugin::Dependencies() {
-    return QString("gyroscopeadaptor").split(":", QString::SkipEmptyParts);
+    return QString("gyroscopeadaptor").split(":", Qt::SkipEmptyParts);
 }

@@ -37,5 +37,5 @@ void OrientationChainPlugin::Register(class Loader&)
 }
 
 QStringList OrientationChainPlugin::Dependencies() {
-    return QString("orientationinterpreter:accelerometerchain").split(":", QString::SkipEmptyParts);
+    return QString("orientationinterpreter:accelerometerchain").split(":", Qt::SkipEmptyParts);
 }

@@ -506,7 +506,7 @@ T AbstractSensorChannelInterface::getAccessor(const char* name)
 template<typename T>
 void AbstractSensorChannelInterface::setAccessor(const char* name, const T& value)
 {
-    QDBusReply<void> reply(call(QDBus::NoBlock, QLatin1String(name), qVariantFromValue(value)));
+    QDBusReply<void> reply(call(QDBus::NoBlock, QLatin1String(name),  QVariant::fromValue(value)));
     if(!reply.isValid())
     {
         qDebug() << "Failed to set '" << name << " = " << value << "' to sensord: " << reply.error().message();

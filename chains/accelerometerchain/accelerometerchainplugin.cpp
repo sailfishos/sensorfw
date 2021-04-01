@@ -37,5 +37,5 @@ void AccelerometerChainPlugin::Register(class Loader&)
 }
 
 QStringList AccelerometerChainPlugin::Dependencies() {
-    return QString("coordinatealignfilter:accelerometeradaptor").split(":", QString::SkipEmptyParts);
+    return QString("coordinatealignfilter:accelerometeradaptor").split(":", Qt::SkipEmptyParts);
 }

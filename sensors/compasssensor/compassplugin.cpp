@@ -37,5 +37,5 @@ void CompassPlugin::Register(class Loader&)
 }
 
 QStringList CompassPlugin::Dependencies() {
-    return QString("compasschain").split(":", QString::SkipEmptyParts);
+    return QString("compasschain").split(":", Qt::SkipEmptyParts);
 }

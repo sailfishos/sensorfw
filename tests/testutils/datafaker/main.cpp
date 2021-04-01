@@ -74,7 +74,7 @@ int main(int argc, char** argv)
             break;
         }
         QString line(buffer);
-        QStringList numberList = line.split(" ", QString::SkipEmptyParts);
+        QStringList numberList = line.split(" ", Qt::SkipEmptyParts);
         if (numberList.length() % 3 != 0) {
             qDebug() << "Too many / too few numbers on line, skipping:" << line;
         }

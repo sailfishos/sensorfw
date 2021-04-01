@@ -37,5 +37,5 @@ void OrientationPlugin::Register(class Loader&)
 }
 
 QStringList OrientationPlugin::Dependencies() {
-    return QString("orientationchain").split(":", QString::SkipEmptyParts);
+    return QString("orientationchain").split(":", Qt::SkipEmptyParts);
 }

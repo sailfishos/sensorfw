@@ -71,7 +71,7 @@ int LocalSensorManagerInterface::errorCodeInt()
 QDBusReply<bool> LocalSensorManagerInterface::loadPlugin(const QString& name)
 {
     QList<QVariant> argumentList;
-    argumentList << qVariantFromValue(name);
+    argumentList <<  QVariant::fromValue(name);
     QDBusPendingReply <bool> reply = asyncCallWithArgumentList(QLatin1String("loadPlugin"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
@@ -96,8 +96,8 @@ QDBusReply<int> LocalSensorManagerInterface::requestSensor(const QString& id)
 {
     qint64 pid = QCoreApplication::applicationPid();
     QList<QVariant> argumentList;
-    argumentList << qVariantFromValue(id);
-    argumentList << qVariantFromValue(pid);
+    argumentList <<  QVariant::fromValue(id);
+    argumentList <<  QVariant::fromValue(pid);
     QDBusPendingReply <int> reply = asyncCallWithArgumentList(QLatin1String("requestSensor"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
@@ -121,8 +121,8 @@ QDBusReply<bool> LocalSensorManagerInterface::releaseSensor(const QString& id, i
 {
     qint64 pid = QCoreApplication::applicationPid();
     QList<QVariant> argumentList;
-    argumentList << qVariantFromValue(id) << qVariantFromValue(sessionId);
-    argumentList << qVariantFromValue(pid);
+    argumentList <<  QVariant::fromValue(id) <<  QVariant::fromValue(sessionId);
+    argumentList <<  QVariant::fromValue(pid);
     QDBusPendingReply <bool> reply = asyncCallWithArgumentList(QLatin1String("releaseSensor"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),

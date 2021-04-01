@@ -37,5 +37,5 @@ void AccelerometerPlugin::Register(class Loader&)
 }
 
 QStringList AccelerometerPlugin::Dependencies() {
-    return QString("accelerometerchain").split(":", QString::SkipEmptyParts);
+    return QString("accelerometerchain").split(":", Qt::SkipEmptyParts);
 }

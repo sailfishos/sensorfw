@@ -37,5 +37,5 @@ void MagnetometerPlugin::Register(class Loader&)
 }
 
 QStringList MagnetometerPlugin::Dependencies() {
-    return QString("magcalibrationchain").split(":", QString::SkipEmptyParts);
+    return QString("magcalibrationchain").split(":", Qt::SkipEmptyParts);
 }

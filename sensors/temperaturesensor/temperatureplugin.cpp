@@ -42,5 +42,5 @@ void TemperaturePlugin::Init(class Loader& l)
 }
 
 QStringList TemperaturePlugin::Dependencies() {
-    return QString("temperatureadaptor").split(":", QString::SkipEmptyParts);
+    return QString("temperatureadaptor").split(":", Qt::SkipEmptyParts);
 }

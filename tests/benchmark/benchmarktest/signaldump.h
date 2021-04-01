@@ -74,13 +74,13 @@ public:
         while (!line.isEmpty()) {
             if (*(line.constData()) == 'P' || *(line.constData()) == 'S') {
                 if (strncmp(line.constData(), "Private_Clean", 13) == 0) {
-                    clean += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+                    clean += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
                 }
                 else if (strncmp(line.constData(), "Private_Dirty", 13) == 0) {
-                    dirty += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+                    dirty += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
                 }
                 else if (strncmp(line.constData(), "Swap", 4) == 0) {
-                    dirty += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+                    dirty += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
                 }
             }
             line.clear();
