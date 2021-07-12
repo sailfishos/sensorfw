@@ -110,7 +110,3 @@ void HybrisGeoRotationAdaptor::processSample(const sensors_event_t& data)
     m_buffer->commit();
     m_buffer->wakeUpReaders();
 }
-
-void HybrisGeoRotationAdaptor::init()
-{
-}

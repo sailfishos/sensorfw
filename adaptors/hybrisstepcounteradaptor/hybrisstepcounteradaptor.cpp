@@ -91,7 +91,3 @@ void HybrisStepCounterAdaptor::processSample(const sensors_event_t& data)
     buffer->commit();
     buffer->wakeUpReaders();
 }
-
-void HybrisStepCounterAdaptor::init()
-{
-}

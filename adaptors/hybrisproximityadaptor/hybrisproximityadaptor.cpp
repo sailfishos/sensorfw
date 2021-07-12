@@ -153,7 +153,3 @@ void HybrisProximityAdaptor::processSample(const sensors_event_t& data)
     buffer->commit();
     buffer->wakeUpReaders();
 }
-
-void HybrisProximityAdaptor::init()
-{
-}

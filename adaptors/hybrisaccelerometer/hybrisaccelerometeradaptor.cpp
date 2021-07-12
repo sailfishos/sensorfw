@@ -75,9 +75,3 @@ void HybrisAccelerometerAdaptor::processSample(const sensors_event_t& data)
     buffer->commit();
     buffer->wakeUpReaders();
 }
-
-//void HybrisAccelerometerAdaptor::init()
-//{
-////    introduceAvailableDataRange(DataRange(-HybrisAdaptor::maxRange, HybrisAdaptor::maxRange , 1));
-////    introduceAvailableInterval(DataRange(10, 586, 0));
-//}
