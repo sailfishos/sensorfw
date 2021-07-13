@@ -22,8 +22,6 @@
 #include "datatypes/utils.h"
 #include "config.h"
 
-#define GRAVITY_RECIPROCAL_THOUSANDS 101.971621298
-
 HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id) :
     HybrisAdaptor(id,SENSOR_TYPE_ACCELEROMETER)
 {

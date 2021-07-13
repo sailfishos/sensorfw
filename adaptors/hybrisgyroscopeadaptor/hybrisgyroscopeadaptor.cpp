@@ -23,9 +23,6 @@
 #include "config.h"
 #include <math.h>
 
-#define RADIANS_TO_DEGREESECONDS 57295.7795
-#define RADIANS_TO_DEGREES 57.2957795
-
 HybrisGyroscopeAdaptor::HybrisGyroscopeAdaptor(const QString& id) :
     HybrisAdaptor(id,SENSOR_TYPE_GYROSCOPE)
 {

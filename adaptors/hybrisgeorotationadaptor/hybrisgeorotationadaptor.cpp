@@ -27,8 +27,6 @@
 #include <QtCore/qmath.h>
 #include <QtGlobal>
 
-#define RADIANS_TO_DEGREES 57.2957795
-
 /*
  * azimuth: angle between the magnetic north direction and the Y axis, around
  * the Z axis (0<=azimuth<360).
