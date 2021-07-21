@@ -131,6 +131,11 @@ QDBusReply<void> AbstractSensorChannelInterface::start(int sessionId)
     }
     pimpl_->running_ = true;
 
+    // Discard any old data already in the socket
+    if (pimpl_->socketReader_.socket()->bytesAvailable() > 0) {
+        pimpl_->socketReader_.socket()->readAll();
+    }
+
     connect(pimpl_->socketReader_.socket(), SIGNAL(readyRead()), this, SLOT(dataReceived()));
 
     QList<QVariant> argumentList;

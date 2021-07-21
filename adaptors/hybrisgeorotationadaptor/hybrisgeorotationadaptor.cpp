@@ -27,8 +27,6 @@
 #include <QtCore/qmath.h>
 #include <QtGlobal>
 
-#define RADIANS_TO_DEGREES 57.2957795
-
 /*
  * azimuth: angle between the magnetic north direction and the Y axis, around
  * the Z axis (0<=azimuth<360).
@@ -111,8 +109,4 @@ void HybrisGeoRotationAdaptor::processSample(const sensors_event_t& data)
 
     m_buffer->commit();
     m_buffer->wakeUpReaders();
-}
-
-void HybrisGeoRotationAdaptor::init()
-{
 }

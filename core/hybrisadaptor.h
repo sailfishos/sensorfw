@@ -126,6 +126,10 @@
 #define SENSOR_TYPE_WRIST_TILT_GESTURE              (26)
 #endif
 
+#define GRAVITY_RECIPROCAL_THOUSANDS 101.971621298
+#define RADIANS_TO_DEGREESECONDS 57295.7795
+#define RADIANS_TO_DEGREES 57.2957795
+
 #define SENSORFW_MCE_WATCHER
 
 class HybrisAdaptor;
@@ -221,6 +225,7 @@ private:
 private:
     static void *halEventReaderThread(void *aptr);
 #endif
+    float scaleSensorValue(const float value, const int type) const;
     void processEvents(const sensors_event_t *buffer,
         int numberOfEvents, bool &blockSuspend, bool &errorInInput);
 };

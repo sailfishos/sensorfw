@@ -56,7 +56,6 @@ public:
 
 protected:
     void processSample(const sensors_event_t& data);
-    void init();
 
 private:
     DeviceAdaptorRingBuffer<TimedUnsigned>* buffer;

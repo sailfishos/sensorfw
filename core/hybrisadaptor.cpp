@@ -619,6 +619,37 @@ void HybrisManager::registerAdaptor(HybrisAdaptor *adaptor)
     }
 }
 
+float HybrisManager::scaleSensorValue(const float value, const int type) const
+{
+    float outValue;
+    switch (type) {
+    case SENSOR_TYPE_ACCELEROMETER:
+    case SENSOR_TYPE_GRAVITY:
+    case SENSOR_TYPE_LINEAR_ACCELERATION:
+        //sensorfw wants milli-G'
+        outValue = value * GRAVITY_RECIPROCAL_THOUSANDS;
+        break;
+    case SENSOR_TYPE_MAGNETIC_FIELD:
+    case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+        // uT to nT
+        outValue = value * 1000;
+        break;
+    case SENSOR_TYPE_GYROSCOPE:
+    case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
+        // From rad/s to mdeg/s
+        outValue = value * RADIANS_TO_DEGREES * 1000;
+        break;
+    case SENSOR_TYPE_PRESSURE:
+        // From hPa to Pa
+        outValue = value * 100;
+        break;
+    default:
+        outValue = value;
+        break;
+    }
+    return outValue;
+}
+
 float HybrisManager::getMaxRange(int handle) const
 {
     float range = 0;
@@ -627,7 +658,7 @@ float HybrisManager::getMaxRange(int handle) const
     if (index != -1) {
         const struct sensor_t *sensor = &m_sensorArray[index];
 
-        range = sensor->maxRange;
+        range = scaleSensorValue(sensor->maxRange, sensor->type);
         sensordLogT("HYBRIS CTL getMaxRange(%d=%s) -> %g",
                     sensor->handle, sensorTypeName(sensor->type), range);
     }
@@ -643,7 +674,7 @@ float HybrisManager::getResolution(int handle) const
     if (index != -1) {
         const struct sensor_t *sensor = &m_sensorArray[index];
 
-        resolution = sensor->resolution;
+        resolution = scaleSensorValue(sensor->resolution, sensor->type);
         sensordLogT("HYBRIS CTL getResolution(%d=%s) -> %g",
                     sensor->handle, sensorTypeName(sensor->type), resolution);
     }
