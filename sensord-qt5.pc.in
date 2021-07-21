@@ -4,7 +4,7 @@ libdir=${prefix}/@LIB@
 
 Name: Sensorfw-qt5
 Description: Sensord for Qt 5
-Version: 0.12.2
+Version: 0.12.3
 Requires:
 Libs: -L${libdir} -lsensorclient-qt5 -lsensordatatypes-qt5
 Cflags: -I${includedir} -I${includedir}/datatypes -I${includedir}/filters
