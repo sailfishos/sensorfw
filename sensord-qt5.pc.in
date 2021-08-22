@@ -7,4 +7,4 @@ Description: Sensord for Qt 5
 Version: 0.12.3
 Requires:
 Libs: -L${libdir} -lsensorclient-qt5 -lsensordatatypes-qt5
-Cflags: -I${includedir} -I${includedir}/datatypes -I${includedir}/filters
+Cflags: -I${includedir} -I${includedir}/datatypes
