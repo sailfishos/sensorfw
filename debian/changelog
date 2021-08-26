@@ -1,3 +1,9 @@
+sensorfw-qt5 (0.12.4) unstable; urgency=medium
+
+  * [sensorfw] Remove /usr/include/filters from pkgconfig file as it is not installed
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Thu, 26 Aug 2021 16:52:00 +0300
+
 sensorfw-qt5 (0.12.3) unstable; urgency=medium
 
   * [sensorfw] Discard any old sensor data before starting sensor
