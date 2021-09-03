@@ -76,7 +76,7 @@ void HumidityAdaptor::commitOutput(struct input_event *ev)
     TimedUnsigned* rh = humidityBuffer_->nextSlot();
     rh->value_ = humidityValue_;
 
-    rh->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    rh->timestamp_ = Utils::getTimeStamp(ev);
 
     humidityBuffer_->commit();
     humidityBuffer_->wakeUpReaders();

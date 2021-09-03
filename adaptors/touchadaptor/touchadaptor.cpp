@@ -156,7 +156,7 @@ void TouchAdaptor::commitOutput(int src, struct input_event *ev)
 {
     TouchData* d = outputBuffer_->nextSlot();
 
-    d->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    d->timestamp_ = Utils::getTimeStamp(ev);
     d->x_ = touchValues_[src].x;
     d->y_ = touchValues_[src].y;
     d->z_ = touchValues_[src].z;

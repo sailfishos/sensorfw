@@ -88,7 +88,7 @@ void GyroAdaptorEvdev::commitOutput(struct input_event *ev)
     gyroData->y_ = gyroValue_.y_;
     gyroData->z_ = gyroValue_.z_;
 
-    gyroData->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    gyroData->timestamp_ = Utils::getTimeStamp(ev);
 
     gyroscopeBuffer_->commit();
     gyroscopeBuffer_->wakeUpReaders();

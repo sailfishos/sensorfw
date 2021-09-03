@@ -125,7 +125,7 @@ void LidSensorAdaptorEvdev::commitOutput(struct input_event *ev)
 
         LidData *lidData = lidBuffer_->nextSlot();
 
-        lidData->timestamp_ = Utils::getTimeStamp(&(ev->time));
+        lidData->timestamp_ = Utils::getTimeStamp(ev);
         lidData->value_ = currentValue_;
         lidData->type_ = currentType_;
         sensordLogD() << "Lid state change detected: "

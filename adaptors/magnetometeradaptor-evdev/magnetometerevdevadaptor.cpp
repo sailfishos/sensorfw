@@ -87,7 +87,7 @@ void MagAdaptorEvdev::commitOutput(struct input_event *ev)
     magData->y_ = magValue_.y_;
     magData->z_ = magValue_.z_;
 
-    magData->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    magData->timestamp_ = Utils::getTimeStamp(ev);
 
     magnetometerBuffer_->commit();
     magnetometerBuffer_->wakeUpReaders();

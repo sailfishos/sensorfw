@@ -79,7 +79,7 @@ void ALSAdaptorEvdev::commitOutput(struct input_event *ev)
     TimedUnsigned* lux = alsBuffer_->nextSlot();
     lux->value_ = alsValue_;
 
-    lux->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    lux->timestamp_ = Utils::getTimeStamp(ev);
 
     alsBuffer_->commit();
     alsBuffer_->wakeUpReaders();

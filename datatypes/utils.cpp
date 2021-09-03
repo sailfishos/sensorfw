@@ -71,10 +71,16 @@ quint64 Utils::getTimeStamp()
     return data;
 }
 
-quint64 Utils::getTimeStamp(const struct timeval *tp)
+quint64 Utils::getTimeStamp(const struct input_event *ie)
 {
-    quint64 data = tp->tv_sec;
+#ifdef input_event_sec
+    quint64 data = ie->input_event_sec;
     data = data * 1000000;
-    data = tp->tv_usec + data;
+    data = ie->input_event_usec + data;
+#else
+    quint64 data = ie->time.tv_sec;
+    data = data * 1000000;
+    data = ie->time.tv_usec + data;
+#endif
     return data;
 }

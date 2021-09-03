@@ -84,7 +84,7 @@ void ProximityAdaptorEvdev::commitOutput(struct input_event *ev)
 
         ProximityData *proximityData = proximityBuffer_->nextSlot();
 
-        proximityData->timestamp_ = Utils::getTimeStamp(&(ev->time));
+        proximityData->timestamp_ = Utils::getTimeStamp(ev);
         proximityData->withinProximity_ = currentState_;
 
         oldState = currentState_;
