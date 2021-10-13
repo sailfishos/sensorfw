@@ -102,7 +102,7 @@ void AccelerometerAdaptor::commitOutput(struct input_event *ev)
 {
     AccelerationData* d = accelerometerBuffer_->nextSlot();
 
-    d->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    d->timestamp_ = Utils::getTimeStamp(ev);
     d->x_ = orientationValue_.x_;
     d->y_ = orientationValue_.y_;
     d->z_ = orientationValue_.z_;

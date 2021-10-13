@@ -76,7 +76,7 @@ void TemperatureAdaptor::commitOutput(struct input_event *ev)
     TimedUnsigned* temp = temperatureBuffer_->nextSlot();
     temp->value_ = temperatureValue_;
 
-    temp->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    temp->timestamp_ = Utils::getTimeStamp(ev);
 
     temperatureBuffer_->commit();
     temperatureBuffer_->wakeUpReaders();

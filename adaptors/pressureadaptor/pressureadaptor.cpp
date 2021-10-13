@@ -76,7 +76,7 @@ void PressureAdaptor::commitOutput(struct input_event *ev)
     TimedUnsigned* lux = pressureBuffer_->nextSlot();
     lux->value_ = pressureValue_;
 
-    lux->timestamp_ = Utils::getTimeStamp(&(ev->time));
+    lux->timestamp_ = Utils::getTimeStamp(ev);
 
     pressureBuffer_->commit();
     pressureBuffer_->wakeUpReaders();

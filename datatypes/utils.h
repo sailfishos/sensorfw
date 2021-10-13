@@ -27,7 +27,7 @@
 
 #ifndef UTILS_H
 #define UTILS_H
-#include <sys/time.h>
+#include <linux/input.h>
 
 /**
  * Collection of static utility functions.
@@ -47,7 +47,7 @@ public:
      *
      * @return timestamp.
      */
-    static quint64 getTimeStamp(const struct timeval*);
+    static quint64 getTimeStamp(const struct input_event*);
 };
 
 #endif // UTILS_H
