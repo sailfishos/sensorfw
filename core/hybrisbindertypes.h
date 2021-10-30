@@ -26,6 +26,22 @@
 
 #define STATUS_OK 0
 
+typedef enum sensor_interface {
+    SENSOR_INTERFACE_1_0,
+    SENSOR_INTERFACE_2_0,
+    SENSOR_INTERFACE_2_1,
+    SENSOR_INTERFACE_COUNT
+} SENSOR_INTERFACE;
+
+enum {
+    EVENT_QUEUE_FLAG_READ_AND_PROCESS = 1,
+    EVENT_QUEUE_FLAG_EVENTS_READ = 2,
+};
+
+enum {
+    WAKE_LOCK_QUEUE_DATA_WRITTEN = 1,
+};
+
 #define ALIGNED(x) __attribute__ ((aligned(x)))
 
 enum binder_calls {
@@ -40,6 +56,22 @@ enum binder_calls {
     REGISTER_DIRECT_CHANNEL,
     UNREGISTER_DIRECT_CHANNEL,
     CONFIG_DIRECT_REPORT,
+};
+
+enum binder_calls_2 {
+    // Intiialize replaces poll in 2.0
+    INITIALIZE_2_0 = POLL,
+    // MUST be in the same order as the interfaces in ISensors.hidl
+    GET_SENSORS_LIST_2_1 = CONFIG_DIRECT_REPORT + 1,
+    INITIALIZE_2_1,
+    INJECT_SENSOR_DATA_2_1,
+};
+
+enum binder_callbacks_2 {
+    // Intiialize replaces poll in 2.0
+    DYNAMIC_SENSORS_CONNECTED_2_0 = GBINDER_FIRST_CALL_TRANSACTION,
+    DYNAMIC_SENSORS_DISCONNECTED_2_0,
+    DYNAMIC_SENSORS_CONNECTED_2_1
 };
 
 enum {
@@ -92,6 +124,7 @@ enum {
     SENSOR_TYPE_ADDITIONAL_INFO = 33,
     SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT = 34,
     SENSOR_TYPE_ACCELEROMETER_UNCALIBRATED = 35,
+    SENSOR_TYPE_HINGE_ANGLE = 36,
     SENSOR_TYPE_DEVICE_PRIVATE_BASE = 65536, // 0x10000
 };
 
