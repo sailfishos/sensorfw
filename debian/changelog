@@ -1,3 +1,9 @@
+sensorfw-qt5 (0.12.6) unstable; urgency=medium
+
+  * [sensorfw] Add support for sensor binder API 2
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Wed, 24 Nov 2021 18:37:00 +0300
+
 sensorfw-qt5 (0.12.5) unstable; urgency=medium
 
   * [sensorfw] Fix build on 32-bit kernels with 64-bit time_t
