@@ -195,20 +195,31 @@ private:
     gulong                        m_pollTransactId;
     GBinderRemoteObject          *m_remote;
     GBinderServiceManager        *m_serviceManager;
+    SENSOR_INTERFACE              m_sensorInterfaceEnum;
+    GBinderLocalObject           *m_sensorCallback;
+    GBinderFmq                   *m_eventQueue;
+    GBinderFmq                   *m_wakeLockQueue;
     struct sensor_t              *m_sensorArray;   // [m_sensorCount]
 #else
     // HAL backend
     struct sensors_module_t      *m_halModule;
     struct sensors_poll_device_t *m_halDevice;
-    pthread_t                     m_halEventReaderTid;
     const struct sensor_t        *m_sensorArray;   // [m_sensorCount]
 #endif
+    pthread_t                     m_eventReaderTid;
     int                           m_sensorCount;
     HybrisSensorState            *m_sensorState;   // [m_sensorCount]
     QMap <int, int>               m_indexOfType;   // type   -> index
     QMap <int, int>               m_indexOfHandle; // handle -> index
 
 #ifdef USE_BINDER
+    static GBinderLocalReply *sensorCallbackHandler(
+        GBinderLocalObject* obj,
+        GBinderRemoteRequest* req,
+        guint code,
+        guint flags,
+        int* status,
+        void* user_data);
     void getSensorList();
     void startConnect();
     void finishConnect();
@@ -217,17 +228,16 @@ private:
     static void pollEventsCallback(
         GBinderClient* /*client*/, GBinderRemoteReply* reply,
         int status, void* userData);
+    bool typeRequiresWakeup(int type);
 #endif
 
     friend class HybrisAdaptorReader;
 
-#ifndef USE_BINDER
 private:
-    static void *halEventReaderThread(void *aptr);
-#endif
+    static void *eventReaderThread(void *aptr);
     float scaleSensorValue(const float value, const int type) const;
     void processEvents(const sensors_event_t *buffer,
-        int numberOfEvents, bool &blockSuspend, bool &errorInInput);
+        int numberOfEvents, int &blockSuspend, bool &errorInInput);
 };
 
 class HybrisAdaptor : public DeviceAdaptor
