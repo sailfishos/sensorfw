@@ -19,8 +19,11 @@ SOURCES += hybrisadaptor.cpp
 HEADERS += hybrisadaptor.h
 LIBS += -L$$[QT_INSTALL_LIBS] -L../datatypes
 
+CONFIG += link_pkgconfig
+
 !contains(CONFIG,binder) {
-    LIBS += -lhybris-common -lhardware
+    LIBS += -lhybris-common
+    PKGCONFIG += android-headers libhardware
 }
 
 include(../common-install.pri)
