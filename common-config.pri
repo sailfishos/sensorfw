@@ -44,3 +44,7 @@ contains(CONFIG,hybris) {
     }
 }
 
+config_hybris {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += android-headers libhardware
+}
