@@ -4,6 +4,7 @@ TARGET = sensorfakeopen
 DEPENDPATH += .
 INCLUDEPATH += .
 QT -= gui
+LIBS += -ldl
 
 # Input
 HEADERS += sensorfakeopen.h
