@@ -108,7 +108,7 @@ protected:
 
     virtual unsigned int interval() const;
 
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int value);
 
 private:
     /**

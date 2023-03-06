@@ -431,7 +431,7 @@ protected:
      * @param sessionId Session ID.
      * @return was interval set succesfully.
      */
-    virtual bool setInterval(unsigned int value, int sessionId);
+    virtual bool setInterval(int sessionId, unsigned int value);
 
     /**
      * Does node have locally set interval.

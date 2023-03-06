@@ -104,7 +104,7 @@ protected:
     ~IioAdaptor();
 
 
-    bool setInterval(const unsigned int value, const int sessionId);
+    bool setInterval(const int sessionId, const unsigned int value);
     //  unsigned int interval() const;
 
 private:

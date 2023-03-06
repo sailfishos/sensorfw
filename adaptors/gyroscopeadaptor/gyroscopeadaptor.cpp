@@ -70,10 +70,10 @@ void GyroscopeAdaptor::processSample(int pathId, int fd)
     gyroscopeBuffer_->wakeUpReaders();
 }
 
-bool GyroscopeAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool GyroscopeAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     if (mode() == SysfsAdaptor::IntervalMode)
-        return SysfsAdaptor::setInterval(value, sessionId);
+        return SysfsAdaptor::setInterval(sessionId, value);
 
     int rate = value==0?100:1000/value;
     sensordLogD() << "Setting poll interval for " << dataRatePath_ << " to " << rate;

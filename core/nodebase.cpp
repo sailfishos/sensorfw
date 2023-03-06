@@ -341,7 +341,7 @@ bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int value)
 
     if (winningSessionId >= 0) {
         sensordLogD() << "Setting new interval for node: " << id() << ". Evaluation won by session '" << winningSessionId << "' with request: " << winningRequest;
-        setInterval(winningRequest, winningSessionId);
+        setInterval(winningSessionId, winningRequest);
     }
 
     // Signal listeners about change
@@ -502,7 +502,7 @@ void NodeBase::removeIntervalRequest(const int sessionId)
         int winningSessionId;
         unsigned int winningRequest = evaluateIntervalRequests(winningSessionId);
         if (winningSessionId >= 0) {
-            setInterval(winningRequest, winningSessionId);
+            setInterval(winningSessionId, winningRequest);
         }
 
         // Signal listeners if changed.
@@ -728,7 +728,7 @@ unsigned int NodeBase::interval() const
     return 0;
 }
 
-bool NodeBase::setInterval(unsigned int value, int sessionId)
+bool NodeBase::setInterval(int sessionId, unsigned int value)
 {
     Q_UNUSED(value);
     Q_UNUSED(sessionId);

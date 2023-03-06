@@ -274,7 +274,7 @@ protected:
     unsigned int maxInterval() const;
 
     virtual unsigned int interval() const;
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int value);
     virtual unsigned int evaluateIntervalRequests(int& sessionId) const;
     static bool writeToFile(const QByteArray& path, const QByteArray& content);
 

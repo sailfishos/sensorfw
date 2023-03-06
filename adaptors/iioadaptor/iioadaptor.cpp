@@ -548,10 +548,10 @@ void IioAdaptor::processSample(int fileId, int fd)
     }
 }
 
-bool IioAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool IioAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     if (mode() == SysfsAdaptor::IntervalMode)
-        return SysfsAdaptor::setInterval(value, sessionId);
+        return SysfsAdaptor::setInterval(sessionId, value);
 
     sensordLogD() << "Ignoring setInterval for " << value;
 

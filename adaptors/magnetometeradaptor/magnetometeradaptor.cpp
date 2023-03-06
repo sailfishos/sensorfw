@@ -89,13 +89,13 @@ void MagnetometerAdaptor::processSample(int pathId, int fd)
     magnetometerBuffer_->wakeUpReaders();
 }
 
-bool MagnetometerAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool MagnetometerAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     if(intervalCompensation_)
     {
-        return SysfsAdaptor::setInterval((signed)value >intervalCompensation_ ? value - intervalCompensation_ : 0, sessionId);
+        return SysfsAdaptor::setInterval(sessionId, (signed)value >intervalCompensation_ ? value - intervalCompensation_ : 0);
     }
-    return SysfsAdaptor::setInterval(value, sessionId);
+    return SysfsAdaptor::setInterval(sessionId, value);
 }
 
 void MagnetometerAdaptor::setOverflowLimit(int limit)

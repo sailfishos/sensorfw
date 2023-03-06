@@ -1379,7 +1379,7 @@ unsigned int HybrisAdaptor::interval() const
     return hybrisManager()->getDelay(m_sensorHandle);
 }
 
-bool HybrisAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool HybrisAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     Q_UNUSED(sessionId);
 

@@ -174,7 +174,7 @@ unsigned int InputDevAdaptor::interval() const
     return cachedInterval_;
 }
 
-bool InputDevAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     Q_UNUSED(sessionId);
 

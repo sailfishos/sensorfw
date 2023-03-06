@@ -204,7 +204,7 @@ protected:
      *        to allow for proper state maintenance.
      * @return \c true on successfull set (valid value), \c false otherwise.
      */
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int value);
 
     /**
      * Tells which mode the adaptor is using for getting input.

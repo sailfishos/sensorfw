@@ -384,7 +384,7 @@ unsigned int SysfsAdaptor::interval() const
     return interval_;
 }
 
-bool SysfsAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int value)
 {
     Q_UNUSED(sessionId);
     if(!checkIntervalUsage())
