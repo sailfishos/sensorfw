@@ -148,6 +148,12 @@ HybrisSensorState::~HybrisSensorState()
  * HybrisManager
  * ========================================================================= */
 
+/* hybrisManager object is created on demand - which ought to happen
+ * well after QCoreApplication object has already been instantiated.
+ * Cleanup actions are executed on QCoreApplication::aboutToQuit signal.
+ * Destructor gets called after exit from main() and should be as
+ * close to nop as possible.
+ */
 Q_GLOBAL_STATIC(HybrisManager, hybrisManager)
 
 HybrisManager::HybrisManager(QObject *parent)
@@ -173,6 +179,11 @@ HybrisManager::HybrisManager(QObject *parent)
     , m_indexOfType()
     , m_indexOfHandle()
 {
+    /* Arrange it so that sensors get stopped on exit from mainloop
+     */
+    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+            this, &HybrisManager::cleanup);
+
 #ifdef USE_BINDER
     startConnect();
 #else
@@ -391,14 +402,10 @@ void HybrisManager::initManager()
 
 HybrisManager::~HybrisManager()
 {
-    cleanup();
-
-#ifdef USE_BINDER
-    if (m_serviceManager) {
-        gbinder_servicemanager_unref(m_serviceManager);
-        m_serviceManager = NULL;
-    }
-#endif
+    /* This is exectuted after exiting main() function.
+     * No actions that need core application, binder ipc,
+     * android hal libraries, etc should be made.
+     */
 }
 
 void HybrisManager::cleanup()
@@ -469,6 +476,11 @@ void HybrisManager::cleanup()
         }
         gbinder_remote_object_unref(m_remote);
         m_remote = NULL;
+    }
+
+    if (m_serviceManager) {
+        gbinder_servicemanager_unref(m_serviceManager);
+        m_serviceManager = NULL;
     }
 
     for (int i = 0 ; i < m_sensorCount ; i++) {
