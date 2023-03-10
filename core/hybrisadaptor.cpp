@@ -410,10 +410,47 @@ HybrisManager::~HybrisManager()
 
 void HybrisManager::cleanup()
 {
+    /* Stop any sensors that are active
+     */
+
     sensordLogD() << "stop all sensors";
     foreach (HybrisAdaptor *adaptor, m_registeredAdaptors.values()) {
         adaptor->stopSensor();
     }
+
+    /* Stop reacting to async events
+     */
+
+#ifdef USE_BINDER
+    gbinder_remote_object_remove_handler(m_remote, m_deathId);
+    m_deathId = 0;
+
+    if (m_pollTransactId) {
+        gbinder_client_cancel(m_client, m_pollTransactId);
+        m_pollTransactId = 0;
+
+        // The above code just marks down pending POLL transaction as
+        // to be cancelled later on when handler thread gets woken up.
+        //
+        // If we are exiting right after cleanup(), that is never going
+        // to happen and gbinder_ipc_exit() cleanup code blocks sensorfwd
+        // exit indefinitely.
+        //
+        // As a workaround: make a dummy POLL transaction, for which a
+        // reply is sent immediately, which then wakes up the handler
+        // thread, the cancellation gets processed and exit is unblocked.
+
+        GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
+        int32_t status = 0;
+        gbinder_local_request_append_int32(req, 0);
+        GBinderRemoteReply *reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
+        gbinder_remote_reply_unref(reply);
+        gbinder_local_request_unref(req);
+    }
+
+    gbinder_local_object_unref(m_sensorCallback);
+    m_sensorCallback = NULL;
+#endif
 
     if (m_eventReaderTid) {
         sensordLogD() << "Canceling event reader thread";
@@ -443,33 +480,10 @@ void HybrisManager::cleanup()
         }
     }
 
+    /* Release remaining dynamic resources
+     */
+
 #ifdef USE_BINDER
-    if (m_pollTransactId) {
-        gbinder_client_cancel(m_client, m_pollTransactId);
-        m_pollTransactId = 0;
-
-        // The above code just marks down pending POLL transaction as
-        // to be cancelled later on when handler thread gets woken up.
-        //
-        // If we are exiting right after cleanup(), that is never going
-        // to happen and gbinder_ipc_exit() cleanup code blocks sensorfwd
-        // exit indefinitely.
-        //
-        // As a workaround: make a dummy POLL transaction, for which a
-        // reply is sent immediately, which then wakes up the handler
-        // thread, the cancellation gets processed and exit is unblocked.
-
-        GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
-        int32_t status = 0;
-        gbinder_local_request_append_int32(req, 0);
-        GBinderRemoteReply *reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
-        gbinder_remote_reply_unref(reply);
-        gbinder_local_request_unref(req);
-    }
-
-    gbinder_local_object_unref(m_sensorCallback);
-    m_sensorCallback = NULL;
-
     gbinder_fmq_unref(m_wakeLockQueue);
     m_wakeLockQueue = NULL;
 
@@ -478,9 +492,6 @@ void HybrisManager::cleanup()
 
     gbinder_client_unref(m_client);
     m_client = NULL;
-
-    gbinder_remote_object_remove_handler(m_remote, m_deathId);
-    m_deathId = 0;
 
     gbinder_servicemanager_unref(m_serviceManager);
     m_serviceManager = NULL;
