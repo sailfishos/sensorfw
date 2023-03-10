@@ -1193,7 +1193,7 @@ void *HybrisManager::eventReaderThread(void *aptr)
         // Process received events
         int blockSuspend = 0;
         bool errorInInput = false;
-        manager->processEvents(buffer, numberOfEvents, blockSuspend, errorInInput);
+        manager->processEvents(buffer, eventsToRead, blockSuspend, errorInInput);
 
         // Suspend proof sensor reporting that could occur in display off
         if (blockSuspend) {
