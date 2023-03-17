@@ -182,7 +182,7 @@ public Q_SLOTS:
      * @param value interval value is milliseconds.
      * @return was request succesful.
      */
-    bool setIntervalRequest(int sessionId, unsigned int value);
+    bool setIntervalRequest(int sessionId, unsigned int interval_ms);
 
     /**
      * Request default interval for the node.
@@ -276,7 +276,7 @@ public Q_SLOTS:
      * @param value interval in milliseconds.
      * @return was interval se succesfully.
      */
-    bool setBufferInterval(int sessionId, unsigned int value);
+    bool setBufferInterval(int sessionId, unsigned int interval_ms);
 
     /**
      * Clear buffer interval requests of given session.
@@ -431,7 +431,7 @@ protected:
      * @param sessionId Session ID.
      * @return was interval set succesfully.
      */
-    virtual bool setInterval(int sessionId, unsigned int value);
+    virtual bool setInterval(int sessionId, unsigned int interval_ms);
 
     /**
      * Does node have locally set interval.
@@ -474,7 +474,7 @@ protected:
      * @param value Value to use as default interval.
      * @return was interval set succesfully.
      */
-    bool setDefaultInterval(unsigned int value);
+    bool setDefaultInterval(unsigned int interval_ms);
 
     /**
      * Validate an interval request.
@@ -508,7 +508,7 @@ protected:
      * @param value buffer interval.
      * @return was buffer interval set succesfully.
      */
-    virtual bool setBufferInterval(unsigned int value);
+    virtual bool setBufferInterval(unsigned int interval_ms);
 
     QMap<int, unsigned int> m_intervalMap;    /**< active interval requests for sessions */
 

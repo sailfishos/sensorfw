@@ -40,18 +40,18 @@ public:
     virtual bool startClient() = 0;
     virtual bool stopClient() = 0;
 
-    int dataCount() const { return dataCount_; }
-    QString sensorName() const { return sensorName_; }
+    int dataCount() const { return m_dataCount; }
+    QString sensorName() const { return m_sensorName; }
 
 protected:
-    QString sensorName_;
-    int interval_;
-    int bufferinterval_;
-    bool standbyoverride_;
-    int buffersize_;
-    int dataCount_;
-    int frameCount_;
-    bool downsample_;
+    QString m_sensorName;
+    int m_interval_ms;
+    int m_bufferinterval_ms;
+    bool m_standbyoverride;
+    int m_buffersize;
+    int m_dataCount;
+    int m_frameCount;
+    bool m_downsample;
 };
 
 #endif // ABSTRACTSENSORHANDLER_H

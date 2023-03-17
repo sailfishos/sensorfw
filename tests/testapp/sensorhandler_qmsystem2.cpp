@@ -27,75 +27,75 @@
 
 SensorHandler::SensorHandler(const QString& sensorName, QObject *parent) :
     AbstractSensorHandler(sensorName, parent),
-    sensor_(NULL)
+    m_sensor(NULL)
 {
-    if (sensorName_ == "compasssensor")
+    if (m_sensorName == "compasssensor")
     {
-        sensor_ = new MeeGo::QmCompass();
-        connect(sensor_, SIGNAL(dataAvailable(const MeeGo::QmCompassReading)), this, SLOT(receivedData(const MeeGo::QmCompassReading)));
+        m_sensor = new MeeGo::QmCompass();
+        connect(m_sensor, SIGNAL(dataAvailable(const MeeGo::QmCompassReading)), this, SLOT(receivedData(const MeeGo::QmCompassReading)));
     }
-    else if (sensorName_ == "magnetometersensor")
+    else if (m_sensorName == "magnetometersensor")
     {
-        sensor_ = new MeeGo::QmMagnetometer();
-        connect(sensor_, SIGNAL(dataAvailable(const MeeGo::QmMagnetometerReading&)), this, SLOT(receivedData(const MeeGo::QmMagnetometerReading&)));
+        m_sensor = new MeeGo::QmMagnetometer();
+        connect(m_sensor, SIGNAL(dataAvailable(const MeeGo::QmMagnetometerReading&)), this, SLOT(receivedData(const MeeGo::QmMagnetometerReading&)));
     }
-    else if (sensorName_ ==  "orientationsensor")
+    else if (m_sensorName ==  "orientationsensor")
     {
-        sensor_ = new MeeGo::QmOrientation();
-        connect(sensor_, SIGNAL(orientationChanged(const MeeGo::QmOrientationReading)), this, SLOT(receivedData(const MeeGo::QmOrientationReading)));
+        m_sensor = new MeeGo::QmOrientation();
+        connect(m_sensor, SIGNAL(orientationChanged(const MeeGo::QmOrientationReading)), this, SLOT(receivedData(const MeeGo::QmOrientationReading)));
     }
-    else if (sensorName_ == "accelerometersensor")
+    else if (m_sensorName == "accelerometersensor")
     {
-        sensor_ = new MeeGo::QmAccelerometer();
-        connect(sensor_, SIGNAL(dataAvailable(const MeeGo::QmAccelerometerReading&)), this, SLOT(receivedData(const MeeGo::QmAccelerometerReading&)));
+        m_sensor = new MeeGo::QmAccelerometer();
+        connect(m_sensor, SIGNAL(dataAvailable(const MeeGo::QmAccelerometerReading&)), this, SLOT(receivedData(const MeeGo::QmAccelerometerReading&)));
     }
-    else if (sensorName_ == "alssensor")
+    else if (m_sensorName == "alssensor")
     {
-        sensor_ = new MeeGo::QmALS();
-        connect(sensor_, SIGNAL(ALSChanged(const MeeGo::QmAlsReading)), this, SLOT(receivedData(const MeeGo::QmIntReading)));
+        m_sensor = new MeeGo::QmALS();
+        connect(m_sensor, SIGNAL(ALSChanged(const MeeGo::QmAlsReading)), this, SLOT(receivedData(const MeeGo::QmIntReading)));
     }
-    else if (sensorName_ == "rotationsensor")
+    else if (m_sensorName == "rotationsensor")
     {
-        sensor_ = new MeeGo::QmRotation();
-        connect(sensor_, SIGNAL(dataAvailable(const MeeGo::QmRotationReading&)), this, SLOT(receivedData(const MeeGo::QmRotationReading&)));
+        m_sensor = new MeeGo::QmRotation();
+        connect(m_sensor, SIGNAL(dataAvailable(const MeeGo::QmRotationReading&)), this, SLOT(receivedData(const MeeGo::QmRotationReading&)));
     }
-    else if (sensorName_ == "tapsensor")
+    else if (m_sensorName == "tapsensor")
     {
-        sensor_ = new MeeGo::QmTap();
-        connect(sensor_, SIGNAL(tapped(const MeeGo::QmTapReading)), this, SLOT(receivedData(const MeeGo::QmTapReading)));
+        m_sensor = new MeeGo::QmTap();
+        connect(m_sensor, SIGNAL(tapped(const MeeGo::QmTapReading)), this, SLOT(receivedData(const MeeGo::QmTapReading)));
     }
-    else if (sensorName_ == "proximitysensor")
+    else if (m_sensorName == "proximitysensor")
     {
-        sensor_ = new MeeGo::QmProximity();
-        connect(sensor_, SIGNAL(ProximityChanged(const MeeGo::QmProximityReading)), this, SLOT(receivedData(const MeeGo::QmIntReading)));
+        m_sensor = new MeeGo::QmProximity();
+        connect(m_sensor, SIGNAL(ProximityChanged(const MeeGo::QmProximityReading)), this, SLOT(receivedData(const MeeGo::QmIntReading)));
     }
 }
 
 void SensorHandler::receivedData(const MeeGo::QmAccelerometerReading& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x << " " << data.y << " " <<   data.z;
 }
 
 void SensorHandler::receivedData(const MeeGo::QmIntReading data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.value;
 }
 
 void SensorHandler::receivedData(const MeeGo::QmCompassReading data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.level << " " << data.degrees;
 }
 
 void SensorHandler::receivedData(const MeeGo::QmMagnetometerReading& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x << " " << data.y << " " << data.z << " "
                   << data.rx << " " << data.ry << " " << data.rz << " "
                   << data.level;
@@ -103,30 +103,30 @@ void SensorHandler::receivedData(const MeeGo::QmMagnetometerReading& data)
 
 void SensorHandler::receivedData(const MeeGo::QmOrientationReading data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.value;
 }
 
 void SensorHandler::receivedData(const MeeGo::QmRotationReading& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x << " " << data.y << " " <<   data.z;
 }
 
 void SensorHandler::receivedData(const MeeGo::QmTapReading data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.type << " " << data.direction;
 }
 
 bool SensorHandler::startClient()
 {
-    sensor_->requestSession(MeeGo::QmSensor::SessionTypeListen);
-    sensor_->setInterval(interval_);
-    sensor_->setStandbyOverride(standbyoverride_);
+    m_sensor->requestSession(MeeGo::QmSensor::SessionTypeListen);
+    m_sensor->setInterval(m_interval_ms);
+    m_sensor->setStandbyOverride(m_standbyoverride);
     return true;
 }
 

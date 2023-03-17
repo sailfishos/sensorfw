@@ -139,9 +139,9 @@ struct HybrisSensorState
     HybrisSensorState();
     ~HybrisSensorState();
 
-    int  m_minDelay;
-    int  m_maxDelay;
-    int  m_delay;
+    int  m_minDelay_ms;
+    int  m_maxDelay_ms;
+    int  m_delay_ms;
     int  m_active;
     sensors_event_t m_fallbackEvent;
 };
@@ -274,7 +274,7 @@ protected:
     unsigned int maxInterval() const;
 
     virtual unsigned int interval() const;
-    virtual bool setInterval(const int sessionId, const unsigned int value);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_ms);
     virtual unsigned int evaluateIntervalRequests(int& sessionId) const;
     static bool writeToFile(const QByteArray& path, const QByteArray& content);
 

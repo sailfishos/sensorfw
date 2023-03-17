@@ -43,7 +43,7 @@ public:
     bool running;
 
 private:
-    FakeAdaptor *parent_;
+    FakeAdaptor *m_parent;
 };
 
 /**
@@ -68,14 +68,14 @@ public:
 
     void init();
 
-    unsigned int interval_;
+    unsigned int m_interval_ms;
 
 protected:
     FakeAdaptor(const QString& id);
 
 private:
-    FakeAdaptorThread* t;
-    DeviceAdaptorRingBuffer<TimedUnsigned>* buffer_;
+    FakeAdaptorThread *m_thread;
+    DeviceAdaptorRingBuffer<TimedUnsigned> *m_buffer;
 };
 
 #endif

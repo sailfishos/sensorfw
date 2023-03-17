@@ -183,12 +183,12 @@ unsigned int RotationSensorChannel::interval() const
     return accelerometerChain_->getInterval();
 }
 
-bool RotationSensorChannel::setInterval(int sessionId, unsigned int value)
+bool RotationSensorChannel::setInterval(int sessionId, unsigned int interval_ms)
 {
-    bool success = accelerometerChain_->setIntervalRequest(sessionId, value);
+    bool success = accelerometerChain_->setIntervalRequest(sessionId, interval_ms);
     if (hasZ())
     {
-        success = compassChain_->setIntervalRequest(sessionId, value) && success;
+        success = compassChain_->setIntervalRequest(sessionId, interval_ms) && success;
     }
 
     return success;

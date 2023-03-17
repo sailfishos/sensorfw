@@ -29,22 +29,22 @@
 
 AbstractSensorHandler::AbstractSensorHandler(const QString& sensorName, QObject *parent) :
     QThread(parent),
-    sensorName_(sensorName),
-    interval_(100),
-    bufferinterval_(0),
-    standbyoverride_(false),
-    buffersize_(0),
-    dataCount_(0),
-    frameCount_(0),
-    downsample_(false)
+    m_sensorName(sensorName),
+    m_interval_ms(100),
+    m_bufferinterval_ms(0),
+    m_standbyoverride(false),
+    m_buffersize(0),
+    m_dataCount(0),
+    m_frameCount(0),
+    m_downsample(false)
 {
     if (SensorFrameworkConfig::configuration() != NULL)
     {
-        interval_ = SensorFrameworkConfig::configuration()->value(sensorName_ + "/interval", 100);
-        bufferinterval_ = SensorFrameworkConfig::configuration()->value(sensorName_ + "/bufferinterval", 0);
-        standbyoverride_ = SensorFrameworkConfig::configuration()->value(sensorName_ + "/standbyoverride", false);
-        buffersize_ = SensorFrameworkConfig::configuration()->value(sensorName_ + "/buffersize", 0);
-        downsample_ = SensorFrameworkConfig::configuration()->value(sensorName_ + "/downsample", false);
+        m_interval_ms = SensorFrameworkConfig::configuration()->value(m_sensorName + "/interval", 100);
+        m_bufferinterval_ms = SensorFrameworkConfig::configuration()->value(m_sensorName + "/bufferinterval", 0);
+        m_standbyoverride = SensorFrameworkConfig::configuration()->value(m_sensorName + "/standbyoverride", false);
+        m_buffersize = SensorFrameworkConfig::configuration()->value(m_sensorName + "/buffersize", 0);
+        m_downsample = SensorFrameworkConfig::configuration()->value(m_sensorName + "/downsample", false);
     }
 }
 

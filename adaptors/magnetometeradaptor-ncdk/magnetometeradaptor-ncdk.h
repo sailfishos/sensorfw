@@ -58,7 +58,7 @@ protected:
     MagnetometerAdaptorNCDK(const QString& id);
     ~MagnetometerAdaptorNCDK();
 
-    bool setInterval(const int sessionId, const unsigned int value);
+    bool setInterval(const int sessionId, const unsigned int interval_ms);
 
 private:
 

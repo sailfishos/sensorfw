@@ -548,21 +548,21 @@ void IioAdaptor::processSample(int fileId, int fd)
     }
 }
 
-bool IioAdaptor::setInterval(const int sessionId, const unsigned int value)
+bool IioAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
 {
     if (mode() == SysfsAdaptor::IntervalMode)
-        return SysfsAdaptor::setInterval(sessionId, value);
+        return SysfsAdaptor::setInterval(sessionId, interval_ms);
 
-    sensordLogD() << "Ignoring setInterval for " << value;
+    sensordLogD() << "Ignoring setInterval for " << interval_ms;
 
     return true;
 }
 
 //unsigned int IioAdaptor::interval() const
 //{
-//    int value = 100;
-//    sensordLogD() << "Returning dummy value in interval(): " << value;
-//    return value;
+//    int interval_ms = 100;
+//    sensordLogD() << "Returning dummy value in interval(): " << interval_ms;
+//    return interval_ms;
 //}
 
 

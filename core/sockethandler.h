@@ -92,7 +92,7 @@ public:
      *
      * @param interval Interval in milliseconds.
      */
-    void setInterval(int interval);
+    void setInterval(int interval_ms);
 
     /**
      * Get used interval for the data stream.
@@ -122,7 +122,7 @@ public:
      *
      * @param interval interval in milliseconds.
      */
-    void setBufferInterval(unsigned int interval);
+    void setBufferInterval(unsigned int interval_ms);
 
     /**
      * Get buffer inteval for the data stream.
@@ -171,16 +171,16 @@ private:
      */
     bool delayedWrite();
 
-    QLocalSocket* socket;        /**< socket pointer. */
-    int interval;                /**< interval in milliseconds. */
-    char* buffer;                /**< pointer to buffer allocation. */
-    int size;                    /**< allocated buffer size. */
-    unsigned int count;          /**< how many elements are in the buffer */
-    struct timeval lastWrite;    /**< when data was written last time */
-    QTimer timer;                /**< timer for delayed write */
-    unsigned int bufferSize;     /**< buffer size */
-    unsigned int bufferInterval; /**< buffer interval in milliseconds */
-    bool downsampling;           /**< sample dropping */
+    QLocalSocket *m_socket;           /**< socket pointer. */
+    int m_interval_ms;                /**< interval in milliseconds. */
+    char *m_buffer;                   /**< pointer to buffer allocation. */
+    int m_size;                       /**< allocated buffer size. */
+    unsigned int m_count;             /**< how many elements are in the buffer */
+    struct timeval m_lastWrite;       /**< when data was written last time */
+    QTimer m_timer;                   /**< timer for delayed write */
+    unsigned int m_bufferSize;        /**< buffer size */
+    unsigned int m_bufferInterval_ms; /**< buffer interval in milliseconds */
+    bool m_downsampling;              /**< sample dropping */
 
 private slots:
 
@@ -260,7 +260,7 @@ public:
      * @param sessionId Session ID.
      * @param value Interval in milliseconds.
      */
-    void setInterval(int sessionId, int value);
+    void setInterval(int sessionId, int interval_ms);
 
     /**
      * Remove set interval from given session.
@@ -310,7 +310,7 @@ public:
      * @param sessionId Session ID.
      * @param value buffer inteval in milliseconds.
      */
-    void setBufferInterval(int sessionId, unsigned int value);
+    void setBufferInterval(int sessionId, unsigned int interval_ms);
 
     /**
      * Remove set buffer inteval for given session.

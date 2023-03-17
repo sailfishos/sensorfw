@@ -29,102 +29,102 @@
 
 SensorHandler::SensorHandler(const QString& sensorName, QObject *parent) :
     AbstractSensorHandler(sensorName, parent),
-    sensorChannelInterface_(NULL)
+    m_sensorChannelInterface(NULL)
 {
 }
 
 void SensorHandler::receivedData(const MagneticField& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x() << " " << data.y() << " " <<   data.z();
 }
 
 void SensorHandler::receivedData(const XYZ& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x() << " " << data.y() << " " <<   data.z();
 }
 
 void SensorHandler::receivedData(const Compass& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.degrees() << " " << data.level();
 }
 
 void SensorHandler::receivedData(const Unsigned& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x();
 }
 
 void SensorHandler::receivedData(const Tap& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.direction() << " " << data.type();
 }
 
 void SensorHandler::receivedData(const Proximity& data)
 {
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << data.UnsignedData().value_ << " " << data.proximityData().value_;
 }
 
 void SensorHandler::receivedFrame(const QVector<MagneticField>& frame)
 {
-    ++frameCount_;
-    sensordLogT() << sensorName_ << " frame " << frameCount_ << " size " << frame.size();
+    ++m_frameCount;
+    sensordLogT() << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
     foreach (const MagneticField& data, frame)
     {
         sensordLogT() << data.x() << " " << data.y() << " " << data.z();
-        ++dataCount_;
+        ++m_dataCount;
     }
 }
 
 void SensorHandler::receivedFrame(const QVector<XYZ>& frame)
 {
-    ++frameCount_;
-    sensordLogT() << sensorName_ << " frame " << frameCount_ << " size " << frame.size();
+    ++m_frameCount;
+    sensordLogT() << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
     foreach (const XYZ& data, frame)
     {
         sensordLogT() << data.x() << " " << data.y() << " " << data.z();
-        ++dataCount_;
+        ++m_dataCount;
     }
 }
 
 bool SensorHandler::startClient()
 {
     createSensorInterface();
-    if (sensorChannelInterface_ == 0)
+    if (m_sensorChannelInterface == 0)
     {
          sensordLogD() << "Creating sensor client interface fails.";
          return false;
     }
-    sensordLogD() << "Created sensor: " << sensorChannelInterface_->description();
-    sensordLogD() << "Support intervals: " << toString(sensorChannelInterface_->getAvailableIntervals());
-    sensordLogD() << "Support dataranges: " << toString(sensorChannelInterface_->getAvailableDataRanges());
-    sensorChannelInterface_->setInterval(interval_);
-    sensorChannelInterface_->setBufferInterval(bufferinterval_);
-    sensorChannelInterface_->setBufferSize(buffersize_);
-    sensorChannelInterface_->setStandbyOverride(standbyoverride_);
-    sensorChannelInterface_->setDownsampling(downsample_);
-    sensorChannelInterface_->start();
+    sensordLogD() << "Created sensor: " << m_sensorChannelInterface->description();
+    sensordLogD() << "Support intervals: " << toString(m_sensorChannelInterface->getAvailableIntervals());
+    sensordLogD() << "Support dataranges: " << toString(m_sensorChannelInterface->getAvailableDataRanges());
+    m_sensorChannelInterface->setInterval(m_interval_ms);
+    m_sensorChannelInterface->setBufferInterval(m_bufferinterval_ms);
+    m_sensorChannelInterface->setBufferSize(m_buffersize);
+    m_sensorChannelInterface->setStandbyOverride(m_standbyoverride);
+    m_sensorChannelInterface->setDownsampling(m_downsample);
+    m_sensorChannelInterface->start();
 
     return true;
 }
 
 bool SensorHandler::stopClient()
 {
-    if (sensorChannelInterface_)
+    if (m_sensorChannelInterface)
     {
-        sensorChannelInterface_->stop();
-        delete sensorChannelInterface_;
-        sensorChannelInterface_ = 0;
+        m_sensorChannelInterface->stop();
+        delete m_sensorChannelInterface;
+        m_sensorChannelInterface = 0;
     }
     return true;
 }
@@ -169,48 +169,48 @@ bool SensorHandler::init(const QStringList& sensors)
 
 void SensorHandler::createSensorInterface()
 {
-    if (sensorName_ == "compasssensor")
+    if (m_sensorName == "compasssensor")
     {
-        sensorChannelInterface_ = CompassSensorChannelInterface::interface("compasssensor");
-        connect(sensorChannelInterface_, SIGNAL(dataAvailable(const Compass&)), this, SLOT(receivedData(const Compass&)));
+        m_sensorChannelInterface = CompassSensorChannelInterface::interface("compasssensor");
+        connect(m_sensorChannelInterface, SIGNAL(dataAvailable(const Compass&)), this, SLOT(receivedData(const Compass&)));
     }
-    else if (sensorName_ == "magnetometersensor")
+    else if (m_sensorName == "magnetometersensor")
     {
-        sensorChannelInterface_ = MagnetometerSensorChannelInterface::interface("magnetometersensor");
-        connect(sensorChannelInterface_, SIGNAL(dataAvailable(const MagneticField&)), this, SLOT(receivedData(const MagneticField&)));
-        connect(sensorChannelInterface_, SIGNAL(frameAvailable(const QVector<MagneticField>&)), this, SLOT(receivedFrame(const QVector<MagneticField>&)));
+        m_sensorChannelInterface = MagnetometerSensorChannelInterface::interface("magnetometersensor");
+        connect(m_sensorChannelInterface, SIGNAL(dataAvailable(const MagneticField&)), this, SLOT(receivedData(const MagneticField&)));
+        connect(m_sensorChannelInterface, SIGNAL(frameAvailable(const QVector<MagneticField>&)), this, SLOT(receivedFrame(const QVector<MagneticField>&)));
     }
-    else if (sensorName_ ==  "orientationsensor")
+    else if (m_sensorName ==  "orientationsensor")
     {
-        sensorChannelInterface_ = OrientationSensorChannelInterface::interface("orientationsensor");
-        connect(sensorChannelInterface_, SIGNAL(orientationChanged(const Unsigned&)), this, SLOT(receivedData(const Unsigned&)));
+        m_sensorChannelInterface = OrientationSensorChannelInterface::interface("orientationsensor");
+        connect(m_sensorChannelInterface, SIGNAL(orientationChanged(const Unsigned&)), this, SLOT(receivedData(const Unsigned&)));
     }
-    else if (sensorName_ == "accelerometersensor")
+    else if (m_sensorName == "accelerometersensor")
     {
-        sensorChannelInterface_ = AccelerometerSensorChannelInterface::interface("accelerometersensor");
-        connect(sensorChannelInterface_, SIGNAL(dataAvailable(const XYZ&)), this, SLOT(receivedData(const XYZ&)));
-        connect(sensorChannelInterface_, SIGNAL(frameAvailable(const QVector<XYZ>&)), this, SLOT(receivedFrame(const QVector<XYZ>&)));
+        m_sensorChannelInterface = AccelerometerSensorChannelInterface::interface("accelerometersensor");
+        connect(m_sensorChannelInterface, SIGNAL(dataAvailable(const XYZ&)), this, SLOT(receivedData(const XYZ&)));
+        connect(m_sensorChannelInterface, SIGNAL(frameAvailable(const QVector<XYZ>&)), this, SLOT(receivedFrame(const QVector<XYZ>&)));
     }
-    else if (sensorName_ == "alssensor")
+    else if (m_sensorName == "alssensor")
     {
-        sensorChannelInterface_ = ALSSensorChannelInterface::interface("alssensor");
-        connect(sensorChannelInterface_, SIGNAL(ALSChanged(const Unsigned&)), this, SLOT(receivedData(const Unsigned&)));
+        m_sensorChannelInterface = ALSSensorChannelInterface::interface("alssensor");
+        connect(m_sensorChannelInterface, SIGNAL(ALSChanged(const Unsigned&)), this, SLOT(receivedData(const Unsigned&)));
     }
-    else if (sensorName_ == "rotationsensor")
+    else if (m_sensorName == "rotationsensor")
     {
-        sensorChannelInterface_ = RotationSensorChannelInterface::interface("rotationsensor");
-        connect(sensorChannelInterface_, SIGNAL(dataAvailable(const XYZ&)), this, SLOT(receivedData(const XYZ&)));
-        connect(sensorChannelInterface_, SIGNAL(frameAvailable(const QVector<XYZ>&)), this, SLOT(receivedFrame(const QVector<XYZ>&)));
+        m_sensorChannelInterface = RotationSensorChannelInterface::interface("rotationsensor");
+        connect(m_sensorChannelInterface, SIGNAL(dataAvailable(const XYZ&)), this, SLOT(receivedData(const XYZ&)));
+        connect(m_sensorChannelInterface, SIGNAL(frameAvailable(const QVector<XYZ>&)), this, SLOT(receivedFrame(const QVector<XYZ>&)));
     }
-    else if (sensorName_ == "tapsensor")
+    else if (m_sensorName == "tapsensor")
     {
-        sensorChannelInterface_ = TapSensorChannelInterface::interface("tapsensor");
-        connect(sensorChannelInterface_, SIGNAL(dataAvailable(const Tap&)), this, SLOT(receivedData(const Tap&)));
+        m_sensorChannelInterface = TapSensorChannelInterface::interface("tapsensor");
+        connect(m_sensorChannelInterface, SIGNAL(dataAvailable(const Tap&)), this, SLOT(receivedData(const Tap&)));
     }
-    else if (sensorName_ == "proximitysensor")
+    else if (m_sensorName == "proximitysensor")
     {
-        sensorChannelInterface_ = ProximitySensorChannelInterface::interface("proximitysensor");
-        connect(sensorChannelInterface_, SIGNAL(reflectanceDataAvailable(const Proximity&)), this, SLOT(receivedData(const Proximity&)));
+        m_sensorChannelInterface = ProximitySensorChannelInterface::interface("proximitysensor");
+        connect(m_sensorChannelInterface, SIGNAL(reflectanceDataAvailable(const Proximity&)), this, SLOT(receivedData(const Proximity&)));
     }
 }
 

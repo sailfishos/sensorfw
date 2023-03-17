@@ -314,23 +314,23 @@ unsigned int NodeBase::getInterval(int sessionId) const
     return it.value();
 }
 
-bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int value)
+bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int interval_ms)
 {
     // Has single defined source, pass the request that way
     if (!hasLocalInterval())
     {
-        return m_intervalSource->setIntervalRequest(sessionId, value);
+        return m_intervalSource->setIntervalRequest(sessionId, interval_ms);
     }
 
     // Validate interval request
-    if (!isValidIntervalRequest(value))
+    if (!isValidIntervalRequest(interval_ms))
     {
-        sensordLogW() << "Invalid interval requested for node '" << id() << "' by session '" << sessionId << "': " << value;
+        sensordLogW() << "Invalid interval requested for node '" << id() << "' by session '" << sessionId << "': " << interval_ms;
         return false;
     }
 
     // Store the request for the session
-    m_intervalMap[sessionId] = value;
+    m_intervalMap[sessionId] = interval_ms;
 
     // Store the current interval
     unsigned int previousInterval = interval();
@@ -455,14 +455,14 @@ unsigned int NodeBase::defaultInterval() const
     return m_defaultInterval;
 }
 
-bool NodeBase::setDefaultInterval(const unsigned int value)
+bool NodeBase::setDefaultInterval(const unsigned int interval_ms)
 {
-    if (!isValidIntervalRequest(value))
+    if (!isValidIntervalRequest(interval_ms))
     {
-        sensordLogW() << "Attempting to define invalid default data rate:" << value;
+        sensordLogW() << "Attempting to define invalid default data rate:" << interval_ms;
         return false;
     }
-    m_defaultInterval = value;
+    m_defaultInterval = interval_ms;
     m_hasDefault = true;
     return true;
 }
@@ -641,12 +641,12 @@ bool NodeBase::updateBufferSize()
     return false;
 }
 
-bool NodeBase::setBufferInterval(int sessionId, unsigned int value)
+bool NodeBase::setBufferInterval(int sessionId, unsigned int interval_ms)
 {
     bool hwbuffering = false;
-    if(!isInRange(value, getAvailableBufferIntervals(hwbuffering)))
+    if(!isInRange(interval_ms, getAvailableBufferIntervals(hwbuffering)))
         return false;
-    m_bufferIntervalMap.insert(sessionId, value);
+    m_bufferIntervalMap.insert(sessionId, interval_ms);
     return updateBufferInterval();
 }
 
@@ -728,9 +728,9 @@ unsigned int NodeBase::interval() const
     return 0;
 }
 
-bool NodeBase::setInterval(int sessionId, unsigned int value)
+bool NodeBase::setInterval(int sessionId, unsigned int interval_ms)
 {
-    Q_UNUSED(value);
+    Q_UNUSED(interval_ms);
     Q_UNUSED(sessionId);
     sensordLogD() << __func__ << "not implemented in some node using it.";
     return false;
@@ -743,9 +743,9 @@ bool NodeBase::setBufferSize(unsigned int value)
     return false;
 }
 
-bool NodeBase::setBufferInterval(unsigned int value)
+bool NodeBase::setBufferInterval(unsigned int interval_ms)
 {
-    Q_UNUSED(value);
+    Q_UNUSED(interval_ms);
     sensordLogD() << __func__ << "not implemented in some node using it.";
     return false;
 }

@@ -151,13 +151,13 @@ void MagnetometerAdaptorNCDK::stopSensor()
     SysfsAdaptor::stopSensor();
 }
 
-bool MagnetometerAdaptorNCDK::setInterval(const int sessionId, const unsigned int value)
+bool MagnetometerAdaptorNCDK::setInterval(const int sessionId, const unsigned int interval_ms)
 {
     if(intervalCompensation_)
     {
-        return SysfsAdaptor::setInterval(sessionId, (int)value > intervalCompensation_ ? value - intervalCompensation_ : 0);
+        return SysfsAdaptor::setInterval(sessionId, (int)interval_ms > intervalCompensation_ ? interval_ms - intervalCompensation_ : 0);
     }
-    return SysfsAdaptor::setInterval(sessionId, value);
+    return SysfsAdaptor::setInterval(sessionId, interval_ms);
 }
 
 void MagnetometerAdaptorNCDK::setOverflowLimit(int limit)

@@ -43,21 +43,21 @@ SysfsAdaptor::SysfsAdaptor(const QString& id,
                            const QString& path,
                            const int pathId) :
     DeviceAdaptor(id),
-    reader_(this),
-    mode_(mode),
-    epollDescriptor_(-1),
-    interval_(0),
-    inStandbyMode_(false),
-    running_(false),
-    shouldBeRunning_(false),
-    doSeek_(seek)
+    m_reader(this),
+    m_mode(mode),
+    m_epollDescriptor(-1),
+    m_interval_ms(0),
+    m_inStandbyMode(false),
+    m_running(false),
+    m_shouldBeRunning(false),
+    m_doSeek(seek)
 {
     if (!path.isEmpty()) {
         addPath(path, pathId);
     }
 
-    pipeDescriptors_[0] = -1;
-    pipeDescriptors_[1] = -1;
+    m_pipeDescriptors[0] = -1;
+    m_pipeDescriptors[1] = -1;
 }
 
 SysfsAdaptor::~SysfsAdaptor()
@@ -73,15 +73,15 @@ bool SysfsAdaptor::addPath(const QString& path, const int id)
         return false;
     }
 
-    paths_.append(path);
-    pathIds_.append(id);
+    m_paths.append(path);
+    m_pathIds.append(id);
 
     return true;
 }
 
 bool SysfsAdaptor::isRunning() const
 {
-    return running_;
+    return m_running;
 }
 
 bool SysfsAdaptor::startAdaptor()
@@ -114,27 +114,27 @@ bool SysfsAdaptor::startSensor()
         return false;
     }
 
-    shouldBeRunning_ = true;
+    m_shouldBeRunning = true;
 
     // Do not open if in standby mode.
-    if (inStandbyMode_ && !deviceStandbyOverride()) {
+    if (m_inStandbyMode && !deviceStandbyOverride()) {
         return false;
     }
 
     /// We are waking up from standby or starting fresh, no matter
-    inStandbyMode_ = false;
+    m_inStandbyMode = false;
 
     if (!startReaderThread()) {
         sensordLogW() << "Failed to start adaptor " << name();
         entry->removeReference();
         entry->setIsRunning(false);
-        running_ = false;
-        shouldBeRunning_ = false;
+        m_running = false;
+        m_shouldBeRunning = false;
         return false;
     }
 
     entry->setIsRunning(true);
-    running_ = true;
+    m_running = true;
 
     return true;
 }
@@ -150,19 +150,19 @@ void SysfsAdaptor::stopSensor()
 
     entry->removeReference();
     if (entry->referenceCount() <= 0) {
-        if (!inStandbyMode_) {
+        if (!m_inStandbyMode) {
             stopReaderThread();
             closeAllFds();
         }
         entry->setIsRunning(false);
-        running_ = false;
+        m_running = false;
     }
 }
 
 bool SysfsAdaptor::standby()
 {
     sensordLogD() << "Adaptor '" << id() << "' requested to go to standby";
-    if (inStandbyMode_) {
+    if (m_inStandbyMode) {
         sensordLogD() << "Adaptor '" << id() << "' not going to standby: already in standby";
         return false;
     }
@@ -175,13 +175,13 @@ bool SysfsAdaptor::standby()
         return false;
     }
 
-    inStandbyMode_ = true;
-    shouldBeRunning_ = true;
+    m_inStandbyMode = true;
+    m_shouldBeRunning = true;
     sensordLogD() << "Adaptor '" << id() << "' going to standby";
     stopReaderThread();
     closeAllFds();
 
-    running_ = false;
+    m_running = false;
     stopAdaptor();
     return true;
 }
@@ -191,58 +191,58 @@ bool SysfsAdaptor::resume()
     sensordLogD() << "Adaptor '" << id() << "' requested to resume from standby";
 
     // Don't resume if not in standby
-    if (!inStandbyMode_) {
+    if (!m_inStandbyMode) {
         sensordLogD() << "Adaptor '" << id() << "' not resuming: not in standby";
         return false;
     }
 
 
-    if (!shouldBeRunning_) {
+    if (!m_shouldBeRunning) {
         sensordLogD() << "Adaptor '" << id() << "' not resuming from standby: not running";
         return false;
     }
 
     sensordLogD() << "Adaptor '" << id() << "' resuming from standby";
-    inStandbyMode_ = false;
+    m_inStandbyMode = false;
 
     if (!startReaderThread()) {
         sensordLogW() << "Adaptor '" << id() << "' failed to resume from standby!";
         return false;
     }
 
-    running_ = true;
+    m_running = true;
     startAdaptor();
     return true;
 }
 
 bool SysfsAdaptor::openFds()
 {
-    QMutexLocker locker(&mutex_);
+    QMutexLocker locker(&m_mutex);
 
     int fd;
-    for (int i = 0; i < paths_.size(); i++) {
-        if ((fd = open(paths_.at(i).toLatin1().constData(), O_RDONLY)) == -1) {
+    for (int i = 0; i < m_paths.size(); i++) {
+        if ((fd = open(m_paths.at(i).toLatin1().constData(), O_RDONLY)) == -1) {
             sensordLogW() << "open(): " << strerror(errno);
             return false;
         }
-        sysfsDescriptors_.append(fd);
+        m_sysfsDescriptors.append(fd);
     }
 
     // Set up epoll for select mode
-    if (mode_ == SelectMode) {
+    if (m_mode == SelectMode) {
 
-        if (pipe(pipeDescriptors_) == -1 ) {
+        if (pipe(m_pipeDescriptors) == -1 ) {
             sensordLogW() << "pipe(): " << strerror(errno);
             return false;
         }
 
-        if (fcntl(pipeDescriptors_[0], F_SETFD, FD_CLOEXEC) == -1) {
+        if (fcntl(m_pipeDescriptors[0], F_SETFD, FD_CLOEXEC) == -1) {
             sensordLogW() << "fcntl(): " << strerror(errno);
             return false;
         }
 
         // Set up epoll fd
-        if ((epollDescriptor_ = epoll_create(sysfsDescriptors_.size() + 1)) == -1) {
+        if ((m_epollDescriptor = epoll_create(m_sysfsDescriptors.size() + 1)) == -1) {
             sensordLogW() << "epoll_create(): " << strerror(errno);
             return false;
         }
@@ -252,17 +252,17 @@ bool SysfsAdaptor::openFds()
         ev.events  = EPOLLIN;
 
         // Set up epolling for the list
-        for (int i = 0; i < sysfsDescriptors_.size(); ++i) {
-            ev.data.fd = sysfsDescriptors_.at(i);
-            if (epoll_ctl(epollDescriptor_, EPOLL_CTL_ADD, sysfsDescriptors_.at(i), &ev) == -1) {
+        for (int i = 0; i < m_sysfsDescriptors.size(); ++i) {
+            ev.data.fd = m_sysfsDescriptors.at(i);
+            if (epoll_ctl(m_epollDescriptor, EPOLL_CTL_ADD, m_sysfsDescriptors.at(i), &ev) == -1) {
                 sensordLogW() << "epoll_ctl(): " << strerror(errno);
                 return false;
             }
         }
 
         // Add control pipe to poll list
-        ev.data.fd = pipeDescriptors_[0];
-        if (epoll_ctl(epollDescriptor_, EPOLL_CTL_ADD, pipeDescriptors_[0], &ev) == -1) {
+        ev.data.fd = m_pipeDescriptors[0];
+        if (epoll_ctl(m_epollDescriptor, EPOLL_CTL_ADD, m_pipeDescriptors[0], &ev) == -1) {
             sensordLogW() << "epoll_ctl(): " << strerror(errno);
             return false;
         }
@@ -273,42 +273,42 @@ bool SysfsAdaptor::openFds()
 
 void SysfsAdaptor::closeAllFds()
 {
-    QMutexLocker locker(&mutex_);
+    QMutexLocker locker(&m_mutex);
 
     /* Epoll */
-    if (epollDescriptor_ != -1) {
-        close(epollDescriptor_);
-        epollDescriptor_ = -1;
+    if (m_epollDescriptor != -1) {
+        close(m_epollDescriptor);
+        m_epollDescriptor = -1;
     }
 
     /* Pipe */
     for (int i = 0; i < 2; ++i) {
-        if (pipeDescriptors_[i] != -1) {
-            close(pipeDescriptors_[i]);
-            pipeDescriptors_[i] = -1;
+        if (m_pipeDescriptors[i] != -1) {
+            close(m_pipeDescriptors[i]);
+            m_pipeDescriptors[i] = -1;
         }
     }
 
     /* SysFS */
-    while (!sysfsDescriptors_.empty()) {
-        if (sysfsDescriptors_.last() != -1) {
-            close(sysfsDescriptors_.last());
+    while (!m_sysfsDescriptors.empty()) {
+        if (m_sysfsDescriptors.last() != -1) {
+            close(m_sysfsDescriptors.last());
         }
-        sysfsDescriptors_.removeLast();
+        m_sysfsDescriptors.removeLast();
     }
 }
 
 void SysfsAdaptor::stopReaderThread()
 {
-    if (mode_ == SelectMode) {
+    if (m_mode == SelectMode) {
         quint64 dummy = 1;
-        ssize_t bytesWritten = write(pipeDescriptors_[1], &dummy, 8);
+        ssize_t bytesWritten = write(m_pipeDescriptors[1], &dummy, 8);
         if (!bytesWritten)
             qWarning() << "Could not write pipe descriptors";
     }
     else
-        reader_.stopReader();
-    reader_.wait();
+        m_reader.stopReader();
+    m_reader.wait();
 }
 
 bool SysfsAdaptor::startReaderThread()
@@ -319,7 +319,7 @@ bool SysfsAdaptor::startReaderThread()
         return false;
     }
 
-    reader_.startReader();
+    m_reader.startReader();
 
     return true;
 }
@@ -365,7 +365,7 @@ QByteArray SysfsAdaptor::readFromFile(const QByteArray& path)
 
 bool SysfsAdaptor::checkIntervalUsage() const
 {
-    if (mode_ == SysfsAdaptor::SelectMode)
+    if (m_mode == SysfsAdaptor::SelectMode)
     {
         const QList<DataRange>& list = getAvailableIntervals();
         if (list.size() > 1 || (list.size() == 1 && list.first().min != list.first().max))
@@ -381,48 +381,48 @@ unsigned int SysfsAdaptor::interval() const
 {
     if(!checkIntervalUsage())
         return 0;
-    return interval_;
+    return m_interval_ms;
 }
 
-bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int value)
+bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
 {
     Q_UNUSED(sessionId);
     if(!checkIntervalUsage())
         return false;
-    interval_ = value;
+    m_interval_ms = interval_ms;
     return true;
 }
 
 SysfsAdaptor::PollMode SysfsAdaptor::mode() const
 {
-    return mode_;
+    return m_mode;
 }
 
-SysfsAdaptorReader::SysfsAdaptorReader(SysfsAdaptor *parent) : running_(false), parent_(parent)
+SysfsAdaptorReader::SysfsAdaptorReader(SysfsAdaptor *parent) : m_running(false), m_parent(parent)
 {
 }
 
 void SysfsAdaptorReader::stopReader()
 {
-    running_ = false;
+    m_running = false;
 }
 
 void SysfsAdaptorReader::startReader()
 {
-    running_ = true;
+    m_running = true;
     start();
 }
 
 void SysfsAdaptorReader::run()
 {
-    while (running_) {
+    while (m_running) {
 
-        if (parent_->mode_ == SysfsAdaptor::SelectMode) {
+        if (m_parent->m_mode == SysfsAdaptor::SelectMode) {
 
-            struct epoll_event events[parent_->sysfsDescriptors_.size() + 1];
+            struct epoll_event events[m_parent->m_sysfsDescriptors.size() + 1];
             memset(events, 0x0, sizeof(events));
 
-            int descriptors = epoll_wait(parent_->epollDescriptor_, events, parent_->sysfsDescriptors_.size() + 1, -1);
+            int descriptors = epoll_wait(m_parent->m_epollDescriptor, events, m_parent->m_sysfsDescriptors.size() + 1, -1);
 
             if (descriptors == -1) {
                 sensordLogD() << "epoll_wait(): " << strerror(errno);
@@ -435,11 +435,11 @@ void SysfsAdaptorReader::run()
                         sensordLogD() << "epoll_wait(): error in input fd";
                         errorInInput = true;
                     }
-                    int index = parent_->sysfsDescriptors_.lastIndexOf(events[i].data.fd);
+                    int index = m_parent->m_sysfsDescriptors.lastIndexOf(events[i].data.fd);
                     if (index != -1) {
-                        parent_->processSample(parent_->pathIds_.at(index), events[i].data.fd);
+                        m_parent->processSample(m_parent->m_pathIds.at(index), events[i].data.fd);
 
-                        if (parent_->doSeek_)
+                        if (m_parent->m_doSeek)
                         {
                             if (lseek(events[i].data.fd, 0, SEEK_SET) == -1)
                             {
@@ -447,8 +447,8 @@ void SysfsAdaptorReader::run()
                                 QThread::msleep(1000);
                             }
                         }
-                    } else if (events[i].data.fd == parent_->pipeDescriptors_[0]) {
-                        running_ = false;
+                    } else if (events[i].data.fd == m_parent->m_pipeDescriptors[0]) {
+                        m_running = false;
                     }
                 }
                 if (errorInInput)
@@ -457,12 +457,12 @@ void SysfsAdaptorReader::run()
         } else { //IntervalMode
 
             // Read through all fds.
-            for (int i = 0; i < parent_->sysfsDescriptors_.size(); ++i) {
-                parent_->processSample(parent_->pathIds_.at(i), parent_->sysfsDescriptors_.at(i));
+            for (int i = 0; i < m_parent->m_sysfsDescriptors.size(); ++i) {
+                m_parent->processSample(m_parent->m_pathIds.at(i), m_parent->m_sysfsDescriptors.at(i));
 
-                if (parent_->doSeek_)
+                if (m_parent->m_doSeek)
                 {
-                    if (lseek(parent_->sysfsDescriptors_.at(i), 0, SEEK_SET) == -1)
+                    if (lseek(m_parent->m_sysfsDescriptors.at(i), 0, SEEK_SET) == -1)
                     {
                         sensordLogW() << "Failed to lseek fd: " << strerror(errno);
                         QThread::msleep(1000);
@@ -471,7 +471,7 @@ void SysfsAdaptorReader::run()
             }
 
             // Sleep for interval
-            QThread::msleep(parent_->interval());
+            QThread::msleep(m_parent->interval());
         }
     }
 }
@@ -487,8 +487,8 @@ void SysfsAdaptor::init()
     {
         sensordLogW() << "No sysfs path defined for: " << name();
     }
-    mode_ = (PollMode)SensorFrameworkConfig::configuration()->value<int>(name() + "/mode", mode_);
-    doSeek_ = SensorFrameworkConfig::configuration()->value<bool>(name() + "/seek", doSeek_);
+    m_mode = (PollMode)SensorFrameworkConfig::configuration()->value<int>(name() + "/mode", m_mode);
+    m_doSeek = SensorFrameworkConfig::configuration()->value<bool>(name() + "/seek", m_doSeek);
 
     introduceAvailableDataRanges(name());
     introduceAvailableIntervals(name());

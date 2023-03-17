@@ -132,9 +132,9 @@ static void ObtainTemporaryWakeLock()
  * ========================================================================= */
 
 HybrisSensorState::HybrisSensorState()
-    : m_minDelay(0)
-    , m_maxDelay(0)
-    , m_delay(-1)
+    : m_minDelay_ms(0)
+    , m_maxDelay_ms(0)
+    , m_delay_ms(-1)
     , m_active(-1)
 {
     memset(&m_fallbackEvent, 0, sizeof m_fallbackEvent);
@@ -285,15 +285,15 @@ void HybrisManager::initManager()
 
         if (use) {
             // min/max delay is specified in [us] -> convert to [ms]
-            int minDelay = (m_sensorArray[i].minDelay + 999) / 1000;
-            int maxDelay = -1; // Assume: not defined by hal
+            int minDelay_ms = (m_sensorArray[i].minDelay + 999) / 1000;
+            int maxDelay_ms = -1; // Assume: not defined by hal
 
 #ifdef USE_BINDER
-            maxDelay = (m_sensorArray[i].maxDelay + 999) / 1000;
+            maxDelay_ms = (m_sensorArray[i].maxDelay + 999) / 1000;
 #else
 #ifdef SENSORS_DEVICE_API_VERSION_1_3
             if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_3)
-                maxDelay = (m_sensorArray[i].maxDelay + 999) / 1000;
+                maxDelay_ms = (m_sensorArray[i].maxDelay + 999) / 1000;
 #endif
 #endif
 
@@ -305,10 +305,10 @@ void HybrisManager::initManager()
              * For now use: minDelay * 2, but at least 1000 ms.
              */
 
-            if (maxDelay < 0 && minDelay > 0) {
-                maxDelay = (minDelay < 500) ? 1000 : (minDelay * 2);
+            if (maxDelay_ms < 0 && minDelay_ms > 0) {
+                maxDelay_ms = (minDelay_ms < 500) ? 1000 : (minDelay_ms * 2);
                 sensordLogD("hal does not specify maxDelay, fallback: %d ms",
-                            maxDelay);
+                            maxDelay_ms);
             }
 
             // Positive minDelay means delay /can/ be set - but depending
@@ -318,25 +318,25 @@ void HybrisManager::initManager()
             // failing to explicitly set delays / using delays that would
             // get rejected by upper levels of sensorfwd logic -> setup
             // 200 ms delay (capped to reported min/max range).
-            if (minDelay >= 0) {
-                if (maxDelay < minDelay)
-                    maxDelay = minDelay;
+            if (minDelay_ms >= 0) {
+                if (maxDelay_ms < minDelay_ms)
+                    maxDelay_ms = minDelay_ms;
 
-                int delay = minDelay ? 200 : 0;
-                if (delay < minDelay)
-                    delay = minDelay;
-                else if (delay > maxDelay )
-                    delay = maxDelay;
+                int delay_ms = minDelay_ms ? 200 : 0;
+                if (delay_ms < minDelay_ms)
+                    delay_ms = minDelay_ms;
+                else if (delay_ms > maxDelay_ms)
+                    delay_ms = maxDelay_ms;
 
-                m_sensorState[i].m_minDelay = minDelay;
-                m_sensorState[i].m_maxDelay = maxDelay;
+                m_sensorState[i].m_minDelay_ms = minDelay_ms;
+                m_sensorState[i].m_maxDelay_ms = maxDelay_ms;
 
-                setDelay(m_sensorArray[i].handle, delay, true);
+                setDelay(m_sensorArray[i].handle, delay_ms, true);
 
                 sensordLogD("delay = %d [%d, %d]",
-                            m_sensorState[i].m_delay,
-                            m_sensorState[i].m_minDelay,
-                            m_sensorState[i].m_maxDelay);
+                            m_sensorState[i].m_delay_ms,
+                            m_sensorState[i].m_minDelay_ms,
+                            m_sensorState[i].m_maxDelay_ms);
             }
             m_indexOfType.insert(m_sensorArray[i].type, i);
 
@@ -901,53 +901,53 @@ float HybrisManager::getResolution(int handle) const
 
 int HybrisManager::getMinDelay(int handle) const
 {
-    int delay = 0;
+    int delay_ms = 0;
     int index = indexForHandle(handle);
 
     if (index != -1) {
         const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
-        delay = state->m_minDelay;
+        delay_ms = state->m_minDelay_ms;
         sensordLogT("HYBRIS CTL getMinDelay(%d=%s) -> %d",
-                    sensor->handle, sensorTypeName(sensor->type), delay);
+                    sensor->handle, sensorTypeName(sensor->type), delay_ms);
     }
 
-    return delay;
+    return delay_ms;
 }
 
 int HybrisManager::getMaxDelay(int handle) const
 {
-    int delay = 0;
+    int delay_ms = 0;
     int index = indexForHandle(handle);
 
     if (index != -1) {
         const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
-        delay = state->m_maxDelay;
+        delay_ms = state->m_maxDelay_ms;
         sensordLogT("HYBRIS CTL getMaxDelay(%d=%s) -> %d",
-                    sensor->handle, sensorTypeName(sensor->type), delay);
+                    sensor->handle, sensorTypeName(sensor->type), delay_ms);
     }
 
-    return delay;
+    return delay_ms;
 }
 
 int HybrisManager::getDelay(int handle) const
 {
-    int delay = 0;
+    int delay_ms = 0;
     int index = indexForHandle(handle);
 
     if (index != -1) {
         const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
-        delay = state->m_delay;
+        delay_ms = state->m_delay_ms;
         sensordLogT("HYBRIS CTL getDelay(%d=%s) -> %d",
-                    sensor->handle, sensorTypeName(sensor->type), delay);
+                    sensor->handle, sensorTypeName(sensor->type), delay_ms);
     }
 
-    return delay;
+    return delay_ms;
 }
 
 bool HybrisManager::setDelay(int handle, int delay_ms, bool force)
@@ -959,7 +959,7 @@ bool HybrisManager::setDelay(int handle, int delay_ms, bool force)
         const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
-        if (!force && state->m_delay == delay_ms) {
+        if (!force && state->m_delay_ms == delay_ms) {
             sensordLogT("HYBRIS CTL setDelay(%d=%s, %d) -> no-change",
                         sensor->handle, sensorTypeName(sensor->type), delay_ms);
             success = true;
@@ -1001,7 +1001,7 @@ bool HybrisManager::setDelay(int handle, int delay_ms, bool force)
             } else {
                 sensordLogD("HYBRIS CTL setDelay(%d=%s, %d) -> success",
                             sensor->handle, sensorTypeName(sensor->type), delay_ms);
-                state->m_delay = delay_ms;
+                state->m_delay_ms = delay_ms;
                 success = true;
             }
         }
@@ -1042,10 +1042,10 @@ bool HybrisManager::setActive(int handle, bool active)
             success = true;
         } else {
 #ifdef USE_BINDER
-            if (active && state->m_delay != -1) {
+            if (active && state->m_delay_ms != -1) {
                 sensordLogD("HYBRIS CTL FORCE PRE UPDATE %i, %s", sensor->handle, sensorTypeName(sensor->type));
-                int delay_ms = state->m_delay;
-                state->m_delay = -1;
+                int delay_ms = state->m_delay_ms;
+                state->m_delay_ms = -1;
                 setDelay(handle, delay_ms, true);
             }
             int error;
@@ -1086,10 +1086,10 @@ bool HybrisManager::setActive(int handle, bool active)
                 success = true;
             }
 #ifndef USE_BINDER
-            if (state->m_active == true && state->m_delay != -1) {
+            if (state->m_active == true && state->m_delay_ms != -1) {
                 sensordLogD("HYBRIS CTL FORCE DELAY UPDATE");
-                int delay_ms = state->m_delay;
-                state->m_delay = -1;
+                int delay_ms = state->m_delay_ms;
+                state->m_delay_ms = -1;
                 setDelay(handle, delay_ms, false);
             }
 #endif
@@ -1379,11 +1379,11 @@ unsigned int HybrisAdaptor::interval() const
     return hybrisManager()->getDelay(m_sensorHandle);
 }
 
-bool HybrisAdaptor::setInterval(const int sessionId, const unsigned int value)
+bool HybrisAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
 {
     Q_UNUSED(sessionId);
 
-    bool ok = hybrisManager()->setDelay(m_sensorHandle, value, false);
+    bool ok = hybrisManager()->setDelay(m_sensorHandle, interval_ms, false);
 
     if (!ok) {
         sensordLogW() << Q_FUNC_INFO << "setInterval not ok";

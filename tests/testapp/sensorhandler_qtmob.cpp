@@ -30,58 +30,58 @@ SensorHandler::SensorHandler(const QString& sensorName, QObject *parent) :
     AbstractSensorHandler(sensorName, parent),
     m_sensor(NULL)
 {
-    if (sensorName_ == "compasssensor")
+    if (m_sensorName == "compasssensor")
     {
         m_sensor = new QCompass();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedCompassData()));
     }
-    else if (sensorName_ == "magnetometersensor")
+    else if (m_sensorName == "magnetometersensor")
     {
         m_sensor = new QMagnetometer();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedMagnetometerData()));
     }
-    else if (sensorName_ ==  "orientationsensor")
+    else if (m_sensorName ==  "orientationsensor")
     {
         m_sensor = new QOrientationSensor();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedOrientationData()));
     }
-    else if (sensorName_ == "accelerometersensor")
+    else if (m_sensorName == "accelerometersensor")
     {
         m_sensor = new QAccelerometer();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedAccelerometerData()));
     }
-    else if (sensorName_ == "alssensor")
+    else if (m_sensorName == "alssensor")
     {
         m_sensor = new QAmbientLightSensor();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedAlsData()));
     }
-    else if (sensorName_ == "rotationsensor")
+    else if (m_sensorName == "rotationsensor")
     {
         m_sensor = new QRotationSensor();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedRotationData()));
     }
-    else if (sensorName_ == "tapsensor")
+    else if (m_sensorName == "tapsensor")
     {
         m_sensor = new QTapSensor();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedTapData()));
     }
-    else if (sensorName_ == "proximitysensor")
+    else if (m_sensorName == "proximitysensor")
     {
         m_sensor = new QProximitySensor();
         connect(m_sensor, SIGNAL(readingChanged()),
                 this, SLOT(receivedProximityData()));
     }
 
-    m_sensor->setProperty("alwaysOn", standbyoverride_);
-    m_sensor->setProperty("bufferSize", buffersize_);
-    m_sensor->setDataRate(interval_ ? 1000 / interval_ : 0);
+    m_sensor->setProperty("alwaysOn", m_standbyoverride);
+    m_sensor->setProperty("bufferSize", m_buffersize);
+    m_sensor->setDataRate(m_interval_ms ? 1000 / m_interval_ms : 0);
 }
 
 SensorHandler::~SensorHandler()
@@ -92,16 +92,16 @@ SensorHandler::~SensorHandler()
 void SensorHandler::receivedAccelerometerData()
 {
     QAccelerometerReading* data = (QAccelerometerReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z();
 }
 
 void SensorHandler::receivedCompassData()
 {
     QCompassReading* data = (QCompassReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
              << " azimuth: " << data->azimuth() << "calibrationLevel: " <<  data-> calibrationLevel();
 
 }
@@ -109,16 +109,16 @@ void SensorHandler::receivedCompassData()
 void SensorHandler::receivedAlsData()
 {
     QAmbientLightReading* data = (QAmbientLightReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "lightLevel  " << data->lightLevel();
 }
 
 void SensorHandler::receivedMagnetometerData()
 {
     QMagnetometerReading* data = (QMagnetometerReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z()
                   << " calibrationLevel" << data->calibrationLevel();
 }
@@ -126,32 +126,32 @@ void SensorHandler::receivedMagnetometerData()
 void SensorHandler::receivedOrientationData()
 {
     QOrientationReading* data = (QOrientationReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "orientation " << data->orientation();
 }
 
 void SensorHandler::receivedRotationData()
 {
     QRotationReading* data = (QRotationReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z();
 }
 
 void SensorHandler::receivedTapData()
 {
     QTapReading* data = (QTapReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "DoubleTap " <<  data->isDoubleTap();
 }
 
 void SensorHandler::receivedProximityData()
 {
     QProximityReading* data = (QProximityReading*) m_sensor->reading();
-    ++dataCount_;
-    sensordLogT() << sensorName_ << " sample " << dataCount_ << ": "
+    ++m_dataCount;
+    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
                   << "Close " <<  data->close();
 }
 

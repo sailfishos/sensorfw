@@ -123,9 +123,9 @@ public:
      * Value "0" will clear previously set interval.
      * Supported intervals are listed by #getAvailableIntervals().
      *
-     * @param value sampling interval (in millisecs).
+     * @param interval_ms sampling interval (in millisecs).
      */
-    void setInterval(int value);
+    void setInterval(int interval_ms);
 
     /**
      * Is standby-override enabled or not.
@@ -159,9 +159,9 @@ public:
      * buffered data to be flushed unless the buffer is filled before it.
      * Supported intervals are listed by #getAvailableBufferIntervals().
      *
-     * @param value interval in millisecs.
+     * @param interval_ms interval in millisecs.
      */
-    void setBufferInterval(unsigned int value);
+    void setBufferInterval(unsigned int interval_ms);
 
     /**
      * Is downsampling enabled or not.
@@ -324,7 +324,7 @@ private Q_SLOTS: // METHODS
      * @param value interval.
      * @return DBus reply.
      */
-    QDBusReply<void> setInterval(int sessionId, int value);
+    QDBusReply<void> setInterval(int sessionId, int interval_ms);
 
     /**
      * Set standby-override to session.
@@ -342,7 +342,7 @@ private Q_SLOTS: // METHODS
      * @param value buffer interval.
      * @return DBus reply.
      */
-    QDBusReply<void> setBufferInterval(int sessionId, unsigned int value);
+    QDBusReply<void> setBufferInterval(int sessionId, unsigned int interval_ms);
 
     /**
      * Set buffer size to session.

@@ -99,10 +99,10 @@ void AbstractSensorChannelAdaptor::stop(int sessionId)
     node()->stop(sessionId);
 }
 
-void AbstractSensorChannelAdaptor::setInterval(int sessionId, int value)
+void AbstractSensorChannelAdaptor::setInterval(int sessionId, int interval_ms)
 {
-    node()->setIntervalRequest(sessionId, value);
-    SensorManager::instance().socketHandler().setInterval(sessionId, value);
+    node()->setIntervalRequest(sessionId, interval_ms);
+    SensorManager::instance().socketHandler().setInterval(sessionId, interval_ms);
 }
 
 bool AbstractSensorChannelAdaptor::standbyOverride() const
@@ -147,22 +147,22 @@ bool AbstractSensorChannelAdaptor::setDefaultInterval(int sessionId)
     return ok;
 }
 
-void AbstractSensorChannelAdaptor::setBufferInterval(int sessionId, unsigned int value)
+void AbstractSensorChannelAdaptor::setBufferInterval(int sessionId, unsigned int interval_ms)
 {
     bool hwBuffering = false;
     node()->getAvailableBufferIntervals(hwBuffering);
     if(hwBuffering)
     {
-        if(value == 0)
+        if(interval_ms == 0)
             node()->clearBufferInterval(sessionId);
         else
-            node()->setBufferInterval(sessionId, value);
-        value = 0;
+            node()->setBufferInterval(sessionId, interval_ms);
+        interval_ms = 0;
     }
-    if(value == 0)
+    if(interval_ms == 0)
         SensorManager::instance().socketHandler().clearBufferInterval(sessionId);
     else
-        SensorManager::instance().socketHandler().setBufferInterval(sessionId, value);
+        SensorManager::instance().socketHandler().setBufferInterval(sessionId, interval_ms);
 }
 
 void AbstractSensorChannelAdaptor::setBufferSize(int sessionId, unsigned int value)

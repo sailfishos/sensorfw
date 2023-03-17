@@ -124,7 +124,7 @@ public Q_SLOTS: // METHODS
      *
      *  Will also configure interval for the data connection.
      */
-    void setInterval(int sessionId, int value);
+    void setInterval(int sessionId, int interval_ms);
 
     /** AbstractSensorChannel::getAvailableIntervals() */
     DataRangeList getAvailableIntervals();
@@ -138,13 +138,13 @@ public Q_SLOTS: // METHODS
     /** AbstractSensorChannel::setDownsampling(int, bool) */
     void setDownsampling(int sessionId, bool value);
 
-    /** AbstractSensorChannel::isValid(int, unsigned int)
+    /** AbstractSensorChannel::setBufferInterval(int, unsigned int)
      *
      *  Will also configure buffer interval for the data connection.
      */
-    void setBufferInterval(int sessionId, unsigned int value);
+    void setBufferInterval(int sessionId, unsigned int interval_ms);
 
-    /** AbstractSensorChannel::isValid(int, unsigned int)
+    /** AbstractSensorChannel::setBufferSize(int, unsigned int)
      *
      *  Will also configure buffer size for the data connection.
      */
