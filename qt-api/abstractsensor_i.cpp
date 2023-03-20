@@ -43,7 +43,7 @@ struct AbstractSensorChannelInterface::AbstractSensorChannelInterfaceImpl : publ
     SensorError m_errorCode;
     QString m_errorString;
     int m_sessionId;
-    int m_interval_ms;
+    int m_interval_us;
     unsigned int m_bufferInterval;
     unsigned int m_bufferSize;
     SocketReader m_socketReader;
@@ -57,7 +57,7 @@ AbstractSensorChannelInterface::AbstractSensorChannelInterfaceImpl::AbstractSens
     m_errorCode(SNoError),
     m_errorString(""),
     m_sessionId(sessionId),
-    m_interval_ms(0),
+    m_interval_us(0),
     m_bufferInterval(0),
     m_bufferSize(1),
     m_socketReader(parent),
@@ -147,7 +147,7 @@ QDBusReply<void> AbstractSensorChannelInterface::start(int sessionId)
             SLOT(startFinished(QDBusPendingCallWatcher*)));
 
     setStandbyOverride(sessionId, pimpl_->m_standbyOverride);
-    setInterval(sessionId, pimpl_->m_interval_ms);
+    setDataRate(sessionId, dataRate());
     setBufferInterval(sessionId, pimpl_->m_bufferInterval);
     setBufferSize(sessionId, pimpl_->m_bufferSize);
     setDownsampling(pimpl_->m_sessionId, pimpl_->m_downsampling);
@@ -211,6 +211,30 @@ QDBusReply<void> AbstractSensorChannelInterface::setInterval(int sessionId, int 
 }
 
 void AbstractSensorChannelInterface::setIntervalFinished(QDBusPendingCallWatcher *watch)
+{
+    watch->deleteLater();
+    QDBusPendingReply<void> reply = *watch;
+
+    if(reply.isError()) {
+        qDebug() << reply.error().message();
+        setError(SaCannotAccessSensor, reply.error().message());
+    }
+}
+
+QDBusReply<void> AbstractSensorChannelInterface::setDataRate(int sessionId, double dataRate_Hz)
+{
+    clearError();
+
+    QList<QVariant> argumentList;
+    argumentList << qVariantFromValue(sessionId) << qVariantFromValue(dataRate_Hz);
+    QDBusPendingReply <void> returnValue = pimpl_->asyncCallWithArgumentList(QLatin1String("setDataRate"), argumentList);
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(returnValue, this);
+    connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
+            SLOT(setDataRateFinished(QDBusPendingCallWatcher*)));
+    return returnValue;
+}
+
+void AbstractSensorChannelInterface::setDataRateFinished(QDBusPendingCallWatcher *watch)
 {
     watch->deleteLater();
     QDBusPendingReply<void> reply = *watch;
@@ -371,14 +395,38 @@ int AbstractSensorChannelInterface::interval()
 {
     if (pimpl_->m_running)
         return static_cast<int>(getAccessor<unsigned int>("interval"));
-    return pimpl_->m_interval_ms;
+    int interval_ms = 0;
+    if (pimpl_->m_interval_us > 0)
+        interval_ms = pimpl_->m_interval_us / 1000;
+    return interval_ms;
 }
 
 void AbstractSensorChannelInterface::setInterval(int interval_ms)
 {
-    pimpl_->m_interval_ms = interval_ms;
+    int interval_us = 0;
+    if (interval_ms > 0)
+        interval_us = interval_ms * 1000;
+    pimpl_->m_interval_us = interval_us;
     if (pimpl_->m_running)
-        setInterval(pimpl_->m_sessionId, interval_ms);
+        setDataRate(pimpl_->m_sessionId, dataRate());
+}
+
+double AbstractSensorChannelInterface::dataRate()
+{
+    double dataRate_Hz = 0;
+    if (pimpl_->m_interval_us > 0)
+        dataRate_Hz = 1000000.0 / pimpl_->m_interval_us;
+    return dataRate_Hz;
+}
+
+void AbstractSensorChannelInterface::setDataRate(double dataRate_Hz)
+{
+    int interval_us = 0;
+    if (dataRate_Hz > 0)
+        interval_us = 1000000.0 / dataRate_Hz;
+    pimpl_->m_interval_us = interval_us;
+    if (pimpl_->m_running)
+        setDataRate(pimpl_->m_sessionId, dataRate());
 }
 
 unsigned int AbstractSensorChannelInterface::bufferInterval()

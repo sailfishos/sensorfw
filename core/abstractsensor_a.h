@@ -126,6 +126,12 @@ public Q_SLOTS: // METHODS
      */
     void setInterval(int sessionId, int interval_ms);
 
+    /** AbstractSensorChannel::setDataRate(int, double)
+     *
+     *  Will also configure interval for the data connection.
+     */
+    void setDataRate(int sessionId, double dataRate_Hz);
+
     /** AbstractSensorChannel::getAvailableIntervals() */
     DataRangeList getAvailableIntervals();
 

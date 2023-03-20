@@ -51,6 +51,7 @@ class AbstractSensorChannelInterface : public QObject
     Q_PROPERTY(QString errorString READ errorString)
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString id READ id)
+    Q_PROPERTY(int dataRate READ dataRate WRITE setDataRate)
     Q_PROPERTY(int interval READ interval WRITE setInterval)
     Q_PROPERTY(bool standbyOverride READ standbyOverride WRITE setStandbyOverride)
     Q_PROPERTY(QString type READ type)
@@ -117,6 +118,7 @@ public:
      * @return used sampling interval (in millisecs)
      */
     int interval();
+    double dataRate();
 
     /**
      * Set sensor sampling interval (in millisecs).
@@ -126,6 +128,7 @@ public:
      * @param interval_ms sampling interval (in millisecs).
      */
     void setInterval(int interval_ms);
+    void setDataRate(double dataRate_Hz);
 
     /**
      * Is standby-override enabled or not.
@@ -325,6 +328,7 @@ private Q_SLOTS: // METHODS
      * @return DBus reply.
      */
     QDBusReply<void> setInterval(int sessionId, int interval_ms);
+    QDBusReply<void> setDataRate(int sessionId, double dataRate_Hz);
 
     /**
      * Set standby-override to session.
@@ -472,6 +476,7 @@ protected slots:
     void stopFinished(QDBusPendingCallWatcher *watch);
 
     void setIntervalFinished(QDBusPendingCallWatcher *watch);
+    void setDataRateFinished(QDBusPendingCallWatcher *watch);
     void setBufferIntervalFinished(QDBusPendingCallWatcher *watch);
     void setBufferSizeFinished(QDBusPendingCallWatcher *watch);
     void setStandbyOverrideFinished(QDBusPendingCallWatcher *watch);

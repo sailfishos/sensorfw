@@ -105,6 +105,14 @@ void AbstractSensorChannelAdaptor::setInterval(int sessionId, int interval_ms)
     SensorManager::instance().socketHandler().setInterval(sessionId, interval_ms);
 }
 
+void AbstractSensorChannelAdaptor::setDataRate(int sessionId, double dataRate_Hz)
+{
+    // interval_ms rounded down -> effective dataRate rounded up
+    int interval_ms = (dataRate_Hz > 0) ? (int)(1000.0 / dataRate_Hz) : 0;
+    node()->setIntervalRequest(sessionId, interval_ms);
+    SensorManager::instance().socketHandler().setInterval(sessionId, interval_ms);
+}
+
 bool AbstractSensorChannelAdaptor::standbyOverride() const
 {
     return node()->standbyOverride();
