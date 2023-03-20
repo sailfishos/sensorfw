@@ -287,7 +287,26 @@ int main(int argc, char *argv[])
 
     sensordLogD() << "Exiting...";
     SensorFrameworkConfig::close();
-    return ret;
+
+    /* Backends that use binder ipc can end up deadlocked at
+     *
+     *     void gbinder_ipc_exit(void)
+     *         __attribute__((visibility("hidden")))
+     *         __attribute__((destructor));
+     *
+     * due to a transaction of yet unknown origin that is never going
+     * to get finalized. Which them makes stopping of sensorfwd systemd
+     * service go via TERM-wait-timeout-KILL cycle.
+     *
+     * As a workaround to this we can skip all after-exit cleanup code
+     * by terminating via _exit() rather than exit() or return from
+     * main().
+     *
+     * And as sensorfwd itself does not and is not supposed to know
+     * whether backend uses binder ipc or not, we need to do this by
+     * default.
+     */
+    _exit(ret);
 }
 
 void printUsage()

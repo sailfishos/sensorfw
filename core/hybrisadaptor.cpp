@@ -148,6 +148,12 @@ HybrisSensorState::~HybrisSensorState()
  * HybrisManager
  * ========================================================================= */
 
+/* hybrisManager object is created on demand - which ought to happen
+ * well after QCoreApplication object has already been instantiated.
+ * Cleanup actions are executed on QCoreApplication::aboutToQuit signal.
+ * Destructor gets called after exit from main() and should be as
+ * close to nop as possible.
+ */
 Q_GLOBAL_STATIC(HybrisManager, hybrisManager)
 
 HybrisManager::HybrisManager(QObject *parent)
@@ -173,6 +179,11 @@ HybrisManager::HybrisManager(QObject *parent)
     , m_indexOfType()
     , m_indexOfHandle()
 {
+    /* Arrange it so that sensors get stopped on exit from mainloop
+     */
+    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+            this, &HybrisManager::cleanup);
+
 #ifdef USE_BINDER
     startConnect();
 #else
@@ -391,22 +402,55 @@ void HybrisManager::initManager()
 
 HybrisManager::~HybrisManager()
 {
-    cleanup();
-
-#ifdef USE_BINDER
-    if (m_serviceManager) {
-        gbinder_servicemanager_unref(m_serviceManager);
-        m_serviceManager = NULL;
-    }
-#endif
+    /* This is exectuted after exiting main() function.
+     * No actions that need core application, binder ipc,
+     * android hal libraries, etc should be made.
+     */
 }
 
 void HybrisManager::cleanup()
 {
+    /* Stop any sensors that are active
+     */
+
     sensordLogD() << "stop all sensors";
     foreach (HybrisAdaptor *adaptor, m_registeredAdaptors.values()) {
         adaptor->stopSensor();
     }
+
+    /* Stop reacting to async events
+     */
+
+#ifdef USE_BINDER
+    gbinder_remote_object_remove_handler(m_remote, m_deathId);
+    m_deathId = 0;
+
+    if (m_pollTransactId) {
+        gbinder_client_cancel(m_client, m_pollTransactId);
+        m_pollTransactId = 0;
+
+        // The above code just marks down pending POLL transaction as
+        // to be cancelled later on when handler thread gets woken up.
+        //
+        // If we are exiting right after cleanup(), that is never going
+        // to happen and gbinder_ipc_exit() cleanup code blocks sensorfwd
+        // exit indefinitely.
+        //
+        // As a workaround: make a dummy POLL transaction, for which a
+        // reply is sent immediately, which then wakes up the handler
+        // thread, the cancellation gets processed and exit is unblocked.
+
+        GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
+        int32_t status = 0;
+        gbinder_local_request_append_int32(req, 0);
+        GBinderRemoteReply *reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
+        gbinder_remote_reply_unref(reply);
+        gbinder_local_request_unref(req);
+    }
+
+    gbinder_local_object_unref(m_sensorCallback);
+    m_sensorCallback = NULL;
+#endif
 
     if (m_eventReaderTid) {
         sensordLogD() << "Canceling event reader thread";
@@ -436,40 +480,22 @@ void HybrisManager::cleanup()
         }
     }
 
+    /* Release remaining dynamic resources
+     */
+
 #ifdef USE_BINDER
-    if (m_pollTransactId) {
-        gbinder_client_cancel(m_client, m_pollTransactId);
-        m_pollTransactId = 0;
-    }
+    gbinder_fmq_unref(m_wakeLockQueue);
+    m_wakeLockQueue = NULL;
 
-    if (m_sensorCallback) {
-        gbinder_local_object_unref(m_sensorCallback);
-        m_sensorCallback = NULL;
-    }
+    gbinder_fmq_unref(m_eventQueue);
+    m_eventQueue = NULL;
 
-    if (m_wakeLockQueue) {
-        gbinder_fmq_unref(m_wakeLockQueue);
-        m_wakeLockQueue = NULL;
-    }
+    gbinder_client_unref(m_client);
+    m_client = NULL;
 
-    if (m_eventQueue) {
-        gbinder_fmq_unref(m_eventQueue);
-        m_eventQueue = NULL;
-    }
-
-    if (m_client) {
-        gbinder_client_unref(m_client);
-        m_client = NULL;
-    }
-
-    if (m_remote) {
-        if (m_deathId) {
-            gbinder_remote_object_remove_handler(m_remote, m_deathId);
-            m_deathId = 0;
-        }
-        gbinder_remote_object_unref(m_remote);
-        m_remote = NULL;
-    }
+    gbinder_servicemanager_unref(m_serviceManager);
+    m_serviceManager = NULL;
+    m_remote = NULL; // auto-release
 
     for (int i = 0 ; i < m_sensorCount ; i++) {
         g_free((void*)m_sensorArray[i].name.data.str);
@@ -648,7 +674,6 @@ void HybrisManager::finishConnect()
 
     if (m_remote) {
         sensordLogD() << "Initialize sensor service";
-        gbinder_remote_object_ref(m_remote);
         m_deathId = gbinder_remote_object_add_death_handler(m_remote, binderDied, this);
         m_client = gbinder_client_new2(m_remote, sensors_2_client_ifaces, G_N_ELEMENTS(sensors_2_client_ifaces));
         if (!m_client) {
@@ -681,6 +706,7 @@ void HybrisManager::finishConnect()
 
             if (status != GBINDER_STATUS_OK) {
                 sensordLogW() << "Initialize failed with status" << status << ". Trying to reconnect.";
+                gbinder_remote_reply_unref(reply);
             } else {
                 int error;
                 GBinderReader reader;
@@ -704,7 +730,6 @@ void HybrisManager::finishConnect()
             sensordLogD() << "Could not find remote object for sensor service. Trying to reconnect";
         } else {
             m_sensorInterfaceEnum = SENSOR_INTERFACE_1_0;
-            gbinder_remote_object_ref(m_remote);
             sensordLogD() << "Connected to sensor 1.0 service";
             m_deathId = gbinder_remote_object_add_death_handler(m_remote, binderDied,
                             this);
@@ -1179,7 +1204,7 @@ void *HybrisManager::eventReaderThread(void *aptr)
         // Process received events
         int blockSuspend = 0;
         bool errorInInput = false;
-        manager->processEvents(buffer, numberOfEvents, blockSuspend, errorInInput);
+        manager->processEvents(buffer, eventsToRead, blockSuspend, errorInInput);
 
         // Suspend proof sensor reporting that could occur in display off
         if (blockSuspend) {
