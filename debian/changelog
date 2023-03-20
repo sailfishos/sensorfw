@@ -1,3 +1,12 @@
+sensorfw-qt5 (0.12.7) unstable; urgency=medium
+
+  * [hybrisadaptor] Force cancellation of pending POLL transaction. JB#60298
+  * [hybrisadaptor] Read and process capped number of events. JB#60298
+  * [hybrisadaptor] Shuffle cleanup order. JB#60298
+  * [sendorfwd] Skip deadlocking libgbinder cleanup. Fixes JB#60298
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Mon, 20 Mar 2023 08:47:28 +0200
+
 sensorfw-qt5 (0.12.6) unstable; urgency=medium
 
   * [sensorfw] Add support for sensor binder API 2
