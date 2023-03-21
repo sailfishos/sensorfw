@@ -30,7 +30,8 @@ HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id) :
 
     setDescription("Hybris accelerometer");
     powerStatePath = SensorFrameworkConfig::configuration()->value("accelerometer/powerstate_path").toByteArray();
-//    setDefaultInterval(50);
+//    unsigned int interval_us = 50 * 1000;
+//    setDefaultInterval(interval_us);
 }
 
 HybrisAccelerometerAdaptor::~HybrisAccelerometerAdaptor()

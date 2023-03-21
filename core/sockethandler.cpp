@@ -29,6 +29,7 @@
 #include <QLocalSocket>
 #include <QLocalServer>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include "logging.h"
 #include "sockethandler.h"
 #include <unistd.h>
@@ -36,12 +37,12 @@
 
 SessionData::SessionData(QLocalSocket* socket, QObject* parent) : QObject(parent),
                                                                   m_socket(socket),
-                                                                  m_interval_ms(-1),
+                                                                  m_interval_us(-1),
                                                                   m_buffer(nullptr),
                                                                   m_size(0),
                                                                   m_count(0),
                                                                   m_bufferSize(1),
-                                                                  m_bufferInterval_ms(0),
+                                                                  m_bufferInterval_us(0),
                                                                   m_downsampling(false)
 {
     m_lastWrite.tv_sec = 0;
@@ -66,9 +67,12 @@ long SessionData::sinceLastWrite() const
 {
     if(m_lastWrite.tv_sec == 0)
         return LONG_MAX;
-    struct timeval now;
+    struct timeval now = {0, 0};
     gettimeofday(&now, 0);
-    return (now.tv_sec - m_lastWrite.tv_sec) * 1000 + ((now.tv_usec - m_lastWrite.tv_usec) / 1000);
+    struct timeval diff;
+    timersub(&now, &m_lastWrite, &diff);
+    long interval_us = diff.tv_sec * 1000000L + diff.tv_usec;
+    return interval_us;
 }
 
 bool SessionData::write(void* source, int size, unsigned int count)
@@ -89,7 +93,7 @@ bool SessionData::write(void* source, int size, unsigned int count)
 
 bool SessionData::write(const void* source, int size)
 {
-    long since = sinceLastWrite();
+    long since_us = sinceLastWrite();
     int allocSize = m_bufferSize * size + sizeof(unsigned int);
     if(!m_buffer)
     {
@@ -105,7 +109,7 @@ bool SessionData::write(const void* source, int size)
     if(m_bufferSize <= 1)
     {
         memcpy(m_buffer + sizeof(unsigned int), source, size);
-        if(!m_downsampling || (m_downsampling && since >= m_interval_ms))
+        if(!m_downsampling || (m_downsampling && since_us >= m_interval_us))
         {
             gettimeofday(&m_lastWrite, 0);
             return write(m_buffer, size, 1);
@@ -122,13 +126,15 @@ bool SessionData::write(const void* source, int size)
     }
     if(!m_timer.isActive())
     {
-        if(m_bufferSize > 1 && m_bufferInterval_ms)
+        if(m_bufferSize > 1 && m_bufferInterval_us)
         {
-            m_timer.start(m_bufferInterval_ms);
+            int interval_ms = (m_bufferInterval_us + 999) / 1000;
+            m_timer.start(interval_ms);
         }
-        else if(!m_bufferSize && (m_interval_ms - since) > 0)
+        else if(!m_bufferSize && m_interval_us > since_us)
         {
-            m_timer.start(m_interval_ms - since);
+            int interval_ms = (m_interval_us - since_us + 999) / 1000;
+            m_timer.start(interval_ms);
         }
     }
     return true;
@@ -156,24 +162,24 @@ QLocalSocket* SessionData::getSocket() const
     return m_socket;
 }
 
-void SessionData::setInterval(int interval_ms)
+void SessionData::setInterval(int interval_us)
 {
-    m_interval_ms = interval_ms;
+    m_interval_us = interval_us;
 }
 
 int SessionData::getInterval() const
 {
-    return m_interval_ms;
+    return m_interval_us;
 }
 
-void SessionData::setBufferInterval(unsigned int interval_ms)
+void SessionData::setBufferInterval(unsigned int interval_us)
 {
-    m_bufferInterval_ms = interval_ms;
+    m_bufferInterval_us = interval_us;
 }
 
 unsigned int SessionData::getBufferInterval() const
 {
-    return m_bufferInterval_ms;
+    return m_bufferInterval_us;
 }
 
 void SessionData::setBufferSize(unsigned int size)
@@ -355,11 +361,11 @@ int SocketHandler::getSocketFd(int sessionId) const
     return 0;
 }
 
-void SocketHandler::setInterval(int sessionId, int interval_ms)
+void SocketHandler::setInterval(int sessionId, int interval_us)
 {
     QMap<int, SessionData*>::iterator it = m_idMap.find(sessionId);
     if (it != m_idMap.end())
-        (*it)->setInterval(interval_ms);
+        (*it)->setInterval(interval_us);
 }
 
 void SocketHandler::clearInterval(int sessionId)
@@ -397,11 +403,11 @@ unsigned int SocketHandler::bufferSize(int sessionId) const
     return 0;
 }
 
-void SocketHandler::setBufferInterval(int sessionId, unsigned int interval_ms)
+void SocketHandler::setBufferInterval(int sessionId, unsigned int interval_us)
 {
     QMap<int, SessionData*>::iterator it = m_idMap.find(sessionId);
     if (it != m_idMap.end())
-        (*it)->setBufferInterval(interval_ms);
+        (*it)->setBufferInterval(interval_us);
 }
 
 void SocketHandler::clearBufferInterval(int sessionId)

@@ -46,7 +46,7 @@ SysfsAdaptor::SysfsAdaptor(const QString& id,
     m_reader(this),
     m_mode(mode),
     m_epollDescriptor(-1),
-    m_interval_ms(0),
+    m_interval_us(0),
     m_inStandbyMode(false),
     m_running(false),
     m_shouldBeRunning(false),
@@ -381,15 +381,15 @@ unsigned int SysfsAdaptor::interval() const
 {
     if(!checkIntervalUsage())
         return 0;
-    return m_interval_ms;
+    return m_interval_us;
 }
 
-bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
+bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     Q_UNUSED(sessionId);
     if(!checkIntervalUsage())
         return false;
-    m_interval_ms = interval_ms;
+    m_interval_us = interval_us;
     return true;
 }
 
@@ -492,5 +492,9 @@ void SysfsAdaptor::init()
 
     introduceAvailableDataRanges(name());
     introduceAvailableIntervals(name());
-    setDefaultInterval(SensorFrameworkConfig::configuration()->value<int>(name() + "/default_interval", 0));
+    int interval_ms = SensorFrameworkConfig::configuration()->value<int>(name() + "/default_interval", 0);
+    if (interval_ms > 0) {
+        unsigned int interval_us = (unsigned int)interval_ms * 1000u;
+        setDefaultInterval(interval_us);
+    }
 }

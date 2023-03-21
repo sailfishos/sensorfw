@@ -58,7 +58,7 @@ protected:
     MagnetometerAdaptorNCDK(const QString& id);
     ~MagnetometerAdaptorNCDK();
 
-    bool setInterval(const int sessionId, const unsigned int interval_ms);
+    bool setInterval(const int sessionId, const unsigned int interval_us);
 
 private:
 
@@ -71,18 +71,22 @@ private:
      */
     void processSample(int pathId, int fd);
 
-    QByteArray powerStateFilePath_;
-    QByteArray sensAdjFilePath_;
+    QByteArray m_powerStateFilePath;
+    QByteArray m_sensAdjFilePath;
 
-    int x_adj, y_adj, z_adj;
-    bool powerState_;
-    DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>* magnetometerBuffer_;
+    int m_x_adj;
+    int m_y_adj;
+    int m_z_adj;
+    bool m_powerState;
+
+    DeviceAdaptorRingBuffer<CalibratedMagneticFieldData> *m_magnetometerBuffer;
 
     bool setPowerState(bool value) const;
     void getSensitivityAdjustment(int &x, int &y, int &z) const;
+
     int adjustPos(const int value, const int adj) const;
-    int intervalCompensation_;
-    int overflowLimit_;
+    int m_intervalCompensation_us;
+    int m_overflowLimit;
 
     /**
      * Sets the overflow limit of the sensor, checked when calibrated

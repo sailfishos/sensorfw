@@ -128,6 +128,14 @@ public:
      * @param interval_ms sampling interval (in millisecs).
      */
     void setInterval(int interval_ms);
+
+    /**
+     * Set sensor sampling frequency (in Hertz).
+     * Value "0" will clear previously set interval.
+     * Supported intervals are listed by #getAvailableIntervals().
+     *
+     * @param dataRate_Hz sampling frequency (in Hertz).
+     */
     void setDataRate(double dataRate_Hz);
 
     /**
@@ -324,10 +332,18 @@ private Q_SLOTS: // METHODS
      * Set interval to session.
      *
      * @param sessionId session ID.
-     * @param value interval.
+     * @param interval_ms interval.
      * @return DBus reply.
      */
     QDBusReply<void> setInterval(int sessionId, int interval_ms);
+
+    /**
+     * Set frequency to session.
+     *
+     * @param sessionId session ID.
+     * @param dataRate_Hz frequency
+     * @return DBus reply.
+     */
     QDBusReply<void> setDataRate(int sessionId, double dataRate_Hz);
 
     /**

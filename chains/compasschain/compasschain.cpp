@@ -161,7 +161,10 @@ CompassChain::CompassChain(const QString& id) :
 
     setDescription("Compass direction"); //compass north in degrees
     introduceAvailableDataRange(DataRange(0, 359, 1));
-    introduceAvailableInterval(DataRange(50,200,0));
+
+    unsigned int min_interval_us =  50 * 1000;
+    unsigned int max_interval_us = 200 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
 
     if (!hasOrientationAdaptor) {
         DownsampleFilter *filter = static_cast<DownsampleFilter *>(downsampleFilter);

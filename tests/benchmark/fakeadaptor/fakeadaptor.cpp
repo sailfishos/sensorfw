@@ -29,7 +29,7 @@
 #include <errno.h>
 #include "datatypes/utils.h"
 
-FakeAdaptor::FakeAdaptor(const QString &id) : DeviceAdaptor(id), m_interval_ms(1)
+FakeAdaptor::FakeAdaptor(const QString &id) : DeviceAdaptor(id), m_interval_us(1000)
 {
     m_thread = new FakeAdaptorThread(this);
 
@@ -46,9 +46,10 @@ bool FakeAdaptor::startAdaptor()
         return true;
     }
 
-    m_interval_ms = atoi(file.readLine().data());
-    if (m_interval_ms <= 0) {
+    m_interval_us = atoi(file.readLine().data()) * 1000;
+    if (m_interval_us <= 0) {
         qDebug() << "Failed to get rate from" << file.fileName() << "- using 1000Hz (readline)";
+        m_interval_us = 1000;
         return true;
     }
 
@@ -62,7 +63,7 @@ void FakeAdaptor::stopAdaptor()
 
 bool FakeAdaptor::startSensor()
 {
-    qDebug() << "Pushing fake ALS data with" << m_interval_ms << " msec interval";
+    qDebug() << "Pushing fake ALS data with" << m_interval_us << " us interval";
     // Start pushing data
     m_thread->running = true;
     m_thread->start();
@@ -102,7 +103,8 @@ void FakeAdaptorThread::run()
 {
     int i = 0;
     while(running) {
-        QThread::msleep(m_parent->m_interval_ms);
+        int interval_ms = (m_parent->m_interval_us + 999) / 1000;
+        QThread::msleep(interval_ms);
         m_parent->pushNewData(i);
         i++;
     }

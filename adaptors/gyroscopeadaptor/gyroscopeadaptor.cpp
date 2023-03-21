@@ -70,14 +70,14 @@ void GyroscopeAdaptor::processSample(int pathId, int fd)
     gyroscopeBuffer_->wakeUpReaders();
 }
 
-bool GyroscopeAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
+bool GyroscopeAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     if (mode() == SysfsAdaptor::IntervalMode)
-        return SysfsAdaptor::setInterval(sessionId, interval_ms);
+        return SysfsAdaptor::setInterval(sessionId, interval_us);
 
     int rate_Hz = 0;
-    if (interval_ms > 0)
-        rate_Hz = 1000 / interval_ms;
+    if (interval_us > 0)
+        rate_Hz = 1000000 / interval_us;
     if (rate_Hz <= 0)
         rate_Hz = 100;
     sensordLogD() << "Setting poll interval for " << dataRatePath_ << " to " << rate_Hz;
@@ -91,6 +91,6 @@ unsigned int GyroscopeAdaptor::interval() const
         return SysfsAdaptor::interval();
     QByteArray byteArray = readFromFile(dataRatePath_);
     int rate_Hz = byteArray.size() > 0 ? byteArray.toInt() : 0;
-    int interval_ms = rate_Hz > 0 ? 1000 / rate_Hz : 0;
-    return interval_ms;
+    int interval_us = rate_Hz > 0 ? 1000000 / rate_Hz : 0;
+    return interval_us;
 }

@@ -47,7 +47,7 @@ InputDevAdaptor::InputDevAdaptor(const QString& id, int maxDeviceCount) :
     SysfsAdaptor(id, SysfsAdaptor::SelectMode, false),
     m_deviceCount(0),
     m_maxDeviceCount(maxDeviceCount),
-    m_cachedInterval_ms(0)
+    m_cachedInterval_us(0)
 {
     memset(m_evlist, 0x0, sizeof(input_event)*64);
 }
@@ -102,7 +102,8 @@ qDebug() << Q_FUNC_INFO << m_usedDevicePollFilePath;
         setValid(false);
     } else {
         QByteArray byteArray = readFromFile(m_usedDevicePollFilePath.toLatin1());
-        m_cachedInterval_ms = byteArray.size() > 0 ? byteArray.toInt() : 0;
+        int interval_ms = byteArray.size() > 0 ? byteArray.toInt() : 0;
+        m_cachedInterval_us = interval_ms * 1000;
     }
 
     return m_deviceCount;
@@ -171,19 +172,20 @@ qDebug() << Q_FUNC_INFO << path << matchString << strictChecks;
 
 unsigned int InputDevAdaptor::interval() const
 {
-    return m_cachedInterval_ms;
+    return m_cachedInterval_us;
 }
 
-bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
+bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     Q_UNUSED(sessionId);
 
     // XXX: is this supposed to be sampling frequency or sample time?
-    sensordLogD() << "Setting poll interval for " << m_deviceString << " to " << interval_ms;
+    int interval_ms = (interval_us + 999) / 1000;
+    sensordLogD() << "Setting poll interval for " << m_deviceString << " to " << interval_ms << "ms";
     QByteArray frequencyString(QString("%1\n").arg(interval_ms).toLocal8Bit());
     if(writeToFile(m_usedDevicePollFilePath.toLocal8Bit(), frequencyString))
     {
-        m_cachedInterval_ms = interval_ms;
+        m_cachedInterval_us = interval_ms * 1000;
         return true;
     }
     return false;

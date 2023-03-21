@@ -68,7 +68,7 @@ public:
 
     void init();
 
-    unsigned int m_interval_ms;
+    unsigned int m_interval_us;
 
 protected:
     FakeAdaptor(const QString& id);

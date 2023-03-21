@@ -94,7 +94,7 @@ void TapAdaptor::commitOutput(const TapData& data)
     tapBuffer_->wakeUpReaders();
 }
 
-bool TapAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
+bool TapAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     return true;
 }

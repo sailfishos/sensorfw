@@ -204,7 +204,7 @@ protected:
      *        to allow for proper state maintenance.
      * @return \c true on successfull set (valid value), \c false otherwise.
      */
-    virtual bool setInterval(const int sessionId, const unsigned int interval_ms);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_us);
 
     /**
      * Tells which mode the adaptor is using for getting input.
@@ -251,7 +251,7 @@ private:
     int                 m_pipeDescriptors[2]; /**< open pipe descriptors */
     QStringList         m_paths;   /**< added paths. */
     QList<int>          m_pathIds; /**< added path IDs. */
-    unsigned int m_interval_ms; /**< used interval */
+    unsigned int m_interval_us; /**< used interval */
     bool m_inStandbyMode;    /**< are we in standby */
     bool m_running;          /**< are we running */
     bool m_shouldBeRunning;  /**< should we be running */

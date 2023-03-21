@@ -45,7 +45,8 @@ ALSAdaptorEvdev::ALSAdaptorEvdev(const QString& id) :
     setDescription("Input device als adaptor");
     powerStatePath_ = SensorFrameworkConfig::configuration()->value("als/powerstate_path").toByteArray();
     introduceAvailableDataRange(DataRange(0, 4095, 1));
-    setDefaultInterval(10);
+    unsigned int interval_us = 10 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 ALSAdaptorEvdev::~ALSAdaptorEvdev()

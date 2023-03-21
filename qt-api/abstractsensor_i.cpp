@@ -44,7 +44,7 @@ struct AbstractSensorChannelInterface::AbstractSensorChannelInterfaceImpl : publ
     QString m_errorString;
     int m_sessionId;
     int m_interval_us;
-    unsigned int m_bufferInterval;
+    unsigned int m_bufferInterval_ms;
     unsigned int m_bufferSize;
     SocketReader m_socketReader;
     bool m_running;
@@ -58,7 +58,7 @@ AbstractSensorChannelInterface::AbstractSensorChannelInterfaceImpl::AbstractSens
     m_errorString(""),
     m_sessionId(sessionId),
     m_interval_us(0),
-    m_bufferInterval(0),
+    m_bufferInterval_ms(0),
     m_bufferSize(1),
     m_socketReader(parent),
     m_running(false),
@@ -148,7 +148,7 @@ QDBusReply<void> AbstractSensorChannelInterface::start(int sessionId)
 
     setStandbyOverride(sessionId, pimpl_->m_standbyOverride);
     setDataRate(sessionId, dataRate());
-    setBufferInterval(sessionId, pimpl_->m_bufferInterval);
+    setBufferInterval(sessionId, pimpl_->m_bufferInterval_ms);
     setBufferSize(sessionId, pimpl_->m_bufferSize);
     setDownsampling(pimpl_->m_sessionId, pimpl_->m_downsampling);
 
@@ -397,7 +397,7 @@ int AbstractSensorChannelInterface::interval()
         return static_cast<int>(getAccessor<unsigned int>("interval"));
     int interval_ms = 0;
     if (pimpl_->m_interval_us > 0)
-        interval_ms = pimpl_->m_interval_us / 1000;
+        interval_ms = (pimpl_->m_interval_us + 999) / 1000;
     return interval_ms;
 }
 
@@ -433,12 +433,12 @@ unsigned int AbstractSensorChannelInterface::bufferInterval()
 {
     if (pimpl_->m_running)
         return getAccessor<unsigned int>("bufferInterval");
-    return pimpl_->m_bufferInterval;
+    return pimpl_->m_bufferInterval_ms;
 }
 
 void AbstractSensorChannelInterface::setBufferInterval(unsigned int interval_ms)
 {
-    pimpl_->m_bufferInterval = interval_ms;
+    pimpl_->m_bufferInterval_ms = interval_ms;
     if (pimpl_->m_running)
         setBufferInterval(pimpl_->m_sessionId, interval_ms);
 }

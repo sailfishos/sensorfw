@@ -64,7 +64,7 @@ protected:
     MagnetometerAdaptor(const QString& id);
     ~MagnetometerAdaptor();
 
-    bool setInterval(const int sessionId, const unsigned int interval_ms);
+    bool setInterval(const int sessionId, const unsigned int interval_us);
 
 private:
 
@@ -91,9 +91,9 @@ private:
      */
     int overflowLimit() const;
 
-    DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>* magnetometerBuffer_;
-    int intervalCompensation_;
-    int overflowLimit_;
+    DeviceAdaptorRingBuffer<CalibratedMagneticFieldData> *m_magnetometerBuffer;
+    int m_intervalCompensation_us;
+    int m_overflowLimit;
 };
 
 #endif

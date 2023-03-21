@@ -180,8 +180,13 @@ void IioAdaptor::setup()
     }
 
     introduceAvailableDataRange(DataRange(0, 65535, 1));
-    introduceAvailableInterval(DataRange(0, 586, 0));
-    setDefaultInterval(10);
+
+    unsigned int min_interval_us =   0 * 1000;
+    unsigned int max_interval_us = 586 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+
+    unsigned int interval_us = 10 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 int IioAdaptor::findSensor(const QString &sensorName)
@@ -548,21 +553,21 @@ void IioAdaptor::processSample(int fileId, int fd)
     }
 }
 
-bool IioAdaptor::setInterval(const int sessionId, const unsigned int interval_ms)
+bool IioAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     if (mode() == SysfsAdaptor::IntervalMode)
-        return SysfsAdaptor::setInterval(sessionId, interval_ms);
+        return SysfsAdaptor::setInterval(sessionId, interval_us);
 
-    sensordLogD() << "Ignoring setInterval for " << interval_ms;
+    sensordLogD() << "Ignoring setInterval for " << interval_us;
 
     return true;
 }
 
 //unsigned int IioAdaptor::interval() const
 //{
-//    int interval_ms = 100;
-//    sensordLogD() << "Returning dummy value in interval(): " << interval_ms;
-//    return interval_ms;
+//    int interval_us = 100 * 1000;
+//    sensordLogD() << "Returning dummy value in interval(): " << interval_us;
+//    return interval_us;
 //}
 
 

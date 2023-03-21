@@ -108,7 +108,7 @@ protected:
 
     virtual unsigned int interval() const;
 
-    virtual bool setInterval(const int sessionId, const unsigned int interval_ms);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_us);
 
 private:
     /**
@@ -125,7 +125,7 @@ private:
     int m_deviceCount;                /**< number of available input devices */
     const int m_maxDeviceCount;       /**< maximum number of supported devices */
     input_event m_evlist[64];         /**< input event buffer */
-    unsigned int m_cachedInterval_ms; /**< cached interval reading */
+    unsigned int m_cachedInterval_us; /**< cached interval reading */
 };
 
 #endif
