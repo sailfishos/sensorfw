@@ -962,6 +962,7 @@ bool HybrisManager::setDelay(int handle, int delay_ms, bool force)
         if (!force && state->m_delay == delay_ms) {
             sensordLogT("HYBRIS CTL setDelay(%d=%s, %d) -> no-change",
                         sensor->handle, sensorTypeName(sensor->type), delay_ms);
+            success = true;
         } else {
             int64_t delay_ns = delay_ms * 1000LL * 1000LL;
 #ifdef USE_BINDER
