@@ -275,7 +275,6 @@ protected:
 
     virtual unsigned int interval() const;
     virtual bool setInterval(const int sessionId, const unsigned int interval_us);
-    virtual unsigned int evaluateIntervalRequests(int& sessionId) const;
     static bool writeToFile(const QByteArray& path, const QByteArray& content);
 
 private:

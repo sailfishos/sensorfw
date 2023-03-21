@@ -113,29 +113,6 @@ void AccelerometerAdaptor::commitOutput(struct input_event *ev)
     accelerometerBuffer_->wakeUpReaders();
 }
 
-unsigned int AccelerometerAdaptor::evaluateIntervalRequests(int& sessionId) const
-{
-    if (m_intervalMap.size() == 0) {
-        sessionId = -1;
-        return defaultInterval();
-    }
-
-    // Get the smallest positive request, 0 is reserved for HW wakeup
-    QMap<int, unsigned int>::const_iterator it = m_intervalMap.constBegin();
-    unsigned int highestValue = it.value();
-    int winningSessionId = it.key();
-
-    for (++it; it != m_intervalMap.constEnd(); ++it) {
-        if (((it.value() < highestValue) && (it.value() > 0)) || highestValue == 0) {
-            highestValue = it.value();
-            winningSessionId = it.key();
-        }
-    }
-
-    sessionId = winningSessionId;
-    return highestValue > 0 ? highestValue : defaultInterval();
-}
-
 bool AccelerometerAdaptor::resume()
 {
    startSensor();

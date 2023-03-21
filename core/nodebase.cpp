@@ -430,27 +430,23 @@ void NodeBase::setIntervalSource(NodeBase* node)
 
 unsigned int NodeBase::evaluateIntervalRequests(int& sessionId) const
 {
-    if (m_intervalMap.size() == 0)
-    {
-        sessionId = -1;
-        return defaultInterval();
-    }
+    int chosenSessionId = -1;
+    unsigned int chosenInterval_us = 0;
 
-    // Get the winning request
-    QMap<int, unsigned int>::const_iterator it = m_intervalMap.constBegin();
-    unsigned int highestValue = it.value();
-    int winningSessionId = it.key();
-
-    for (++it; it != m_intervalMap.constEnd(); ++it)
-    {
-        if (it.value() < highestValue) {
-            highestValue = it.value();
-            winningSessionId = it.key();
+    // Get the smallest positive request, 0 is reserved for HW wakeup
+    for (QMap<int, unsigned int>::const_iterator it = m_intervalMap.constBegin(); it != m_intervalMap.constEnd(); ++it) {
+        int iterSessionId = it.key();
+        unsigned int iterInterval_us = it.value();
+        if ((iterInterval_us > 0 && iterInterval_us < chosenInterval_us) || (chosenInterval_us == 0)) {
+            chosenInterval_us = iterInterval_us;
+            chosenSessionId = iterSessionId;
         }
     }
+    if (chosenInterval_us == 0)
+        chosenInterval_us = defaultInterval();
 
-    sessionId = winningSessionId;
-    return highestValue;
+    sessionId = chosenSessionId;
+    return chosenInterval_us;
 }
 
 unsigned int NodeBase::defaultInterval() const
