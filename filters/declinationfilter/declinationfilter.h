@@ -63,12 +63,12 @@ private:
 
     void loadSettings();
 
-    CompassData orientation_;
-    QAtomicInt declinationCorrection_;
-    quint64 lastUpdate_;
-    quint64 updateInterval_;
+    CompassData m_orientation;
+    QAtomicInt m_declinationCorrection;
+    quint64 m_lastUpdate_us;
+    quint64 m_updateInterval_us;
 
-    static const char* declinationKey;
+    static const char *s_declinationKey;
 };
 
 #endif // DECLINATIONFILTER_H
