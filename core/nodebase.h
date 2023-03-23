@@ -482,7 +482,7 @@ protected:
      * @param value Value to validate.
      * @return is valid request.
      */
-    bool isValidIntervalRequest(unsigned int value) const;
+    unsigned int validateIntervalRequest(unsigned int interval_us) const;
 
     /**
      * Find buffer with given name.
@@ -558,7 +558,7 @@ private:
     QList<DataRange>        m_intervalList;   /**< available intervals */
     NodeBase*               m_intervalSource; /**< interval sources */
     bool                    m_hasDefault;     /**< does node have locally set interval */
-    unsigned int            m_defaultInterval; /**< locally set interval */
+    unsigned int            m_defaultInterval_us; /**< locally set interval */
 
     QList<NodeBase*>        m_sourceList; /**< source nodes */
 

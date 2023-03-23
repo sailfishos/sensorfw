@@ -36,7 +36,7 @@ NodeBase::NodeBase(const QString& id, QObject* parent) :
     m_dataRangeSource(NULL),
     m_intervalSource(NULL),
     m_hasDefault(false),
-    m_defaultInterval(0),
+    m_defaultInterval_us(0),
     DEFAULT_DATA_RANGE_REQUEST(-1),
     id_(id),
     isValid_(false)
@@ -326,14 +326,10 @@ bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int interv
     }
 
     // Validate interval request
-    if (!isValidIntervalRequest(interval_us))
-    {
-        sensordLogW() << "Invalid interval requested for node '" << id() << "' by session '" << sessionId << "': " << interval_us;
-        return false;
-    }
+    unsigned int validatedInterval_us = validateIntervalRequest(interval_us);
 
     // Store the request for the session
-    m_intervalMap[sessionId] = interval_us;
+    m_intervalMap[sessionId] = validatedInterval_us;
 
     // Store the current interval
     unsigned int previousInterval = interval();
@@ -451,17 +447,18 @@ unsigned int NodeBase::evaluateIntervalRequests(int& sessionId) const
 
 unsigned int NodeBase::defaultInterval() const
 {
-    return m_defaultInterval;
+    return m_defaultInterval_us;
 }
 
 bool NodeBase::setDefaultInterval(const unsigned int interval_us)
 {
-    if (!isValidIntervalRequest(interval_us))
+    unsigned int validatedInterval_us = validateIntervalRequest(interval_us);
+    if (validatedInterval_us == 0)
     {
         sensordLogW() << "Attempting to define invalid default data rate:" << interval_us;
         return false;
     }
-    m_defaultInterval = interval_us;
+    m_defaultInterval_us = validatedInterval_us;
     m_hasDefault = true;
     return true;
 }
@@ -562,16 +559,39 @@ bool NodeBase::disconnectFromSource(NodeBase* source, const QString& bufferName,
     return success;
 }
 
-bool NodeBase::isValidIntervalRequest(const unsigned int value) const
+unsigned int NodeBase::validateIntervalRequest(unsigned int interval_us) const
 {
-    for(QList<DataRange>::const_iterator it = m_intervalList.constBegin(); it != m_intervalList.constEnd(); ++it)
+    unsigned int validatedInterval_us = 0;
+    if (interval_us > 0)
     {
-        if (it->min <= value && it->max >= value)
+        unsigned int minError = 0x7fffffff;
+        for(QList<DataRange>::const_iterator it = m_intervalList.constBegin(); it != m_intervalList.constEnd(); ++it)
         {
-            return true;
+            if (interval_us < it->min)
+            {
+                unsigned int error = it->min - interval_us;
+                if (minError > error)
+                {
+                    minError = error;
+                    validatedInterval_us = it->min;
+                }
+            }
+            else if (interval_us > it->max) {
+                unsigned int error = interval_us - it->max;
+                if (minError > error)
+                {
+                    minError = error;
+                    validatedInterval_us = it->max;
+                }
+            }
+            else
+            {
+                validatedInterval_us = interval_us;
+                break;
+            }
         }
     }
-    return false;
+    return validatedInterval_us;
 }
 
 IntegerRangeList NodeBase::getAvailableBufferSizes(bool& hwSupported) const
