@@ -512,9 +512,6 @@ protected:
 
     QMap<int, unsigned int> m_intervalMap;    /**< active interval requests for sessions */
 
-    unsigned int            m_bufferSize;     /** buffer size */
-    unsigned int            m_bufferInterval; /** buffer interval */
-
 private:
     /**
      * Returns whether the class defines its own output data range, or
@@ -565,8 +562,6 @@ private:
     //Oldest session wins for these:
     QMap<int, unsigned int> m_bufferSizeMap; /**< buffersize requests for sessions. */
     QMap<int, unsigned int> m_bufferIntervalMap; /**< buffer interval requests for sessions. */
-
-    const DataRangeRequest  DEFAULT_DATA_RANGE_REQUEST; /**< default data range request */
 
     QString                 id_; /**< node ID */
     bool                    isValid_; /**< is node correctly initialized */

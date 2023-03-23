@@ -31,13 +31,10 @@
 
 NodeBase::NodeBase(const QString& id, QObject* parent) :
     QObject(parent),
-    m_bufferSize(0),
-    m_bufferInterval(0),
     m_dataRangeSource(NULL),
     m_intervalSource(NULL),
     m_hasDefault(false),
     m_defaultInterval_us(0),
-    DEFAULT_DATA_RANGE_REQUEST(-1),
     id_(id),
     isValid_(false)
 {
