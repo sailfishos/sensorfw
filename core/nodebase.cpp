@@ -35,8 +35,8 @@ NodeBase::NodeBase(const QString& id, QObject* parent) :
     m_intervalSource(NULL),
     m_hasDefault(false),
     m_defaultInterval_us(0),
-    id_(id),
-    isValid_(false)
+    m_id(id),
+    m_isValid(false)
 {
 }
 
@@ -46,12 +46,12 @@ NodeBase::~NodeBase()
 
 const QString& NodeBase::id() const
 {
-    return id_;
+    return m_id;
 }
 
 bool NodeBase::isValid() const
 {
-    return isValid_;
+    return m_isValid;
 }
 
 bool NodeBase::isMetadataValid() const
@@ -77,7 +77,7 @@ void NodeBase::introduceAvailableDataRange(const DataRange& range)
 {
     if (!m_dataRangeList.contains(range))
     {
-        sensordLogD() << "Introduced new data range for '" << id_ << "':" << range.min << "-" << range.max << "," << range.resolution;
+        sensordLogD() << "Introduced new data range for '" << id() << "':" << range.min << "-" << range.max << "," << range.resolution;
         m_dataRangeList.append(range);
     }
 }
@@ -270,7 +270,7 @@ void NodeBase::introduceAvailableInterval(const DataRange& interval)
 {
     if (!m_intervalList.contains(interval))
     {
-        sensordLogD() << "Introduced new interval for '" << id_ << "':" << interval.min << "-" << interval.max;
+        sensordLogD() << "Introduced new interval for '" << id() << "':" << interval.min << "-" << interval.max;
         m_intervalList.append(interval);
     }
 }
@@ -734,8 +734,8 @@ void NodeBase::removeSession(int sessionId)
 
 void NodeBase::setValid(bool valid)
 {
-    isValid_ = valid;
-    if(!isValid_)
+    m_isValid = valid;
+    if(!m_isValid)
     {
         sensordLogW() << "Node '" << id() << "' state changed to invalid";
     }

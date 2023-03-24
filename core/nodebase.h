@@ -563,8 +563,8 @@ private:
     QMap<int, unsigned int> m_bufferSizeMap; /**< buffersize requests for sessions. */
     QMap<int, unsigned int> m_bufferIntervalMap; /**< buffer interval requests for sessions. */
 
-    QString                 id_; /**< node ID */
-    bool                    isValid_; /**< is node correctly initialized */
+    QString                 m_id; /**< node ID */
+    bool                    m_isValid; /**< is node correctly initialized */
 };
 
 #endif
