@@ -73,8 +73,8 @@ public:
     void startReader();
 
 private:
-    bool          running_; /**< should thread be running or not */
-    SysfsAdaptor *parent_;  /**< parent object. */
+    bool          m_running; /**< should thread be running or not */
+    SysfsAdaptor *m_parent;  /**< parent object. */
 };
 
 /**
@@ -204,7 +204,7 @@ protected:
      *        to allow for proper state maintenance.
      * @return \c true on successfull set (valid value), \c false otherwise.
      */
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_us);
 
     /**
      * Tells which mode the adaptor is using for getting input.
@@ -245,19 +245,19 @@ private:
      */
     bool checkIntervalUsage() const;
 
-    SysfsAdaptorReader  reader_; /**< reader thread instance */
-    PollMode            mode_;   /**< used poll mode */
-    int                 epollDescriptor_;    /**< open epoll descriptors */
-    int                 pipeDescriptors_[2]; /**< open pipe descriptors */
-    QStringList         paths_;   /**< added paths. */
-    QList<int>          pathIds_; /**< added path IDs. */
-    unsigned int interval_; /**< used interval */
-    bool inStandbyMode_;    /**< are we in standby */
-    bool running_;          /**< are we running */
-    bool shouldBeRunning_;  /**< should we be running */
-    bool doSeek_;           /**< should lseek() be performed after reading */
-    QList<int> sysfsDescriptors_; /**< List of open file descriptors. */
-    QMutex mutex_;          /** mutex protecting starting and stopping. */
+    SysfsAdaptorReader  m_reader; /**< reader thread instance */
+    PollMode            m_mode;   /**< used poll mode */
+    int                 m_epollDescriptor;    /**< open epoll descriptors */
+    int                 m_pipeDescriptors[2]; /**< open pipe descriptors */
+    QStringList         m_paths;   /**< added paths. */
+    QList<int>          m_pathIds; /**< added path IDs. */
+    unsigned int m_interval_us; /**< used interval */
+    bool m_inStandbyMode;    /**< are we in standby */
+    bool m_running;          /**< are we running */
+    bool m_shouldBeRunning;  /**< should we be running */
+    bool m_doSeek;           /**< should lseek() be performed after reading */
+    QList<int> m_sysfsDescriptors; /**< List of open file descriptors. */
+    QMutex m_mutex;          /**< mutex protecting starting and stopping. */
 
     friend class SysfsAdaptorReader;
 };

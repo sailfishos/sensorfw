@@ -64,12 +64,22 @@ QString AbstractSensorChannelAdaptor::id() const
 
 unsigned int AbstractSensorChannelAdaptor::interval() const
 {
-    return node()->getInterval();
+    // D-Bus interface -> interval is milliseconds
+    int interval_ms = 0;
+    int interval_us = node()->getInterval();
+    if (interval_us > 0)
+        interval_ms = (interval_us + 999) / 1000;
+    return interval_ms;
 }
 
 unsigned int AbstractSensorChannelAdaptor::bufferInterval() const
 {
-    return node()->bufferInterval();
+    // D-Bus interface -> interval is milliseconds
+    int interval_ms = 0;
+    int interval_us = node()->bufferInterval();
+    if (interval_us > 0)
+        interval_ms = (interval_us + 999) / 1000;
+    return interval_ms;
 }
 
 unsigned int AbstractSensorChannelAdaptor::bufferSize() const
@@ -99,10 +109,24 @@ void AbstractSensorChannelAdaptor::stop(int sessionId)
     node()->stop(sessionId);
 }
 
-void AbstractSensorChannelAdaptor::setInterval(int sessionId, int value)
+void AbstractSensorChannelAdaptor::setInterval(int sessionId, int interval_ms)
 {
-    node()->setIntervalRequest(sessionId, value);
-    SensorManager::instance().socketHandler().setInterval(sessionId, value);
+    // D-Bus interface -> interval is milliseconds
+    int interval_us = 0;
+    if (interval_ms > 0)
+        interval_us = interval_ms * 1000;
+    node()->setIntervalRequest(sessionId, interval_us);
+    SensorManager::instance().socketHandler().setInterval(sessionId, interval_us);
+}
+
+void AbstractSensorChannelAdaptor::setDataRate(int sessionId, double dataRate_Hz)
+{
+    // interval_us rounded down -> effective dataRate rounded up
+    int interval_us = 0;
+    if (dataRate_Hz > 0)
+        interval_us = (int)(1000000.0 / dataRate_Hz);
+    node()->setIntervalRequest(sessionId, interval_us);
+    SensorManager::instance().socketHandler().setInterval(sessionId, interval_us);
 }
 
 bool AbstractSensorChannelAdaptor::standbyOverride() const
@@ -147,22 +171,26 @@ bool AbstractSensorChannelAdaptor::setDefaultInterval(int sessionId)
     return ok;
 }
 
-void AbstractSensorChannelAdaptor::setBufferInterval(int sessionId, unsigned int value)
+void AbstractSensorChannelAdaptor::setBufferInterval(int sessionId, unsigned int interval_ms)
 {
+    // D-Bus interface -> interval is milliseconds
+    int interval_us = 0;
+    if (interval_ms > 0)
+        interval_us = interval_ms * 1000;
     bool hwBuffering = false;
     node()->getAvailableBufferIntervals(hwBuffering);
     if(hwBuffering)
     {
-        if(value == 0)
+        if(interval_us == 0)
             node()->clearBufferInterval(sessionId);
         else
-            node()->setBufferInterval(sessionId, value);
-        value = 0;
+            node()->setBufferInterval(sessionId, interval_us);
+        interval_us = 0;
     }
-    if(value == 0)
+    if(interval_us == 0)
         SensorManager::instance().socketHandler().clearBufferInterval(sessionId);
     else
-        SensorManager::instance().socketHandler().setBufferInterval(sessionId, value);
+        SensorManager::instance().socketHandler().setBufferInterval(sessionId, interval_us);
 }
 
 void AbstractSensorChannelAdaptor::setBufferSize(int sessionId, unsigned int value)
@@ -184,8 +212,14 @@ void AbstractSensorChannelAdaptor::setBufferSize(int sessionId, unsigned int val
 
 IntegerRangeList AbstractSensorChannelAdaptor::getAvailableBufferIntervals() const
 {
+    // D-Bus interface -> interval is milliseconds
     bool dummy;
-    return node()->getAvailableBufferIntervals(dummy);
+    IntegerRangeList list(node()->getAvailableBufferIntervals(dummy));
+    for (auto it = list.begin(); it != list.end(); ++it) {
+        (*it).first = ((*it).first + 999) / 1000;
+        (*it).second = ((*it).second + 999) / 1000;
+    }
+    return list;
 }
 
 IntegerRangeList AbstractSensorChannelAdaptor::getAvailableBufferSizes() const

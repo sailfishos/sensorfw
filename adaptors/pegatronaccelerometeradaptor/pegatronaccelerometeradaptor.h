@@ -27,11 +27,6 @@ protected:
     PegatronAccelerometerAdaptor(const QString& id);
     ~PegatronAccelerometerAdaptor();
 
-    /**
-     * Reimplement to allow for 0 interval to be the slowest entry.
-     */
-    virtual unsigned int evaluateIntervalRequests(int& sessionId) const;
-
 private:
     DeviceAdaptorRingBuffer<OrientationData>* accelerometerBuffer_;
     OrientationData orientationValue_;

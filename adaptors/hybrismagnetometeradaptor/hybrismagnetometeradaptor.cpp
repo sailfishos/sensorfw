@@ -36,7 +36,8 @@ HybrisMagnetometerAdaptor::HybrisMagnetometerAdaptor(const QString& id) :
     	powerStatePath.clear();
     }
     //setStandbyOverride(false);
-    setDefaultInterval(50);
+    unsigned int interval_us = 50 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 HybrisMagnetometerAdaptor::~HybrisMagnetometerAdaptor()

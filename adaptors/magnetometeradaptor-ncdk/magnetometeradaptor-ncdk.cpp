@@ -32,31 +32,32 @@
 
 MagnetometerAdaptorNCDK::MagnetometerAdaptorNCDK(const QString& id) :
     SysfsAdaptor(id, SysfsAdaptor::IntervalMode),
-    powerState_(false)
+    m_powerState(false)
 {
-    intervalCompensation_ = SensorFrameworkConfig::configuration()->value<int>("magnetometer/interval_compensation", 0);
-    powerStateFilePath_ = SensorFrameworkConfig::configuration()->value<QByteArray>("magnetometer/path_power_state", "");
-    sensAdjFilePath_ = SensorFrameworkConfig::configuration()->value<QByteArray>("magnetometer/path_sens_adjust", "");
-    magnetometerBuffer_ = new DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>(128);
-    setAdaptedSensor("magnetometer", "Internal magnetometer coordinates", magnetometerBuffer_);
+    int intervalCompensation_ms = SensorFrameworkConfig::configuration()->value<int>("magnetometer/interval_compensation", 0);
+    m_intervalCompensation_us = intervalCompensation_ms * 1000;
+    m_powerStateFilePath = SensorFrameworkConfig::configuration()->value<QByteArray>("magnetometer/path_power_state", "");
+    m_sensAdjFilePath = SensorFrameworkConfig::configuration()->value<QByteArray>("magnetometer/path_sens_adjust", "");
+    m_magnetometerBuffer = new DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>(128);
+    setAdaptedSensor("magnetometer", "Internal magnetometer coordinates", m_magnetometerBuffer);
     setDescription("Magnetometer adaptor (ak8975) for NCDK");
 
     //get sensitivity adjustment
-    getSensitivityAdjustment(x_adj, y_adj, z_adj);
+    getSensitivityAdjustment(m_x_adj, m_y_adj, m_z_adj);
 
-    overflowLimit_ = SensorFrameworkConfig::configuration()->value<int>("magnetometer/overflow_limit", 8000);
+    m_overflowLimit = SensorFrameworkConfig::configuration()->value<int>("magnetometer/overflow_limit", 8000);
 }
 
 MagnetometerAdaptorNCDK::~MagnetometerAdaptorNCDK()
 {
-    delete magnetometerBuffer_;
+    delete m_magnetometerBuffer;
 }
 
 void MagnetometerAdaptorNCDK::processSample(int pathId, int fd)
 {
     Q_UNUSED(pathId);
 
-    if (!powerState_)
+    if (!m_powerState)
         return;
 
     char buf[32];
@@ -69,9 +70,9 @@ void MagnetometerAdaptorNCDK::processSample(int pathId, int fd)
     if (isOK) {
         strList = QByteArray(buf, bytesRead).split(':');
         if (strList.size() == 3) {
-            x = adjustPos(strList.at(0).toInt(), x_adj);
-            y = adjustPos(strList.at(1).toInt(), y_adj);
-            z = adjustPos(strList.at(2).toInt(), z_adj);
+            x = adjustPos(strList.at(0).toInt(), m_x_adj);
+            y = adjustPos(strList.at(1).toInt(), m_y_adj);
+            z = adjustPos(strList.at(2).toInt(), m_z_adj);
         }
     } else {
         sensordLogW() << "Reading magnetometer error: " << strerror(errno);
@@ -80,15 +81,15 @@ void MagnetometerAdaptorNCDK::processSample(int pathId, int fd)
 
     sensordLogT() << "Magnetometer Reading: " << x << ", " << y << ", " << z;
 
-    CalibratedMagneticFieldData* sample = magnetometerBuffer_->nextSlot();
+    CalibratedMagneticFieldData *sample = m_magnetometerBuffer->nextSlot();
 
     sample->timestamp_ = Utils::getTimeStamp();
     sample->x_ = x;
     sample->y_ = y;
     sample->z_ = z;
 
-    magnetometerBuffer_->commit();
-    magnetometerBuffer_->wakeUpReaders();
+    m_magnetometerBuffer->commit();
+    m_magnetometerBuffer->wakeUpReaders();
 }
 
 bool MagnetometerAdaptorNCDK::setPowerState(bool value) const
@@ -97,7 +98,7 @@ bool MagnetometerAdaptorNCDK::setPowerState(bool value) const
 
     QByteArray powerStateStr = QByteArray::number(value);
 
-    if (!writeToFile(powerStateFilePath_, powerStateStr))
+    if (!writeToFile(m_powerStateFilePath, powerStateStr))
     {
         sensordLogW() << "Unable to set power state for compass driver";
         return false;
@@ -107,7 +108,7 @@ bool MagnetometerAdaptorNCDK::setPowerState(bool value) const
 
 void MagnetometerAdaptorNCDK::getSensitivityAdjustment(int &x, int &y, int &z) const
 {
-    QByteArray byteArray = readFromFile(sensAdjFilePath_);
+    QByteArray byteArray = readFromFile(m_sensAdjFilePath);
 
     QList<QByteArray> strList = byteArray.split(':');
     if (strList.size() == 3)
@@ -131,7 +132,7 @@ bool MagnetometerAdaptorNCDK::startSensor()
     }
     else
     {
-        powerState_ = true;
+        m_powerState = true;
     }
 
     return SysfsAdaptor::startSensor();
@@ -145,27 +146,27 @@ void MagnetometerAdaptorNCDK::stopSensor()
     }
     else
     {
-        powerState_ = false;
+        m_powerState = false;
     }
 
     SysfsAdaptor::stopSensor();
 }
 
-bool MagnetometerAdaptorNCDK::setInterval(const unsigned int value, const int sessionId)
+bool MagnetometerAdaptorNCDK::setInterval(const int sessionId, const unsigned int interval_us)
 {
-    if(intervalCompensation_)
+    if(m_intervalCompensation_us)
     {
-        return SysfsAdaptor::setInterval((int)value > intervalCompensation_ ? value - intervalCompensation_ : 0, sessionId);
+        return SysfsAdaptor::setInterval(sessionId, (int)interval_us > m_intervalCompensation_us ? interval_us - m_intervalCompensation_us : 0);
     }
-    return SysfsAdaptor::setInterval(value, sessionId);
+    return SysfsAdaptor::setInterval(sessionId, interval_us);
 }
 
 void MagnetometerAdaptorNCDK::setOverflowLimit(int limit)
 {
-    overflowLimit_ = limit;
+    m_overflowLimit = limit;
 }
 
 int MagnetometerAdaptorNCDK::overflowLimit() const
 {
-    return overflowLimit_;
+    return m_overflowLimit;
 }

@@ -73,7 +73,7 @@ public:
     }
 
     virtual unsigned int interval() const;
-    virtual bool setInterval(unsigned int value, int sessionId);
+    virtual bool setInterval(int sessionId, unsigned int interval_us);
 
     virtual void removeSession(int sessionId);
 

@@ -29,12 +29,12 @@
 #include <errno.h>
 #include "datatypes/utils.h"
 
-FakeAdaptor::FakeAdaptor(const QString& id) : DeviceAdaptor(id), interval_(1)
+FakeAdaptor::FakeAdaptor(const QString &id) : DeviceAdaptor(id), m_interval_us(1000)
 {
-    t = new FakeAdaptorThread(this);
+    m_thread = new FakeAdaptorThread(this);
 
-    buffer_ = new DeviceAdaptorRingBuffer<TimedUnsigned>(1024);
-    setAdaptedSensor("als", "Internal ambient light sensor lux values", buffer_);
+    m_buffer = new DeviceAdaptorRingBuffer<TimedUnsigned>(1024);
+    setAdaptedSensor("als", "Internal ambient light sensor lux values", m_buffer);
 }
 
 bool FakeAdaptor::startAdaptor()
@@ -46,9 +46,10 @@ bool FakeAdaptor::startAdaptor()
         return true;
     }
 
-    interval_ = atoi(file.readLine().data());
-    if (interval_ <= 0) {
+    m_interval_us = atoi(file.readLine().data()) * 1000;
+    if (m_interval_us <= 0) {
         qDebug() << "Failed to get rate from" << file.fileName() << "- using 1000Hz (readline)";
+        m_interval_us = 1000;
         return true;
     }
 
@@ -62,38 +63,38 @@ void FakeAdaptor::stopAdaptor()
 
 bool FakeAdaptor::startSensor()
 {
-    qDebug() << "Pushing fake ALS data with" << interval_ << " msec interval";
+    qDebug() << "Pushing fake ALS data with" << m_interval_us << " us interval";
     // Start pushing data
-    t->running = true;
-    t->start();
+    m_thread->running = true;
+    m_thread->start();
     return true;
 }
 
 void FakeAdaptor::stopSensor()
 {
     // Stop pushing data
-    t->running = false;
-    t->wait();
+    m_thread->running = false;
+    m_thread->wait();
     qDebug() << "sensor stopped";
 }
 
 
 void FakeAdaptor::pushNewData(int& data)
 {
-    TimedUnsigned* lux = buffer_->nextSlot();
+    TimedUnsigned *lux = m_buffer->nextSlot();
 
     lux->timestamp_ = Utils::getTimeStamp();
     lux->value_ = data;
 
-    buffer_->commit();
-    buffer_->wakeUpReaders();
+    m_buffer->commit();
+    m_buffer->wakeUpReaders();
 }
 
 void FakeAdaptor::init()
 {
 }
 
-FakeAdaptorThread::FakeAdaptorThread(FakeAdaptor *parent) : running(false), parent_(parent)
+FakeAdaptorThread::FakeAdaptorThread(FakeAdaptor *parent) : running(false), m_parent(parent)
 {
     qDebug() << "Data pusher for ALS";
 }
@@ -102,8 +103,9 @@ void FakeAdaptorThread::run()
 {
     int i = 0;
     while(running) {
-        QThread::msleep(parent_->interval_);
-        parent_->pushNewData(i);
+        int interval_ms = (m_parent->m_interval_us + 999) / 1000;
+        QThread::msleep(interval_ms);
+        m_parent->pushNewData(i);
         i++;
     }
 }

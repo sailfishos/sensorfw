@@ -70,7 +70,7 @@ private:
 
     static QString toString(const DataRangeList& ranges);
 
-    AbstractSensorChannelInterface* sensorChannelInterface_;
+    AbstractSensorChannelInterface *m_sensorChannelInterface;
 };
 
 #endif // SENSORHANDLER_H

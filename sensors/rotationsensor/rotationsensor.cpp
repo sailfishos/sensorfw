@@ -100,16 +100,19 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
     if (hasZ())
     {
         // No less than 5hz allowed for compass
-        int ranges[] = {10, 20, 25, 40, 50, 100, 200};
-        for(size_t i = 0; i < sizeof(ranges) / sizeof(int); ++i)
+        int ranges_ms[] = {10, 20, 25, 40, 50, 100, 200};
+        for(size_t i = 0; i < sizeof(ranges_ms) / sizeof(int); ++i)
         {
-            introduceAvailableInterval(DataRange(ranges[i], ranges[i], 0));
+            int range_us = ranges_ms[i] * 1000;
+            introduceAvailableInterval(DataRange(range_us, range_us, 0));
         }
     } else {
         setIntervalSource(accelerometerChain_);
     }
 
-    setDefaultInterval(100); // Tricky. Might need to make this conditional.
+    // Tricky. Might need to make this conditional.
+    unsigned int interval_us = 100 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 RotationSensorChannel::~RotationSensorChannel()
@@ -183,12 +186,12 @@ unsigned int RotationSensorChannel::interval() const
     return accelerometerChain_->getInterval();
 }
 
-bool RotationSensorChannel::setInterval(unsigned int value, int sessionId)
+bool RotationSensorChannel::setInterval(int sessionId, unsigned int interval_us)
 {
-    bool success = accelerometerChain_->setIntervalRequest(sessionId, value);
+    bool success = accelerometerChain_->setIntervalRequest(sessionId, interval_us);
     if (hasZ())
     {
-        success = compassChain_->setIntervalRequest(sessionId, value) && success;
+        success = compassChain_->setIntervalRequest(sessionId, interval_us) && success;
     }
 
     return success;

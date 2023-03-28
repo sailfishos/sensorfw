@@ -31,33 +31,35 @@
 #include "config.h"
 #include "logging.h"
 
-const char* DeclinationFilter::declinationKey = "/system/osso/location/settings/magneticvariation";
+const char *DeclinationFilter::s_declinationKey = "/system/osso/location/settings/magneticvariation";
 
 DeclinationFilter::DeclinationFilter() :
         Filter<CompassData, DeclinationFilter, CompassData>(this, &DeclinationFilter::correct),
-        declinationCorrection_(0),
-        lastUpdate_(0)
+        m_declinationCorrection(0),
+        m_lastUpdate_us(0)
 {
-    updateInterval_ = SensorFrameworkConfig::configuration()->value<quint64>("compass/declination_update_interval", 1000 * 60 * 60) * 1000;
+    // XXX: multiplication order is a bit fishy, but: config = milliseconds, default is 1 hour?
+    quint64 updateInterval_ms = SensorFrameworkConfig::configuration()->value<quint64>("compass/declination_update_interval", 1000 * 60 * 60);
+    m_updateInterval_us = updateInterval_ms * 1000;
     loadSettings();
 }
 
 void DeclinationFilter::correct(unsigned, const CompassData* data)
 {
     CompassData newOrientation(*data);
-    if (newOrientation.timestamp_ - lastUpdate_ > updateInterval_) {
+    if (newOrientation.timestamp_ - m_lastUpdate_us > m_updateInterval_us) {
         loadSettings();
-        lastUpdate_ = newOrientation.timestamp_;
+        m_lastUpdate_us = newOrientation.timestamp_;
     }
 
     newOrientation.correctedDegrees_ = newOrientation.degrees_;
-    if (declinationCorrection_.loadAcquire() != 0) {
-        newOrientation.correctedDegrees_ += declinationCorrection_.loadAcquire();
+    if (m_declinationCorrection.loadAcquire() != 0) {
+        newOrientation.correctedDegrees_ += m_declinationCorrection.loadAcquire();
         newOrientation.correctedDegrees_ %= 360;
 //        sensordLogT() << "DeclinationFilter corrected degree " << newOrientation.degrees_ << " => " << newOrientation.correctedDegrees_ << ". Level: " << newOrientation.level_;
     }
-    orientation_ = newOrientation;
-    source_.propagate(1, &orientation_);
+    m_orientation = newOrientation;
+    source_.propagate(1, &m_orientation);
 }
 
 void DeclinationFilter::loadSettings()
@@ -66,13 +68,13 @@ void DeclinationFilter::loadSettings()
     confFile.beginGroup("location");
     double declination = confFile.value("declination",0).toDouble();
     if (declination != 0) {
-        declinationCorrection_ = declination;
+        m_declinationCorrection = declination;
     }
-    sensordLogD() << "Fetched declination correction from GConf: " << declinationCorrection_.loadAcquire();
+    sensordLogD() << "Fetched declination correction from GConf: " << m_declinationCorrection.loadAcquire();
 }
 
 int DeclinationFilter::declinationCorrection()
 {
     loadSettings();
-    return declinationCorrection_.loadAcquire();
+    return m_declinationCorrection.loadAcquire();
 }

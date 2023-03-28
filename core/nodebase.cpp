@@ -31,15 +31,12 @@
 
 NodeBase::NodeBase(const QString& id, QObject* parent) :
     QObject(parent),
-    m_bufferSize(0),
-    m_bufferInterval(0),
     m_dataRangeSource(NULL),
     m_intervalSource(NULL),
     m_hasDefault(false),
-    m_defaultInterval(0),
-    DEFAULT_DATA_RANGE_REQUEST(-1),
-    id_(id),
-    isValid_(false)
+    m_defaultInterval_us(0),
+    m_id(id),
+    m_isValid(false)
 {
 }
 
@@ -49,12 +46,12 @@ NodeBase::~NodeBase()
 
 const QString& NodeBase::id() const
 {
-    return id_;
+    return m_id;
 }
 
 bool NodeBase::isValid() const
 {
-    return isValid_;
+    return m_isValid;
 }
 
 bool NodeBase::isMetadataValid() const
@@ -80,7 +77,7 @@ void NodeBase::introduceAvailableDataRange(const DataRange& range)
 {
     if (!m_dataRangeList.contains(range))
     {
-        sensordLogD() << "Introduced new data range for '" << id_ << "':" << range.min << "-" << range.max << "," << range.resolution;
+        sensordLogD() << "Introduced new data range for '" << id() << "':" << range.min << "-" << range.max << "," << range.resolution;
         m_dataRangeList.append(range);
     }
 }
@@ -273,7 +270,7 @@ void NodeBase::introduceAvailableInterval(const DataRange& interval)
 {
     if (!m_intervalList.contains(interval))
     {
-        sensordLogD() << "Introduced new interval for '" << id_ << "':" << interval.min << "-" << interval.max;
+        sensordLogD() << "Introduced new interval for '" << id() << "':" << interval.min << "-" << interval.max;
         m_intervalList.append(interval);
     }
 }
@@ -284,9 +281,12 @@ void NodeBase::introduceAvailableIntervals(const QString& typeName)
     if(ranges.isValid())
     {
         DataRangeList list(parseDataRangeList(ranges.toString(), 0));
-        foreach(const DataRange& range, list)
+        foreach(const DataRange& range_ms, list)
         {
-            introduceAvailableInterval(range);
+            DataRange range_us(range_ms);
+            range_us.min *= 1000;
+            range_us.max *= 1000;
+            introduceAvailableInterval(range_us);
         }
     }
 }
@@ -314,23 +314,19 @@ unsigned int NodeBase::getInterval(int sessionId) const
     return it.value();
 }
 
-bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int value)
+bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int interval_us)
 {
     // Has single defined source, pass the request that way
     if (!hasLocalInterval())
     {
-        return m_intervalSource->setIntervalRequest(sessionId, value);
+        return m_intervalSource->setIntervalRequest(sessionId, interval_us);
     }
 
     // Validate interval request
-    if (!isValidIntervalRequest(value))
-    {
-        sensordLogW() << "Invalid interval requested for node '" << id() << "' by session '" << sessionId << "': " << value;
-        return false;
-    }
+    unsigned int validatedInterval_us = validateIntervalRequest(interval_us);
 
     // Store the request for the session
-    m_intervalMap[sessionId] = value;
+    m_intervalMap[sessionId] = validatedInterval_us;
 
     // Store the current interval
     unsigned int previousInterval = interval();
@@ -341,7 +337,7 @@ bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int value)
 
     if (winningSessionId >= 0) {
         sensordLogD() << "Setting new interval for node: " << id() << ". Evaluation won by session '" << winningSessionId << "' with request: " << winningRequest;
-        setInterval(winningRequest, winningSessionId);
+        setInterval(winningSessionId, winningRequest);
     }
 
     // Signal listeners about change
@@ -427,42 +423,39 @@ void NodeBase::setIntervalSource(NodeBase* node)
 
 unsigned int NodeBase::evaluateIntervalRequests(int& sessionId) const
 {
-    if (m_intervalMap.size() == 0)
-    {
-        sessionId = -1;
-        return defaultInterval();
-    }
+    int chosenSessionId = -1;
+    unsigned int chosenInterval_us = 0;
 
-    // Get the winning request
-    QMap<int, unsigned int>::const_iterator it = m_intervalMap.constBegin();
-    unsigned int highestValue = it.value();
-    int winningSessionId = it.key();
-
-    for (++it; it != m_intervalMap.constEnd(); ++it)
-    {
-        if (it.value() < highestValue) {
-            highestValue = it.value();
-            winningSessionId = it.key();
+    // Get the smallest positive request, 0 is reserved for HW wakeup
+    for (QMap<int, unsigned int>::const_iterator it = m_intervalMap.constBegin(); it != m_intervalMap.constEnd(); ++it) {
+        int iterSessionId = it.key();
+        unsigned int iterInterval_us = it.value();
+        if ((iterInterval_us > 0 && iterInterval_us < chosenInterval_us) || (chosenInterval_us == 0)) {
+            chosenInterval_us = iterInterval_us;
+            chosenSessionId = iterSessionId;
         }
     }
+    if (chosenInterval_us == 0)
+        chosenInterval_us = defaultInterval();
 
-    sessionId = winningSessionId;
-    return highestValue;
+    sessionId = chosenSessionId;
+    return chosenInterval_us;
 }
 
 unsigned int NodeBase::defaultInterval() const
 {
-    return m_defaultInterval;
+    return m_defaultInterval_us;
 }
 
-bool NodeBase::setDefaultInterval(const unsigned int value)
+bool NodeBase::setDefaultInterval(const unsigned int interval_us)
 {
-    if (!isValidIntervalRequest(value))
+    unsigned int validatedInterval_us = validateIntervalRequest(interval_us);
+    if (validatedInterval_us == 0)
     {
-        sensordLogW() << "Attempting to define invalid default data rate:" << value;
+        sensordLogW() << "Attempting to define invalid default data rate:" << interval_us;
         return false;
     }
-    m_defaultInterval = value;
+    m_defaultInterval_us = validatedInterval_us;
     m_hasDefault = true;
     return true;
 }
@@ -502,7 +495,7 @@ void NodeBase::removeIntervalRequest(const int sessionId)
         int winningSessionId;
         unsigned int winningRequest = evaluateIntervalRequests(winningSessionId);
         if (winningSessionId >= 0) {
-            setInterval(winningRequest, winningSessionId);
+            setInterval(winningSessionId, winningRequest);
         }
 
         // Signal listeners if changed.
@@ -563,16 +556,39 @@ bool NodeBase::disconnectFromSource(NodeBase* source, const QString& bufferName,
     return success;
 }
 
-bool NodeBase::isValidIntervalRequest(const unsigned int value) const
+unsigned int NodeBase::validateIntervalRequest(unsigned int interval_us) const
 {
-    for(QList<DataRange>::const_iterator it = m_intervalList.constBegin(); it != m_intervalList.constEnd(); ++it)
+    unsigned int validatedInterval_us = 0;
+    if (interval_us > 0)
     {
-        if (it->min <= value && it->max >= value)
+        unsigned int minError = 0x7fffffff;
+        for(QList<DataRange>::const_iterator it = m_intervalList.constBegin(); it != m_intervalList.constEnd(); ++it)
         {
-            return true;
+            if (interval_us < it->min)
+            {
+                unsigned int error = it->min - interval_us;
+                if (minError > error)
+                {
+                    minError = error;
+                    validatedInterval_us = it->min;
+                }
+            }
+            else if (interval_us > it->max) {
+                unsigned int error = interval_us - it->max;
+                if (minError > error)
+                {
+                    minError = error;
+                    validatedInterval_us = it->max;
+                }
+            }
+            else
+            {
+                validatedInterval_us = interval_us;
+                break;
+            }
         }
     }
-    return false;
+    return validatedInterval_us;
 }
 
 IntegerRangeList NodeBase::getAvailableBufferSizes(bool& hwSupported) const
@@ -599,8 +615,12 @@ IntegerRangeList NodeBase::getAvailableBufferIntervals(bool& hwSupported) const
         if(hwSupported)
             return list;
     }
-    if(list.isEmpty())
-        list.push_back(IntegerRange(0, 60000));
+    if(list.isEmpty()) {
+        // Default to: [0, 60] second range
+        unsigned int min_interval_us = 0;
+        unsigned int max_interval_us = 60 * 1000 * 1000;
+        list.push_back(IntegerRange(min_interval_us, max_interval_us));
+    }
     hwSupported = false;
     return list;
 }
@@ -641,12 +661,12 @@ bool NodeBase::updateBufferSize()
     return false;
 }
 
-bool NodeBase::setBufferInterval(int sessionId, unsigned int value)
+bool NodeBase::setBufferInterval(int sessionId, unsigned int interval_us)
 {
     bool hwbuffering = false;
-    if(!isInRange(value, getAvailableBufferIntervals(hwbuffering)))
+    if(!isInRange(interval_us, getAvailableBufferIntervals(hwbuffering)))
         return false;
-    m_bufferIntervalMap.insert(sessionId, value);
+    m_bufferIntervalMap.insert(sessionId, interval_us);
     return updateBufferInterval();
 }
 
@@ -663,12 +683,26 @@ bool NodeBase::updateBufferInterval()
     int value = 0;
     for(QMap<int, unsigned int>::const_iterator it = m_bufferIntervalMap.constBegin(); it != m_bufferIntervalMap.constEnd(); ++it)
     {
+        // XXX: key is sessionId -> use value for latest client,
+        //      whatever they may be in relation to others. really?
         if(it.key() >= key)
         {
             key = it.key();
             value = it.value();
         }
     }
+    /* From doc/PLUGIN-GUIDE:
+     *
+     * Buffer interval can be used to configure the time limit for long
+     * we will wait for buffer to get full before flushing the content
+     * to the user. For driver/chip supported interval handling adaptor
+     * will implement setBufferInterval() virtual function to configure
+     * the driver and implement getAvailableBufferIntervals() virtual
+     * function to list available intervals.
+     *
+     * i.e. nothing will happen here until something actually implements
+     *      the above mentioned hooks.
+     */
     if(setBufferInterval(value))
     {
         emit propertyChanged("bufferinterval");
@@ -700,8 +734,8 @@ void NodeBase::removeSession(int sessionId)
 
 void NodeBase::setValid(bool valid)
 {
-    isValid_ = valid;
-    if(!isValid_)
+    m_isValid = valid;
+    if(!m_isValid)
     {
         sensordLogW() << "Node '" << id() << "' state changed to invalid";
     }
@@ -728,9 +762,9 @@ unsigned int NodeBase::interval() const
     return 0;
 }
 
-bool NodeBase::setInterval(unsigned int value, int sessionId)
+bool NodeBase::setInterval(int sessionId, unsigned int interval_us)
 {
-    Q_UNUSED(value);
+    Q_UNUSED(interval_us);
     Q_UNUSED(sessionId);
     sensordLogD() << __func__ << "not implemented in some node using it.";
     return false;
@@ -743,9 +777,9 @@ bool NodeBase::setBufferSize(unsigned int value)
     return false;
 }
 
-bool NodeBase::setBufferInterval(unsigned int value)
+bool NodeBase::setBufferInterval(unsigned int interval_us)
 {
-    Q_UNUSED(value);
+    Q_UNUSED(interval_us);
     sensordLogD() << __func__ << "not implemented in some node using it.";
     return false;
 }

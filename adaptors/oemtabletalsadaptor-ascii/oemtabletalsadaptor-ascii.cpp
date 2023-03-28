@@ -42,8 +42,13 @@ OEMTabletALSAdaptorAscii::OEMTabletALSAdaptorAscii(const QString& id) : SysfsAda
 
     setDescription("Ambient light");
     introduceAvailableDataRange(DataRange(0, range, 1));
-    introduceAvailableInterval(DataRange(10, 98, 0));
-    setDefaultInterval(90);
+
+    unsigned int min_interval_us = 10 * 1000;
+    unsigned int max_interval_us = 98 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+
+    unsigned int interval_us = 90 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 OEMTabletALSAdaptorAscii::~OEMTabletALSAdaptorAscii()

@@ -59,7 +59,7 @@ protected:
     TapAdaptor(const QString& id);
     ~TapAdaptor();
 
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_us);
 
 private:
     DeviceAdaptorRingBuffer<TapData>* tapBuffer_; /**< Output buffer */

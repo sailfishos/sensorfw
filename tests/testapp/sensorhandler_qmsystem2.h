@@ -62,7 +62,7 @@ public Q_SLOTS:
     void receivedData(const MeeGo::QmTapReading data);
 
 private:
-    MeeGo::QmSensor* sensor_;
+    MeeGo::QmSensor *m_sensor;
 };
 
 #endif // SENSORHANDLER_H

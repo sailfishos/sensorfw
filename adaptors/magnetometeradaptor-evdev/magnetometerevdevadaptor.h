@@ -62,11 +62,6 @@ protected:
     MagAdaptorEvdev(const QString& id);
     ~MagAdaptorEvdev();
 
-    /**
-     * Reimplement to allow for 0 interval to be the slowest entry.
-     */
-    virtual unsigned int evaluateIntervalRequests(int& sessionId) const;
-
 private:
     DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>* magnetometerBuffer_;
 

@@ -46,16 +46,17 @@ struct ak8974_data {
 MagnetometerAdaptor::MagnetometerAdaptor(const QString& id) :
     SysfsAdaptor(id, SysfsAdaptor::IntervalMode, false)
 {
-    intervalCompensation_ = SensorFrameworkConfig::configuration()->value<int>("magnetometer/interval_compensation", 0);
-    magnetometerBuffer_ = new DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>(1);
-    setAdaptedSensor("magnetometer", "Internal magnetometer coordinates", magnetometerBuffer_);
-    overflowLimit_ = SensorFrameworkConfig::configuration()->value<int>("magnetometer/overflow_limit", 8000);
+    int intervalCompensation_ms = SensorFrameworkConfig::configuration()->value<int>("magnetometer/interval_compensation", 0);
+    m_intervalCompensation_us = intervalCompensation_ms * 1000;
+    m_magnetometerBuffer = new DeviceAdaptorRingBuffer<CalibratedMagneticFieldData>(1);
+    setAdaptedSensor("magnetometer", "Internal magnetometer coordinates", m_magnetometerBuffer);
+    m_overflowLimit = SensorFrameworkConfig::configuration()->value<int>("magnetometer/overflow_limit", 8000);
     setDescription("Input device Magnetometer adaptor (ak897x)");
 }
 
 MagnetometerAdaptor::~MagnetometerAdaptor()
 {
-    delete magnetometerBuffer_;
+    delete m_magnetometerBuffer;
 }
 
 void MagnetometerAdaptor::processSample(int pathId, int fd)
@@ -78,32 +79,32 @@ void MagnetometerAdaptor::processSample(int pathId, int fd)
 
     sensordLogT() << "Magnetometer reading: " << mag_data.x << ", " << mag_data.y << ", " << mag_data.z;
 
-    CalibratedMagneticFieldData* sample = magnetometerBuffer_->nextSlot();
+    CalibratedMagneticFieldData *sample = m_magnetometerBuffer->nextSlot();
 
     sample->timestamp_ = Utils::getTimeStamp();
     sample->x_ = mag_data.x;
     sample->y_ = mag_data.y;
     sample->z_ = mag_data.z;
 
-    magnetometerBuffer_->commit();
-    magnetometerBuffer_->wakeUpReaders();
+    m_magnetometerBuffer->commit();
+    m_magnetometerBuffer->wakeUpReaders();
 }
 
-bool MagnetometerAdaptor::setInterval(const unsigned int value, const int sessionId)
+bool MagnetometerAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
-    if(intervalCompensation_)
+    if(m_intervalCompensation_us)
     {
-        return SysfsAdaptor::setInterval((signed)value >intervalCompensation_ ? value - intervalCompensation_ : 0, sessionId);
+        return SysfsAdaptor::setInterval(sessionId, (signed)interval_us >m_intervalCompensation_us ? interval_us - m_intervalCompensation_us : 0);
     }
-    return SysfsAdaptor::setInterval(value, sessionId);
+    return SysfsAdaptor::setInterval(sessionId, interval_us);
 }
 
 void MagnetometerAdaptor::setOverflowLimit(int limit)
 {
-    overflowLimit_ = limit;
+    m_overflowLimit = limit;
 }
 
 int MagnetometerAdaptor::overflowLimit() const
 {
-    return overflowLimit_;
+    return m_overflowLimit;
 }

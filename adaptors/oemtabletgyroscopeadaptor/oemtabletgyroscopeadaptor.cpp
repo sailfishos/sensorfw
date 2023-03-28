@@ -14,8 +14,13 @@ OEMTabletGyroscopeAdaptor::OEMTabletGyroscopeAdaptor(const QString& id) :
     setAdaptedSensor("gyroscope", "mpu3050", gyroscopeBuffer_);
 
     introduceAvailableDataRange(DataRange(-32768, 32767, 1));
-    introduceAvailableInterval(DataRange(10, 113, 0));
-    setDefaultInterval(100);
+
+    unsigned int min_interval_us =  10 * 1000;
+    unsigned int max_interval_us = 113 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+
+    unsigned int interval_us = 100 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 OEMTabletGyroscopeAdaptor::~OEMTabletGyroscopeAdaptor()

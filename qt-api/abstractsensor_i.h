@@ -51,6 +51,7 @@ class AbstractSensorChannelInterface : public QObject
     Q_PROPERTY(QString errorString READ errorString)
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString id READ id)
+    Q_PROPERTY(int dataRate READ dataRate WRITE setDataRate)
     Q_PROPERTY(int interval READ interval WRITE setInterval)
     Q_PROPERTY(bool standbyOverride READ standbyOverride WRITE setStandbyOverride)
     Q_PROPERTY(QString type READ type)
@@ -117,15 +118,25 @@ public:
      * @return used sampling interval (in millisecs)
      */
     int interval();
+    double dataRate();
 
     /**
      * Set sensor sampling interval (in millisecs).
      * Value "0" will clear previously set interval.
      * Supported intervals are listed by #getAvailableIntervals().
      *
-     * @param value sampling interval (in millisecs).
+     * @param interval_ms sampling interval (in millisecs).
      */
-    void setInterval(int value);
+    void setInterval(int interval_ms);
+
+    /**
+     * Set sensor sampling frequency (in Hertz).
+     * Value "0" will clear previously set interval.
+     * Supported intervals are listed by #getAvailableIntervals().
+     *
+     * @param dataRate_Hz sampling frequency (in Hertz).
+     */
+    void setDataRate(double dataRate_Hz);
 
     /**
      * Is standby-override enabled or not.
@@ -159,9 +170,9 @@ public:
      * buffered data to be flushed unless the buffer is filled before it.
      * Supported intervals are listed by #getAvailableBufferIntervals().
      *
-     * @param value interval in millisecs.
+     * @param interval_ms interval in millisecs.
      */
-    void setBufferInterval(unsigned int value);
+    void setBufferInterval(unsigned int interval_ms);
 
     /**
      * Is downsampling enabled or not.
@@ -321,10 +332,19 @@ private Q_SLOTS: // METHODS
      * Set interval to session.
      *
      * @param sessionId session ID.
-     * @param value interval.
+     * @param interval_ms interval.
      * @return DBus reply.
      */
-    QDBusReply<void> setInterval(int sessionId, int value);
+    QDBusReply<void> setInterval(int sessionId, int interval_ms);
+
+    /**
+     * Set frequency to session.
+     *
+     * @param sessionId session ID.
+     * @param dataRate_Hz frequency
+     * @return DBus reply.
+     */
+    QDBusReply<void> setDataRate(int sessionId, double dataRate_Hz);
 
     /**
      * Set standby-override to session.
@@ -342,7 +362,7 @@ private Q_SLOTS: // METHODS
      * @param value buffer interval.
      * @return DBus reply.
      */
-    QDBusReply<void> setBufferInterval(int sessionId, unsigned int value);
+    QDBusReply<void> setBufferInterval(int sessionId, unsigned int interval_ms);
 
     /**
      * Set buffer size to session.
@@ -472,6 +492,7 @@ protected slots:
     void stopFinished(QDBusPendingCallWatcher *watch);
 
     void setIntervalFinished(QDBusPendingCallWatcher *watch);
+    void setDataRateFinished(QDBusPendingCallWatcher *watch);
     void setBufferIntervalFinished(QDBusPendingCallWatcher *watch);
     void setBufferSizeFinished(QDBusPendingCallWatcher *watch);
     void setStandbyOverrideFinished(QDBusPendingCallWatcher *watch);

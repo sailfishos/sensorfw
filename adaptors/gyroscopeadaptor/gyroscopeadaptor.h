@@ -69,7 +69,7 @@ protected:
      */
     ~GyroscopeAdaptor();
 
-    bool setInterval(const unsigned int value, const int sessionId);
+    bool setInterval(const int sessionId, const unsigned int interval_us);
     unsigned int interval() const;
 
 private:

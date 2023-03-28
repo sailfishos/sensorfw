@@ -66,8 +66,11 @@ Mpu6050AccelAdaptor::Mpu6050AccelAdaptor (const QString& id) :
 
     setDescription("MPU 6050 accelerometer");
 //    introduceAvailableDataRange(DataRange(-16384, 16384, 1));
-//    introduceAvailableInterval(DataRange(10, 586, 0));
-//    setDefaultInterval(100);
+//    unsigned int min_interval_us =  10 * 1000;
+//    unsigned int max_interval_us = 586 * 1000;
+//    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+//    unsigned int interval_us = 100 * 1000;
+//    setDefaultInterval(interval_us);
 }
 
 Mpu6050AccelAdaptor::~Mpu6050AccelAdaptor () {

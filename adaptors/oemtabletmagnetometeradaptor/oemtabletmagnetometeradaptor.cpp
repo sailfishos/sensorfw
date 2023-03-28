@@ -20,8 +20,13 @@ OemtabletMagnetometerAdaptor::OemtabletMagnetometerAdaptor(const QString& id) :
 
     setDescription("OEM tablet magnetometer");
     introduceAvailableDataRange(DataRange(-2048, 2048, 1));
-    introduceAvailableInterval(DataRange(10, 556, 0));
-    setDefaultInterval(500);
+
+    unsigned int min_interval_us =  10 * 1000;
+    unsigned int max_interval_us = 556 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+
+    unsigned int interval_us = 500 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 OemtabletMagnetometerAdaptor::~OemtabletMagnetometerAdaptor()

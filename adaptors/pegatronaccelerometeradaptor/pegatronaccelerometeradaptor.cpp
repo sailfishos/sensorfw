@@ -32,9 +32,15 @@ PegatronAccelerometerAdaptor::PegatronAccelerometerAdaptor(const QString& id) :
     // Set Metadata
     setDescription("Input device accelerometer adaptor (Pegtron Lucid Tablet)");
     introduceAvailableDataRange(DataRange(-512, 512, 1));
+
     introduceAvailableInterval(DataRange(0, 0, 0));
-    introduceAvailableInterval(DataRange(50, 2000, 0)); // -> [1,100] Hz
-    setDefaultInterval(300);
+
+    unsigned int min_interval_us =   50 * 1000;
+    unsigned int max_interval_us = 2000 * 1000;
+    introduceAvailableInterval(DataRange(min_interval_us, max_interval_us, 0));
+
+    unsigned int interval_us = 300 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 PegatronAccelerometerAdaptor::~PegatronAccelerometerAdaptor()
@@ -81,33 +87,4 @@ void PegatronAccelerometerAdaptor::commitOutput(struct input_event *ev)
 
     accelerometerBuffer_->commit();
     accelerometerBuffer_->wakeUpReaders();
-}
-
-unsigned int PegatronAccelerometerAdaptor::evaluateIntervalRequests(int& sessionId) const
-{
-    unsigned int highestValue = 0;
-    int winningSessionId = -1;
-
-    if (m_intervalMap.size() == 0)
-    {
-        sessionId = winningSessionId;
-        return defaultInterval();
-    }
-
-    // Get the smallest positive request, 0 is reserved for HW wakeup
-    QMap<int, unsigned int>::const_iterator it;
-    it = m_intervalMap.begin();
-    highestValue = it.value();
-    winningSessionId = it.key();
-
-    for (++it; it != m_intervalMap.constEnd(); ++it)
-    {
-        if ((it.value() < highestValue) && (it.value() > 0)) {
-            highestValue = it.value();
-            winningSessionId = it.key();
-        }
-    }
-
-    sessionId = winningSessionId;
-    return highestValue > 0 ? highestValue : defaultInterval();
 }

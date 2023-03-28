@@ -182,7 +182,7 @@ public Q_SLOTS:
      * @param value interval value is milliseconds.
      * @return was request succesful.
      */
-    bool setIntervalRequest(int sessionId, unsigned int value);
+    bool setIntervalRequest(int sessionId, unsigned int interval_us);
 
     /**
      * Request default interval for the node.
@@ -248,7 +248,7 @@ public Q_SLOTS:
     /**
      * Get current buffer interval of the node.
      *
-     * @return current buffer interval in milliseconds.
+     * @return current buffer interval in microseconds.
      */
     virtual unsigned int bufferInterval() const { return 0; }
 
@@ -276,7 +276,7 @@ public Q_SLOTS:
      * @param value interval in milliseconds.
      * @return was interval se succesfully.
      */
-    bool setBufferInterval(int sessionId, unsigned int value);
+    bool setBufferInterval(int sessionId, unsigned int interval_us);
 
     /**
      * Clear buffer interval requests of given session.
@@ -431,7 +431,7 @@ protected:
      * @param sessionId Session ID.
      * @return was interval set succesfully.
      */
-    virtual bool setInterval(unsigned int value, int sessionId);
+    virtual bool setInterval(int sessionId, unsigned int interval_us);
 
     /**
      * Does node have locally set interval.
@@ -474,7 +474,7 @@ protected:
      * @param value Value to use as default interval.
      * @return was interval set succesfully.
      */
-    bool setDefaultInterval(unsigned int value);
+    bool setDefaultInterval(unsigned int interval_us);
 
     /**
      * Validate an interval request.
@@ -482,7 +482,7 @@ protected:
      * @param value Value to validate.
      * @return is valid request.
      */
-    bool isValidIntervalRequest(unsigned int value) const;
+    unsigned int validateIntervalRequest(unsigned int interval_us) const;
 
     /**
      * Find buffer with given name.
@@ -508,12 +508,9 @@ protected:
      * @param value buffer interval.
      * @return was buffer interval set succesfully.
      */
-    virtual bool setBufferInterval(unsigned int value);
+    virtual bool setBufferInterval(unsigned int interval_us);
 
     QMap<int, unsigned int> m_intervalMap;    /**< active interval requests for sessions */
-
-    unsigned int            m_bufferSize;     /** buffer size */
-    unsigned int            m_bufferInterval; /** buffer interval */
 
 private:
     /**
@@ -558,7 +555,7 @@ private:
     QList<DataRange>        m_intervalList;   /**< available intervals */
     NodeBase*               m_intervalSource; /**< interval sources */
     bool                    m_hasDefault;     /**< does node have locally set interval */
-    unsigned int            m_defaultInterval; /**< locally set interval */
+    unsigned int            m_defaultInterval_us; /**< locally set interval */
 
     QList<NodeBase*>        m_sourceList; /**< source nodes */
 
@@ -566,10 +563,8 @@ private:
     QMap<int, unsigned int> m_bufferSizeMap; /**< buffersize requests for sessions. */
     QMap<int, unsigned int> m_bufferIntervalMap; /**< buffer interval requests for sessions. */
 
-    const DataRangeRequest  DEFAULT_DATA_RANGE_REQUEST; /**< default data range request */
-
-    QString                 id_; /**< node ID */
-    bool                    isValid_; /**< is node correctly initialized */
+    QString                 m_id; /**< node ID */
+    bool                    m_isValid; /**< is node correctly initialized */
 };
 
 #endif

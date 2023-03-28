@@ -52,7 +52,8 @@ HybrisOrientationAdaptor::HybrisOrientationAdaptor(const QString& id) :
     	sensordLogW() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
-//    setDefaultInterval(50);
+//    unsigned int interval_us = 50 * 1000;
+//    setDefaultInterval(interval_us);
 }
 
 HybrisOrientationAdaptor::~HybrisOrientationAdaptor()

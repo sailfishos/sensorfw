@@ -42,7 +42,8 @@ PressureAdaptor::PressureAdaptor(const QString& id) :
     setDescription("Input device pressure adaptor");
     powerStatePath_ = SensorFrameworkConfig::configuration()->value("pressure/powerstate_path").toByteArray();
     introduceAvailableDataRange(DataRange(0, 4095, 1));
-    setDefaultInterval(10);
+    unsigned int interval_us = 10 * 1000;
+    setDefaultInterval(interval_us);
 }
 
 PressureAdaptor::~PressureAdaptor()
@@ -80,33 +81,6 @@ void PressureAdaptor::commitOutput(struct input_event *ev)
 
     pressureBuffer_->commit();
     pressureBuffer_->wakeUpReaders();
-}
-
-unsigned int PressureAdaptor::evaluateIntervalRequests(int& sessionId) const
-{
-    unsigned int highestValue = 0;
-    int winningSessionId = -1;
-
-    if (m_intervalMap.size() == 0) {
-        sessionId = winningSessionId;
-        return defaultInterval();
-    }
-
-    // Get the smallest positive request, 0 is reserved for HW wakeup
-    QMap<int, unsigned int>::const_iterator it;
-    it = m_intervalMap.begin();
-    highestValue = it.value();
-    winningSessionId = it.key();
-
-    for (++it; it != m_intervalMap.constEnd(); ++it) {
-        if ((it.value() < highestValue) && (it.value() > 0)) {
-            highestValue = it.value();
-            winningSessionId = it.key();
-        }
-    }
-
-    sessionId = winningSessionId;
-    return highestValue > 0 ? highestValue : defaultInterval();
 }
 
 bool PressureAdaptor::startSensor()

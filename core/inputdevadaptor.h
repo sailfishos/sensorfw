@@ -108,24 +108,24 @@ protected:
 
     virtual unsigned int interval() const;
 
-    virtual bool setInterval(const unsigned int value, const int sessionId);
+    virtual bool setInterval(const int sessionId, const unsigned int interval_us);
 
 private:
     /**
      * Read events from file descriptor. The read events are stored in
-     * #evlist_ array.
+     * #m_evlist array.
      *
      * @param fd File descriptor to read from.
      * @return Number of read events.
      */
     int getEvents(int fd);
 
-    QString usedDevicePollFilePath_; /**< sysfs path to input device poll file */
-    QString deviceString_;           /**< input device name */
-    int deviceCount_;                /**< number of available input devices */
-    const int maxDeviceCount_;       /**< maximum number of supported devices */
-    input_event evlist_[64];         /**< input event buffer */
-    unsigned int cachedInterval_;    /**< cached interval reading */
+    QString m_usedDevicePollFilePath; /**< sysfs path to input device poll file */
+    QString m_deviceString;           /**< input device name */
+    int m_deviceCount;                /**< number of available input devices */
+    const int m_maxDeviceCount;       /**< maximum number of supported devices */
+    input_event m_evlist[64];         /**< input event buffer */
+    unsigned int m_cachedInterval_us; /**< cached interval reading */
 };
 
 #endif
