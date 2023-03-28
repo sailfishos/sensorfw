@@ -33,7 +33,7 @@
  * 165.8 is the result of a reference measurement.
  * We are going to correct it such that we get the correct acceleration in m/s^2
  */
-#define CORRECTION_FACTOR (165.8 / EARTH_GRAVITY)
+#define CORRECTION_FACTOR float(165.8 / EARTH_GRAVITY)
 
 Mpu6050AccelAdaptor::Mpu6050AccelAdaptor (const QString& id) :
     SysfsAdaptor (id, SysfsAdaptor::IntervalMode)
@@ -114,13 +114,13 @@ void Mpu6050AccelAdaptor::processSample (int pathId, int fd) {
         case X_AXIS:
             currentData = buffer->nextSlot();                
             currentData->timestamp_ = Utils::getTimeStamp();
-            currentData->x_ = qRound(val / CORRECTION_FACTOR);
+            currentData->x_ = val / CORRECTION_FACTOR;
             break;
         case Y_AXIS:
-            currentData->y_ = qRound(val / CORRECTION_FACTOR);
+            currentData->y_ = val / CORRECTION_FACTOR;
             break;
         case Z_AXIS:
-            currentData->z_ = qRound(val / CORRECTION_FACTOR);
+            currentData->z_ = val / CORRECTION_FACTOR;
             buffer->commit();
             buffer->wakeUpReaders();
             break;

@@ -90,21 +90,21 @@ public:
      *
      * @return X coordinate.
      */
-    int x() const { return data_.x_; }
+    float x() const { return data_.x_; }
 
     /**
      * Accessor for Y coordinate.
      *
      * @return Y coordinate.
      */
-    int y() const { return data_.y_; }
+    float y() const { return data_.y_; }
 
     /**
      * Accessor for Z coordinate.
      *
      * @return Z coordinate.
      */
-    int z() const { return data_.z_; }
+    float z() const { return data_.z_; }
 
     /**
      * Accessor for display orientation.
@@ -132,6 +132,7 @@ Q_DECLARE_METATYPE( Orientation )
  */
 inline QDBusArgument &operator<<(QDBusArgument &argument, const Orientation &orientation)
 {
+    // No floats on D-Bus: Implicit float to double conversion
     argument.beginStructure();
     argument << orientation.orientationData().timestamp_ << orientation.orientationData().x_ << orientation.orientationData().y_ << orientation.orientationData().z_;
     argument.endStructure();
@@ -147,8 +148,13 @@ inline QDBusArgument &operator<<(QDBusArgument &argument, const Orientation &ori
  */
 inline const QDBusArgument &operator>>(const QDBusArgument &argument, Orientation &orientation)
 {
+    // No floats on D-Bus: Explicit double to float conversion
     argument.beginStructure();
-    argument >> orientation.data_.timestamp_ >> orientation.data_.x_ >> orientation.data_.y_ >> orientation.data_.z_;
+    double x, y, z;
+    argument >> orientation.data_.timestamp_ >> x >> y >> z;
+    orientation.data_.x_ = float(x);
+    orientation.data_.y_ = float(y);
+    orientation.data_.z_ = float(z);
     argument.endStructure();
     return argument;
 }

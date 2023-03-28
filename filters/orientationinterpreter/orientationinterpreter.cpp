@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-const float OrientationInterpreter::RADIANS_TO_DEGREES = 180.0/M_PI;
+const double OrientationInterpreter::RADIANS_TO_DEGREES = 180.0/M_PI;
 const int OrientationInterpreter::SAME_AXIS_LIMIT = 5;
 const int OrientationInterpreter::OVERFLOW_MIN = 0;
 const int OrientationInterpreter::OVERFLOW_MAX = INT_MAX;
@@ -94,9 +94,9 @@ void OrientationInterpreter::accDataAvailable(unsigned, const AccelerationData* 
     }
 
     //Calculate average
-    long x = 0;
-    long y = 0;
-    long z = 0;
+    float x = 0;
+    float y = 0;
+    float z = 0;
     foreach (const AccelerationData& sample, dataBuffer)
     {
         x += sample.x_;

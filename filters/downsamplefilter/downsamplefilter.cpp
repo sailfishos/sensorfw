@@ -77,9 +77,9 @@ void DownsampleFilter::filter(unsigned, const TimedXyzData* data)
     if(static_cast<unsigned int>(buffer_.size()) < bufferSize_)
         return;
 
-    long x = 0;
-    long y = 0;
-    long z = 0;
+    float x = 0;
+    float y = 0;
+    float z = 0;
     foreach(const TimedXyzData& data, buffer_)
     {
         x += data.x_;

@@ -93,7 +93,7 @@ private:
     int orientationCheck(const AccelerationData&, OrientationMode) const;
     PoseData orientationRotation(const AccelerationData&, OrientationMode, PoseData (OrientationInterpreter::*)(int));
 
-    static const float RADIANS_TO_DEGREES;
+    static const double RADIANS_TO_DEGREES;
     static const int SAME_AXIS_LIMIT;
 
     static const int OVERFLOW_MIN;
