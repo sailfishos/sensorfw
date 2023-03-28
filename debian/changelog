@@ -1,3 +1,18 @@
+sensorfw-qt5 (0.13.0) unstable; urgency=medium
+
+  * [hybrisadaptor] Fix setDelay() return value
+  * [sensorfw] Normalize setInterval() parameter order. Fixes JB#60301
+  * [sensorfw] Explicitly indicate interval time units. JB#60313
+  * [sensorfw] Add setDataRate() D-Bus method. JB#60417
+  * [sensorfw] Handle intervals in microsecond granularity. Fixes JB#60313
+  * [sensorfw] Drop evaluateIntervalRequests overloading. JB#60314
+  * [nodebase] Use closest supported data rate. Fixes JB#60314
+  * [declinationfilter] Add unit suffixes to time values
+  * [nodebase] Remove dead code
+  * [nodebase] Use m_variableName convention for all members
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Tue, 28 Mar 2023 11:43:04 +0300
+
 sensorfw-qt5 (0.12.7) unstable; urgency=medium
 
   * [hybrisadaptor] Force cancellation of pending POLL transaction. JB#60298
