@@ -1,3 +1,11 @@
+sensorfw-qt5 (0.14.0) unstable; urgency=medium
+
+  * [tapadaptor] Silence unused parameter warnings
+  * [clientapitest] Move unit test operator== away from API header
+  * [sensorfwd] Use float values for XYZ data. Fixes JB#60407
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Thu, 30 Mar 2023 18:35:56 +0300
+
 sensorfw-qt5 (0.13.0) unstable; urgency=medium
 
   * [hybrisadaptor] Fix setDelay() return value
