@@ -39,7 +39,7 @@ RotationFilter::RotationFilter() :
 
 void RotationFilter::interpret(unsigned, const TimedXyzData* data)
 {
-    const int RADIANS_TO_DEGREES = 180/M_PI;
+    const double RADIANS_TO_DEGREES = 180/M_PI;
 
     rotation_.timestamp_ = data->timestamp_;
 

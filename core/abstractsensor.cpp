@@ -137,9 +137,9 @@ bool AbstractSensorChannel::downsampleAndPropagate(const TimedXyzData& data, Tim
         if(samples.size() < bufferSize)
             continue;
 
-        long x = 0;
-        long y = 0;
-        long z = 0;
+        float x = 0;
+        float y = 0;
+        float z = 0;
         foreach(const TimedXyzData& data, samples)
         {
             x += data.x_;

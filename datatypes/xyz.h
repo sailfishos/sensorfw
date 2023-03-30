@@ -27,6 +27,8 @@
 #ifndef XYZ_H
 #define XYZ_H
 
+#include <math.h>
+
 #include <QDBusArgument>
 #include <datatypes/orientationdata.h>
 
@@ -72,19 +74,19 @@ public:
      * Returns the value for X.
      * @return x value.
      */
-    int x() const { return data_.x_; }
+    float x() const { return data_.x_; }
 
     /**
      * Returns the value for Y.
      * @return y value.
      */
-    int y() const { return data_.y_; }
+    float y() const { return data_.y_; }
 
     /**
      * Returns the value for Z.
      * @return z value.
      */
-    int z() const { return data_.z_; }
+    float z() const { return data_.z_; }
 
     /**
      * Assignment operator.
@@ -95,21 +97,6 @@ public:
     {
         data_ = origin.XYZData();
         return *this;
-    }
-
-    /**
-     * Comparison operator.
-     *
-     * @param right Object to compare to.
-     * @return comparison result.
-     */
-    bool operator==(const XYZ& right) const
-    {
-        TimedXyzData rdata = right.XYZData();
-        return (data_.x_ == rdata.x_ &&
-                data_.y_ == rdata.y_ &&
-                data_.z_ == rdata.z_ &&
-                data_.timestamp_ == rdata.timestamp_);
     }
 
 private:
@@ -129,6 +116,7 @@ Q_DECLARE_METATYPE( XYZ )
  */
 inline QDBusArgument &operator<<(QDBusArgument &argument, const XYZ &xyz)
 {
+    // No floats on D-Bus: Implicit float to double conversion
     argument.beginStructure();
     argument << xyz.XYZData().timestamp_ << xyz.XYZData().x_ << xyz.XYZData().y_ << xyz.XYZData().z_;
     argument.endStructure();
@@ -144,8 +132,13 @@ inline QDBusArgument &operator<<(QDBusArgument &argument, const XYZ &xyz)
  */
 inline const QDBusArgument &operator>>(const QDBusArgument &argument, XYZ &xyz)
 {
+    // No floats on D-Bus: Explicit double to float conversion
     argument.beginStructure();
-    argument >> xyz.data_.timestamp_ >> xyz.data_.x_ >> xyz.data_.y_ >> xyz.data_.z_;
+    double x, y, z;
+    argument >> xyz.data_.timestamp_ >> x >> y >> z;
+    xyz.data_.x_ = float(x);
+    xyz.data_.y_ = float(y);
+    xyz.data_.z_ = float(z);
     argument.endStructure();
     return argument;
 }

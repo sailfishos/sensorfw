@@ -96,5 +96,7 @@ void TapAdaptor::commitOutput(const TapData& data)
 
 bool TapAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
+    Q_UNUSED(sessionId);
+    Q_UNUSED(interval_us);
     return true;
 }
