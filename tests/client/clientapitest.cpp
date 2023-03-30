@@ -38,6 +38,16 @@
 #include "clientapitest.h"
 #include <QSettings>
 
+namespace {
+bool areTheSameSample(const XYZ &sample1, const XYZ &sample2)
+{
+    return sample1.XYZData().timestamp_ == sample2.XYZData().timestamp_
+        && sample1.XYZData().x_ == sample2.XYZData().x_
+        && sample1.XYZData().y_ == sample2.XYZData().y_
+        && sample1.XYZData().z_ == sample2.XYZData().z_;
+}
+}
+
 ClientApiTest::ClientApiTest()
 {
     bufferingSensors.append("magnetometersensor");
@@ -195,7 +205,7 @@ void ClientApiTest::testAccelerometerSensor()
 
     XYZ sample1 = sensorIfc->get();
     XYZ sample2 = qvariant_cast<XYZ>(sensorIfc->property("value"));
-    QVERIFY(sample1 == sample2);
+    QVERIFY(areTheSameSample(sample1, sample2));
 
 }
 
@@ -227,7 +237,7 @@ void ClientApiTest::testGyroscopeSensor()
 
     XYZ sample1 = sensorIfc->get();
     XYZ sample2 = qvariant_cast<XYZ>(sensorIfc->property("value"));
-    QVERIFY(sample1 == sample2);
+    QVERIFY(areTheSameSample(sample1, sample2));
 
     delete sensorIfc;
 }
@@ -259,7 +269,7 @@ void ClientApiTest::testMagnetometerSensor()
     MagneticField sample2 = qvariant_cast<MagneticField>(sensorIfc->property("magneticField"));
     // Background process keeps magnetometer on -- values are changing, and subsequent
     // calls are likely to give different values. This makes thus no sense.
-    // QVERIFY(sample1 == sample2);
+    // QVERIFY(areTheSameSample(sample1, sample2));
 
     // test start
     QDBusReply<void> reply = sensorIfc->start();
@@ -452,7 +462,7 @@ void ClientApiTest::testRotationSensor()
     // Need simulated data to make sensible test ouf of this.
     XYZ sample1 = sensorIfc->rotation();
     XYZ sample2 = qvariant_cast<XYZ>(sensorIfc->property("rotation"));
-    QVERIFY(sample1 == sample2);
+    QVERIFY(areTheSameSample(sample1, sample2));
 
     // test start
     QDBusReply<void> reply = sensorIfc->start();

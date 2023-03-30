@@ -97,21 +97,6 @@ public:
         return *this;
     }
 
-    /**
-     * Comparison operator.
-     *
-     * @param right Object to compare to.
-     * @return comparison result.
-     */
-    bool operator==(const XYZ& right) const
-    {
-        TimedXyzData rdata = right.XYZData();
-        return (data_.x_ == rdata.x_ &&
-                data_.y_ == rdata.y_ &&
-                data_.z_ == rdata.z_ &&
-                data_.timestamp_ == rdata.timestamp_);
-    }
-
 private:
     TimedXyzData data_; /**< Contained data. */
 
