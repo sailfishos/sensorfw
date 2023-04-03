@@ -68,16 +68,16 @@ void MagnetometerAdaptor::processSample(int pathId, int fd)
     unsigned int bytesRead = read(fd, &mag_data, sizeof(mag_data));
 
     if (bytesRead < sizeof(mag_data)) {
-        sensordLogW() << "read " << bytesRead  << " bytes out of expected " << sizeof(mag_data) << " bytes. Previous error: " << strerror(errno);
+        sensordLogW() << id() << "read " << bytesRead  << " bytes out of expected " << sizeof(mag_data) << " bytes. Previous error: " << strerror(errno);
         //return;
     }
 
     if (!mag_data.valid) {
         // Can't trust this, printed for curiosity
-        sensordLogD() << "Invalid sample received from magnetometer";
+        sensordLogD() << id() << "Invalid sample received from magnetometer";
     }
 
-    sensordLogT() << "Magnetometer reading: " << mag_data.x << ", " << mag_data.y << ", " << mag_data.z;
+    sensordLogT() << id() << "Magnetometer reading: " << mag_data.x << ", " << mag_data.y << ", " << mag_data.z;
 
     CalibratedMagneticFieldData *sample = m_magnetometerBuffer->nextSlot();
 

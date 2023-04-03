@@ -90,7 +90,7 @@ AccelerometerSensorChannel::~AccelerometerSensorChannel()
 
 bool AccelerometerSensorChannel::start()
 {
-    sensordLogD() << "Starting AccelerometerSensorChannel";
+    sensordLogD() << id() << "Starting AccelerometerSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -102,7 +102,7 @@ bool AccelerometerSensorChannel::start()
 
 bool AccelerometerSensorChannel::stop()
 {
-    sensordLogD() << "Stopping AccelerometerSensorChannel";
+    sensordLogD() << id() << "Stopping AccelerometerSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         accelerometerChain_->stop();

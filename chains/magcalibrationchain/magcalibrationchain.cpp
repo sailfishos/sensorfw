@@ -58,7 +58,7 @@ MagCalibrationChain::MagCalibrationChain(const QString& id) :
     QString aconvString = SensorFrameworkConfig::configuration()->value<QString>("magnetometer/transformation_matrix", "");
     if (aconvString.size() > 0) {
         if (!setMatrixFromString(aconvString)) {
-            sensordLogW() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
+            sensordLogW()<< NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
         }
     }
 
@@ -95,19 +95,19 @@ MagCalibrationChain::MagCalibrationChain(const QString& id) :
         filterBin->add(magCalFilter, "calibration");
 
         if (!filterBin->join("calibratedmagneticfield", "source", "magcoordinatealigner", "sink"))
-            qDebug() << Q_FUNC_INFO << "calibratedmagneticfield/magcoordinatealigner join failed";
+            qDebug()<< NodeBase::id() << Q_FUNC_INFO << "calibratedmagneticfield/magcoordinatealigner join failed";
 
         if (!filterBin->join("magcoordinatealigner", "source", "calibration", "magsink"))
-            qDebug() << Q_FUNC_INFO << "magcoordinatealigner/calibration join failed";
+            qDebug()<< NodeBase::id() << Q_FUNC_INFO << "magcoordinatealigner/calibration join failed";
 
         if (!filterBin->join("calibration", "source", "calibratedmagnetometerdata", "sink"))
-            qDebug() << Q_FUNC_INFO << "calibration/calibratedmagnetometerdata join failed";
+            qDebug()<< NodeBase::id() << Q_FUNC_INFO << "calibration/calibratedmagnetometerdata join failed";
     } else {
         if (!filterBin->join("calibratedmagneticfield", "source", "magcoordinatealigner", "sink"))
-            qDebug() << Q_FUNC_INFO << "calibratedmagneticfield/magcoordinatealigner join failed";
+            qDebug()<< NodeBase::id() << Q_FUNC_INFO << "calibratedmagneticfield/magcoordinatealigner join failed";
 
         if (!filterBin->join("magcoordinatealigner", "source", "calibratedmagnetometerdata", "sink"))
-            qDebug() << Q_FUNC_INFO << "magcoordinatealigner/calibratedmagnetometerdata join failed";
+            qDebug()<< NodeBase::id() << Q_FUNC_INFO << "magcoordinatealigner/calibratedmagnetometerdata join failed";
     }
 
     // Join datasources to the chain
@@ -137,12 +137,12 @@ MagCalibrationChain::~MagCalibrationChain()
 bool MagCalibrationChain::start()
 {
     if (!magAdaptor) {
-        sensordLogD() << "No magnetometer adaptor to start.";
+        sensordLogD() << id() << "No magnetometer adaptor to start.";
         return false;
     }
 
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << "Starting MagCalibrationChain";
+        sensordLogD() << id() << "Starting MagCalibrationChain";
         filterBin->start();
         magAdaptor->startSensor();
     }
@@ -152,12 +152,12 @@ bool MagCalibrationChain::start()
 bool MagCalibrationChain::stop()
 {
     if (!magAdaptor) {
-        sensordLogD() << "No magnetometer adaptor to stop.";
+        sensordLogD() << id() << "No magnetometer adaptor to stop.";
         return false;
     }
 
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << "Stopping MagCalibrationChain";
+        sensordLogD() << id() << "Stopping MagCalibrationChain";
         magAdaptor->stopSensor();
         filterBin->stop();
     }
@@ -169,7 +169,7 @@ void MagCalibrationChain::resetCalibration()
    if (needsCalibration) {
        CalibrationFilter *filter = static_cast<CalibrationFilter *>(magCalFilter);
        if (!filter) {
-           sensordLogD() << "Can not reset calibration without filter.";
+           sensordLogD() << id() << "Can not reset calibration without filter.";
            return;
        }
        filter->dropCalibration();
@@ -180,7 +180,7 @@ bool MagCalibrationChain::setMatrixFromString(const QString& str)
 {
     QStringList strList = str.split(',');
     if (strList.size() != 9) {
-        sensordLogW() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
+        sensordLogW() << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
         return false;
     }
 

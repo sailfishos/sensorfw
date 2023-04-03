@@ -112,7 +112,7 @@ ALSSensorChannel::~ALSSensorChannel()
 
 bool ALSSensorChannel::start()
 {
-    sensordLogD() << "Starting ALSSensorChannel";
+    sensordLogD() << id() << "Starting ALSSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -124,7 +124,7 @@ bool ALSSensorChannel::start()
 
 bool ALSSensorChannel::stop()
 {
-    sensordLogD() << "Stopping ALSSensorChannel";
+    sensordLogD() << id() << "Stopping ALSSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         alsAdaptor_->stopSensor();

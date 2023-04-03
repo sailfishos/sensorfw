@@ -32,7 +32,7 @@ int ContextPlugin::sessionId = 0;
 
 void ContextPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering contextsensor";
+    sensordLogD() << id() << "registering contextsensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<ContextSensorChannel>("contextsensor");
 }

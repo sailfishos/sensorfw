@@ -98,9 +98,9 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
+            sensordLogT() << id() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
         } else {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
 
@@ -115,9 +115,9 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
+            sensordLogT() << id() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
         } else {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
 
@@ -132,18 +132,18 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = read(fd, &buffer, sizeof(buffer));
         if (bytesRead <= 0) {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
         sscanf(buffer, "%d", &rawdata);
         if ( (signed)rawdata > threshold_ ) {
             ret = 1;
         }
-        sensordLogT() << "Proximity value: " << rawdata;
+        sensordLogT() << id() << "Proximity value: " << rawdata;
     }
     else
     {
-        sensordLogW() << "Not known device type: " << deviceType_;
+        sensordLogW() << id() << "Not known device type: " << deviceType_;
         return;
     }
 

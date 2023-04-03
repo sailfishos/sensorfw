@@ -61,13 +61,13 @@ OrientationChain::OrientationChain(const QString& id) :
 
     // Join filterchain buffers
     if (!filterBin_->join("accelerometer", "source", "orientationinterpreter", "accsink"))
-        qDebug() << Q_FUNC_INFO << "accelerometer/orientationinterpreter join failed";
+        qDebug()<< NodeBase::id() << Q_FUNC_INFO << "accelerometer/orientationinterpreter join failed";
     if (!filterBin_->join("orientationinterpreter", "topedge", "topedgebuffer", "sink"))
-        qDebug() << Q_FUNC_INFO << "orientationinterpreter/topedgebuffer join failed";
+        qDebug()<< NodeBase::id() << Q_FUNC_INFO << "orientationinterpreter/topedgebuffer join failed";
     if (!filterBin_->join("orientationinterpreter", "face", "facebuffer", "sink"))
-        qDebug() << Q_FUNC_INFO << "orientationinterpreter/facebuffer join failed";
+        qDebug()<< NodeBase::id() << Q_FUNC_INFO << "orientationinterpreter/facebuffer join failed";
     if (!filterBin_->join("orientationinterpreter", "orientation", "orientationbuffer", "sink"))
-        qDebug() << Q_FUNC_INFO << "orientationinterpreter/orientationbuffer join failed";
+        qDebug()<< NodeBase::id() << Q_FUNC_INFO << "orientationinterpreter/orientationbuffer join failed";
 
     // Join datasources to the chain
     connectToSource(accelerometerChain_, "accelerometer", accelerometerReader_);
@@ -93,7 +93,7 @@ OrientationChain::~OrientationChain()
 bool OrientationChain::start()
 {
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << "Starting AccelerometerChain";
+        sensordLogD() << id() << "Starting AccelerometerChain";
         filterBin_->start();
         accelerometerChain_->start();
     }
@@ -103,7 +103,7 @@ bool OrientationChain::start()
 bool OrientationChain::stop()
 {
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << "Stopping AccelerometerChain";
+        sensordLogD() << id() << "Stopping AccelerometerChain";
         accelerometerChain_->stop();
         filterBin_->stop();
     }

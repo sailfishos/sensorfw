@@ -57,7 +57,7 @@ AccelerometerChain::AccelerometerChain(const QString& id) :
     {
         if (!setMatrixFromString(aconvString))
         {
-            sensordLogW() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
+            sensordLogW() << NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
         }
     }
 
@@ -77,10 +77,10 @@ AccelerometerChain::AccelerometerChain(const QString& id) :
 
     // Join filterchain buffers
     if (!filterBin_->join("accelerometer", "source", "acccoordinatealigner", "sink"))
-    qDebug() << Q_FUNC_INFO << "accelerometer/acccoordinatealigner join failed";
+    qDebug() << NodeBase::id() << Q_FUNC_INFO << "accelerometer/acccoordinatealigner join failed";
 
     if (!filterBin_->join("acccoordinatealigner", "source", "buffer", "sink"))
-    qDebug() << Q_FUNC_INFO << "acccoordinatealigner/buffer join failed";
+    qDebug() << NodeBase::id() << Q_FUNC_INFO << "acccoordinatealigner/buffer join failed";
 
     // Join datasources to the chain
     connectToSource(accelerometerAdaptor_, "accelerometer", accelerometerReader_);
@@ -108,12 +108,12 @@ AccelerometerChain::~AccelerometerChain()
 bool AccelerometerChain::start()
 {
     if (!accelerometerAdaptor_) {
-        sensordLogD() << "No accelerometer adaptor to start.";
+        sensordLogD() << id() << "No accelerometer adaptor to start.";
         return false;
     }
 
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << "Starting AccelerometerChain";
+        sensordLogD() << id() << "Starting AccelerometerChain";
         filterBin_->start();
         accelerometerAdaptor_->startSensor();
     }
@@ -123,12 +123,12 @@ bool AccelerometerChain::start()
 bool AccelerometerChain::stop()
 {
     if (!accelerometerAdaptor_) {
-        sensordLogD() << "No accelerometer adaptor to stop.";
+        sensordLogD() << id() << "No accelerometer adaptor to stop.";
         return false;
     }
 
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << "Stopping AccelerometerChain";
+        sensordLogD() << id() << "Stopping AccelerometerChain";
         accelerometerAdaptor_->stopSensor();
         filterBin_->stop();
     }
@@ -139,7 +139,7 @@ bool AccelerometerChain::setMatrixFromString(const QString& str)
 {
     QStringList strList = str.split(',');
     if (strList.size() != 9) {
-        sensordLogW() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
+        sensordLogW() << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
         return false;
     }
 

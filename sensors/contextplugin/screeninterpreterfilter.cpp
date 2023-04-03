@@ -52,7 +52,7 @@ ScreenInterpreterFilter::ScreenInterpreterFilter(
 
 void ScreenInterpreterFilter::interpret(unsigned, const PoseData* data)
 {
-    sensordLogT() << "Data received on ScreenInterpreter... " << data->timestamp_;
+    sensordLogT() << id() << "Data received on ScreenInterpreter... " << data->timestamp_;
     provideScreenData(data->orientation_);
     source_.propagate(1, data);
 }
@@ -60,7 +60,7 @@ void ScreenInterpreterFilter::interpret(unsigned, const PoseData* data)
 void ScreenInterpreterFilter::provideScreenData(PoseData::Orientation orientation)
 {
 
-    sensordLogT() << "Screen orientation from contextprovider:" << orientation;
+    sensordLogT() << id() << "Screen orientation from contextprovider:" << orientation;
 
     // Any TopEdge value should set flat to false.
     if (isFlat && orientation != PoseData::Undefined && orientation != PoseData::FaceDown && orientation != PoseData::FaceUp)

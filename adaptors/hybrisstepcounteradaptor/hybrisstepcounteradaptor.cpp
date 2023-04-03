@@ -37,7 +37,7 @@ HybrisStepCounterAdaptor::HybrisStepCounterAdaptor(const QString& id) :
     powerStatePath = SensorFrameworkConfig::configuration()->value("stepcounter/powerstate_path").toByteArray();
     if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
     {
-    	sensordLogW() << "Path does not exists: " << powerStatePath;
+        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
 }
@@ -53,13 +53,13 @@ bool HybrisStepCounterAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << "Hybris HybrisStepCounterAdaptor start\n";
+    sensordLogD() << id() << "Hybris HybrisStepCounterAdaptor start";
     return true;
 }
 
 void HybrisStepCounterAdaptor::sendInitialData()
 {
-    sensordLogW() << "No initial data for step counter";
+    sensordLogW() << id() << "No initial data for step counter";
 }
 
 void HybrisStepCounterAdaptor::stopSensor()
@@ -67,7 +67,7 @@ void HybrisStepCounterAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << "Hybris HybrisStepCounterAdaptor stop\n";
+    sensordLogD() << id() << "Hybris HybrisStepCounterAdaptor stop";
 }
 
 void HybrisStepCounterAdaptor::processSample(const sensors_event_t& data)

@@ -41,6 +41,6 @@ void NormalizerFilter::interpret(unsigned, const TimedXyzData* data)
         source_.propagate(1, &n);
         prevTime = data->timestamp_;
     } else {
-        sensordLogT() << "Discarded sample from normalizer due to too short time delta.";
+        sensordLogT() << id() << "Discarded sample from normalizer due to too short time delta.";
     }
 }

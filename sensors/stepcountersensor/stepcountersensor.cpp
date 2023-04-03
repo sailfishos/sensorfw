@@ -91,7 +91,7 @@ StepCounterSensorChannel::~StepCounterSensorChannel()
 
 bool StepCounterSensorChannel::start()
 {
-    sensordLogD() << "Starting StepCounterSensorChannel";
+    sensordLogD() << id() << "Starting StepCounterSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -103,7 +103,7 @@ bool StepCounterSensorChannel::start()
 
 bool StepCounterSensorChannel::stop()
 {
-    sensordLogD() << "Stopping StepCounterSensorChannel";
+    sensordLogD() << id() << "Stopping StepCounterSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         stepcounterAdaptor_->stopSensor();

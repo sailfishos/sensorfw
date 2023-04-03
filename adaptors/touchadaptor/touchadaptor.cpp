@@ -63,7 +63,7 @@ bool TouchAdaptor::checkInputDevice(QString path, QString matchString)
     ioctl(fd, EVIOCGNAME(sizeof(deviceName)), deviceName);
 
     if (ioctl(fd, EVIOCGBIT(0, sizeof(evtype_bitmask)), evtype_bitmask) < 0) {
-        sensordLogW() << __PRETTY_FUNCTION__ << deviceName << "EVIOCGBIT error";
+        sensordLogW() << id() << __PRETTY_FUNCTION__ << deviceName << "EVIOCGBIT error";
         close(fd);
         return false;
     }
@@ -76,13 +76,13 @@ bool TouchAdaptor::checkInputDevice(QString path, QString matchString)
     }
 
     if (ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(evtype_bitmask)), evtype_bitmask) < 0) {
-        sensordLogW() << __PRETTY_FUNCTION__ << deviceName << "EVIOGBIT EV_ABS error.";
+        sensordLogW() << id() << __PRETTY_FUNCTION__ << deviceName << "EVIOGBIT EV_ABS error.";
         close(fd);
         return false;
     }
 
     if (!test_bit(ABS_X, evtype_bitmask) || !test_bit(ABS_Y, evtype_bitmask)) {
-        sensordLogW() << __PRETTY_FUNCTION__ << deviceName << "Testbit ABS_X or ABS_Y failed.";
+        sensordLogW() << id() << __PRETTY_FUNCTION__ << deviceName << "Testbit ABS_X or ABS_Y failed.";
         close(fd);
         return false;
     }

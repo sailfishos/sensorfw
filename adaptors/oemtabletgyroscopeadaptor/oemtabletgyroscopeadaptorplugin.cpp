@@ -4,7 +4,7 @@
 
 void OEMTabletGyroscopeAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering oemtabletgyroscopeadaptor";
+    sensordLogD() << id() << "registering oemtabletgyroscopeadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<OEMTabletGyroscopeAdaptor>("gyroscopeadaptor");
 }

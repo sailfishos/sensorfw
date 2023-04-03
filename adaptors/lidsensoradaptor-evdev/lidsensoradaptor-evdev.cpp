@@ -75,12 +75,12 @@ LidSensorAdaptorEvdev::~LidSensorAdaptorEvdev()
 // there can be two lid sensors, so try and use both
 void LidSensorAdaptorEvdev::init()
 {
-    qDebug() << Q_FUNC_INFO << name();
+    qDebug() << id() << Q_FUNC_INFO << name();
     QStringList strList = SensorFrameworkConfig::configuration()->value<QStringList>(name() + "/input_match");
-    qDebug() << strList;
+    qDebug() << id() << strList;
     foreach (const QString str, strList) {
         if (!getInputDevices(str)) {
-            sensordLogW() << "Input device not found.";
+            sensordLogW() << id() << "Input device not found.";
             SysfsAdaptor::init();
         }
     }
@@ -128,7 +128,7 @@ void LidSensorAdaptorEvdev::commitOutput(struct input_event *ev)
         lidData->timestamp_ = Utils::getTimeStamp(ev);
         lidData->value_ = currentValue_;
         lidData->type_ = currentType_;
-        sensordLogD() << "Lid state change detected: "
+        sensordLogD() << id() << "Lid state change detected: "
                       << (currentType_ == 0 ? "front" : "back")
                       << (currentValue_ == 0 ? "OPEN": "CLOSED");
 

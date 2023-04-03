@@ -89,7 +89,7 @@ TapSensorChannel::~TapSensorChannel()
 
 bool TapSensorChannel::start()
 {
-    sensordLogD() << "Starting TapSensorChannel";
+    sensordLogD() << id() << "Starting TapSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -101,7 +101,7 @@ bool TapSensorChannel::start()
 
 bool TapSensorChannel::stop()
 {
-    sensordLogD() << "Stopping TapSensorChannel";
+    sensordLogD() << id() << "Stopping TapSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         tapAdaptor_->stopSensor();

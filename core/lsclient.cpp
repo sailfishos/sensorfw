@@ -73,7 +73,7 @@ error:
         LSErrorFree(&lserror);
     }
 
-    qDebug() << "Unable to start service.";
+    qDebug() << id() << "Unable to start service.";
 }
 
 bool LSClient::displayEnabled() const

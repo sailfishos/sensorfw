@@ -5,7 +5,7 @@
 
 void PegatronAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering pegatronaccelerometeradaptor";
+    sensordLogD() << id() << "registering pegatronaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<PegatronAccelerometerAdaptor>("accelerometeradaptor");
 }

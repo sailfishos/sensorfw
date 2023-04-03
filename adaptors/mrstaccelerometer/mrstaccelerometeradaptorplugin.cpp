@@ -29,7 +29,7 @@
 
 void MRSTAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering mrstaccelerometeradaptor";
+    sensordLogD() << id() << "registering mrstaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<MRSTAccelAdaptor>("accelerometeradaptor");
 }

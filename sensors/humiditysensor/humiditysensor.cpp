@@ -90,7 +90,7 @@ HumiditySensorChannel::~HumiditySensorChannel()
 
 bool HumiditySensorChannel::start()
 {
-    sensordLogD() << "Starting HumiditySensorChannel";
+    sensordLogD() << id() << "Starting HumiditySensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -102,7 +102,7 @@ bool HumiditySensorChannel::start()
 
 bool HumiditySensorChannel::stop()
 {
-    sensordLogD() << "Stopping HumiditySensorChannel";
+    sensordLogD() << id() << "Stopping HumiditySensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         humidityAdaptor_->stopSensor();

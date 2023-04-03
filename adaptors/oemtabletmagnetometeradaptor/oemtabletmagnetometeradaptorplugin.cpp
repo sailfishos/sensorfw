@@ -4,7 +4,7 @@
 
 void OemtabletMagnetometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering OemtabletMagnetometerAdaptor";
+    sensordLogD() << id() << "registering OemtabletMagnetometerAdaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<OemtabletMagnetometerAdaptor>("magnetometeradaptor");
 }

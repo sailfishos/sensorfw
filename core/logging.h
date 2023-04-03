@@ -27,7 +27,8 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
-#include <QDebug>
+// QUARANTINE #include <QDebug>
+#include <QtDebug>
 
 #define sensordLogT(ARGS_...) (qDebug(ARGS_))
 #define sensordLogD(ARGS_...) (qInfo(ARGS_))

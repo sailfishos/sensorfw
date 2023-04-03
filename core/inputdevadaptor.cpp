@@ -58,7 +58,7 @@ InputDevAdaptor::~InputDevAdaptor()
 
 int InputDevAdaptor::getInputDevices(const QString& typeName)
 {
-    qDebug() << Q_FUNC_INFO << typeName;
+    qDebug() << id() << Q_FUNC_INFO << typeName;
     QString deviceSysPathString = SensorFrameworkConfig::configuration()->value("global/device_sys_path").toString();
     QString devicePollFilePath = SensorFrameworkConfig::configuration()->value("global/device_poll_file_path").toString();
 
@@ -74,12 +74,12 @@ int InputDevAdaptor::getInputDevices(const QString& typeName)
         ++m_deviceCount;
     } else if(deviceSysPathString.contains("%1")) {
         const int MAX_EVENT_DEV = 16;
-qDebug() << deviceNumber << m_deviceCount << m_maxDeviceCount;
+qDebug() << id() << deviceNumber << m_deviceCount << m_maxDeviceCount;
 
         // No configuration for this device, try find the device from the device system path
         while (deviceNumber < MAX_EVENT_DEV && m_deviceCount < m_maxDeviceCount) {
             deviceName = deviceSysPathString.arg(deviceNumber);
-            qDebug() << Q_FUNC_INFO << deviceName;
+            qDebug() << id() << Q_FUNC_INFO << deviceName;
             if (checkInputDevice(deviceName, typeName)) {
                 addPath(deviceName, m_deviceCount);
                 ++m_deviceCount;
@@ -95,10 +95,10 @@ qDebug() << deviceNumber << m_deviceCount << m_maxDeviceCount;
     } else {
         m_usedDevicePollFilePath = devicePollFilePath.arg(deviceNumber);
     }
-qDebug() << Q_FUNC_INFO << m_usedDevicePollFilePath;
+qDebug() << id() << Q_FUNC_INFO << m_usedDevicePollFilePath;
 
     if (m_deviceCount == 0) {
-        sensordLogW() << "Cannot find any device for: " << typeName;
+        sensordLogW() << id() << "Cannot find any device for: " << typeName;
         setValid(false);
     } else {
         QByteArray byteArray = readFromFile(m_usedDevicePollFilePath.toLatin1());
@@ -113,11 +113,11 @@ int InputDevAdaptor::getEvents(int fd)
 {
     int bytes = read(fd, m_evlist, sizeof(struct input_event)*64);
     if (bytes == -1) {
-        sensordLogW() << "Error occured: " << strerror(errno);
+        sensordLogW() << id() << "Error occured: " << strerror(errno);
         return 0;
     }
     if (bytes % sizeof(struct input_event)) {
-        sensordLogW() << "Short read or stray bytes.";
+        sensordLogW() << id() << "Short read or stray bytes.";
         return 0;
     }
     return bytes/sizeof(struct input_event);
@@ -143,7 +143,7 @@ bool InputDevAdaptor::checkInputDevice(const QString& path, const QString& match
 {
     char deviceName[256] = {0,};
     bool check = true;
-qDebug() << Q_FUNC_INFO << path << matchString << strictChecks;
+qDebug() << id() << Q_FUNC_INFO << path << matchString << strictChecks;
     int fd = open(path.toLocal8Bit().constData(), O_RDONLY);
     if (fd == -1) {
         return false;
@@ -151,13 +151,13 @@ qDebug() << Q_FUNC_INFO << path << matchString << strictChecks;
 
     if (strictChecks) {
         int result = ioctl(fd, EVIOCGNAME(sizeof(deviceName)), deviceName);
-        qDebug() << Q_FUNC_INFO << "open result:" << result << deviceName;
+        qDebug() << id() << Q_FUNC_INFO << "open result:" << result << deviceName;
         if (result == -1) {
-           sensordLogW() << "Could not read devicename for " << path;
+           sensordLogW() << id() << "Could not read devicename for " << path;
            check = false;
         } else {
             if (QString(deviceName).contains(matchString, Qt::CaseInsensitive)) {
-                sensordLogT() << "\"" << matchString << "\"" << " matched in device name: " << deviceName;
+                sensordLogT() << id() << "\"" << matchString << "\"" << " matched in device name: " << deviceName;
                 check = true;
             } else {
                 check = false;
@@ -181,7 +181,7 @@ bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int interv
 
     // XXX: is this supposed to be sampling frequency or sample time?
     int interval_ms = (interval_us + 999) / 1000;
-    sensordLogD() << "Setting poll interval for " << m_deviceString << " to " << interval_ms << "ms";
+    sensordLogD() << id() << "Setting poll interval for " << m_deviceString << " to " << interval_ms << "ms";
     QByteArray frequencyString(QString("%1\n").arg(interval_ms).toLocal8Bit());
     if(writeToFile(m_usedDevicePollFilePath.toLocal8Bit(), frequencyString))
     {
@@ -193,9 +193,9 @@ bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int interv
 
 void InputDevAdaptor::init()
 {
-    qDebug() << Q_FUNC_INFO << name();
+    qDebug() << id() << Q_FUNC_INFO << name();
     if (!getInputDevices(SensorFrameworkConfig::configuration()->value<QString>(name() + "/input_match", name()))) {
-        sensordLogW() << "Input device not found.";
+        sensordLogW() << id() << "Input device not found.";
         SysfsAdaptor::init();
     }
 }
