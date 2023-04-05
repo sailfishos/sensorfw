@@ -80,7 +80,7 @@ void HybrisAlsAdaptor::sendInitialData()
         }
 
         if (inputDev.isEmpty()) {
-            sensordLogW() << id() << "No sysfs als device found";
+            sensordLogD() << id() << "No sysfs als device found";
             return;
         }
 

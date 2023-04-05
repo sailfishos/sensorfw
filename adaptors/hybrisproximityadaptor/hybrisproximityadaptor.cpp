@@ -85,7 +85,7 @@ void HybrisProximityAdaptor::sendInitialData()
        }
 
        if (inputDev.isEmpty()) {
-           sensordLogW() << id() << "No sysfs proximity device found";
+           sensordLogD() << id() << "No sysfs proximity device found";
            return;
        }
 
