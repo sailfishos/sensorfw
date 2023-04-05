@@ -1302,6 +1302,9 @@ HybrisAdaptor::HybrisAdaptor(const QString& id, int type)
         return;
     }
 
+    introduceAvailableDataRange(DataRange(minRange(), maxRange(), resolution()));
+    introduceAvailableInterval(DataRange(minInterval(), maxInterval(), 0));
+
     hybrisManager()->registerAdaptor(this);
 }
 
@@ -1311,8 +1314,6 @@ HybrisAdaptor::~HybrisAdaptor()
 
 void HybrisAdaptor::init()
 {
-    introduceAvailableDataRange(DataRange(minRange(), maxRange(), resolution()));
-    introduceAvailableInterval(DataRange(minInterval(), maxInterval(), 0));
 }
 
 void HybrisAdaptor::sendInitialData()

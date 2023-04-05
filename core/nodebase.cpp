@@ -452,7 +452,13 @@ bool NodeBase::setDefaultInterval(const unsigned int interval_us)
     unsigned int validatedInterval_us = validateIntervalRequest(interval_us);
     if (validatedInterval_us == 0)
     {
-        sensordLogW() << id() << "Attempting to define invalid default data rate:" << interval_us;
+        // With "use closes match" in use, the only way we get here is that:
+        // a) zero interval was requested -> useless
+        // b) no interval ranges were defined -> logic error
+        if (interval_us == 0)
+            sensordLogW() << id() << "Attempting to set invalid default data rate:" << interval_us;
+        else
+            sensordLogW() << id() << "Attempting to set default data rate:" << interval_us << "without defining possible data rates";
         return false;
     }
     m_defaultInterval_us = validatedInterval_us;
