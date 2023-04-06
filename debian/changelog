@@ -1,3 +1,9 @@
+sensorfw-qt5 (0.14.2) unstable; urgency=medium
+
+  * [hybrisadaptor] Fix build errors from unresolvable id() calls. JB#60480
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Thu, 06 Apr 2023 10:15:22 +0300
+
 sensorfw-qt5 (0.14.1) unstable; urgency=medium
 
   * [sensorfwd] Add node id to diagnostic logging messages
