@@ -90,7 +90,7 @@ void SteAccelAdaptor::processSample(int pathId, int fd)
 
     lseek(fd, 0, SEEK_SET);
     if (read(fd, buf, sizeof(buf)) < 0 ) {
-        sensordLogW() << "Read failed";
+        sensordLogW() << id() << "Read failed";
         stopSensor();
         return;
     }

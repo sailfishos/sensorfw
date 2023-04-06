@@ -43,13 +43,13 @@ bool OaktrailAccelAdaptor::startSensor () {
     if ( !(SysfsAdaptor::startSensor ()) )
         return false;
 
-    sensordLogD() << "Oaktrail AccelAdaptor start\n";
+    sensordLogD() << id() << "Oaktrail AccelAdaptor start";
     return true;
 }
 
 void OaktrailAccelAdaptor::stopSensor () {
     SysfsAdaptor::stopSensor();
-    sensordLogD() << "Oaktrail AccelAdaptor stop\n";
+    sensordLogD() << id() << "Oaktrail AccelAdaptor stop";
 }
 
 void OaktrailAccelAdaptor::processSample (int pathId, int fd) {

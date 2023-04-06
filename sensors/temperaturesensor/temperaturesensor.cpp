@@ -89,7 +89,7 @@ TemperatureSensorChannel::~TemperatureSensorChannel()
 
 bool TemperatureSensorChannel::start()
 {
-    sensordLogD() << "Starting TemperatureSensorChannel";
+    sensordLogD() << id() << "Starting TemperatureSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -101,7 +101,7 @@ bool TemperatureSensorChannel::start()
 
 bool TemperatureSensorChannel::stop()
 {
-    sensordLogD() << "Stopping TemperatureSensorChannel";
+    sensordLogD() << id() << "Stopping TemperatureSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         temperatureAdaptor_->stopSensor();

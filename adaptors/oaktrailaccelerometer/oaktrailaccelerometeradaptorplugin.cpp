@@ -5,7 +5,7 @@
 
 void OaktrailAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering oaktrailaccelerometeradaptor";
+    sensordLogD() << id() << "registering oaktrailaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<OaktrailAccelAdaptor>("accelerometeradaptor");
 }

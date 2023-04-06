@@ -4,7 +4,7 @@
 
 void OEMTabletALSAdaptorAsciiPlugin::Register(class Loader&)
 {
-    sensordLogW() << "registering oemtabletalsadaptor-ascii";
+    sensordLogW() << id() << "registering oemtabletalsadaptor-ascii";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<OEMTabletALSAdaptorAscii>("alsadaptor");
 }

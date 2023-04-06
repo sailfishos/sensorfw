@@ -29,7 +29,7 @@
 
 void MagnetometerAdaptorPluginNCDK::Register(class Loader&)
 {
-    sensordLogD() << "registering magnetometeradaptor";
+    sensordLogD() << id() << "registering magnetometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<MagnetometerAdaptorNCDK>("magnetometeradaptor");
 }

@@ -56,7 +56,7 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
         scaleFilter_ = sm.instantiateFilter("magnetometerscalefilter");
         if (scaleFilter_ == NULL)
         {
-            sensordLogW() << "Failed to initialise scaling filter for magnetometer.";
+            sensordLogW() << NodeBase::id() << "Failed to initialise scaling filter for magnetometer.";
         }
     }
 
@@ -73,15 +73,15 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
         filterBin_->add(scaleFilter_, "scaleFilter");
 
         if (!filterBin_->join("magnetometer", "source", "scaleFilter", "sink"))
-            qDebug() << Q_FUNC_INFO << "magnetometer/scaleFilter join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "magnetometer/scaleFilter join failed";
 
         if (!filterBin_->join("filter", "source", "buffer", "sink"))
-            qDebug() << Q_FUNC_INFO << "source/buffer join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "source/buffer join failed";
 
     } else
     {
         if (!filterBin_->join("magnetometer", "source", "buffer", "sink"))
-            qDebug() << Q_FUNC_INFO << "magnetometer/buffer join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "magnetometer/buffer join failed";
     }
 
     // Join datasources to the chain
@@ -130,7 +130,7 @@ MagnetometerSensorChannel::~MagnetometerSensorChannel()
 
 bool MagnetometerSensorChannel::start()
 {
-    sensordLogD() << "Starting MagnetometerSensorChannel";
+    sensordLogD() << id() << "Starting MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -142,7 +142,7 @@ bool MagnetometerSensorChannel::start()
 
 bool MagnetometerSensorChannel::stop()
 {
-    sensordLogD() << "Stopping MagnetometerSensorChannel";
+    sensordLogD() << id() << "Stopping MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         magChain_->stop();

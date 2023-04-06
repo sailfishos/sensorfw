@@ -67,7 +67,7 @@ SysfsAdaptor::~SysfsAdaptor()
 
 bool SysfsAdaptor::addPath(const QString& path, const int id)
 {
-    qDebug() << Q_FUNC_INFO << path;
+    qDebug() << NodeBase::id() << Q_FUNC_INFO << path;
 
     if (!QFile::exists(path)) {
         return false;
@@ -102,7 +102,7 @@ bool SysfsAdaptor::startSensor()
     AdaptedSensorEntry *entry = getAdaptedSensor();
 
     if (entry == NULL) {
-        sensordLogW() << "Sensor not found: " << name();
+        sensordLogW() << id() << "Sensor not found: " << name();
         return false;
     }
 
@@ -125,7 +125,7 @@ bool SysfsAdaptor::startSensor()
     m_inStandbyMode = false;
 
     if (!startReaderThread()) {
-        sensordLogW() << "Failed to start adaptor " << name();
+        sensordLogW() << id() << "Failed to start adaptor " << name();
         entry->removeReference();
         entry->setIsRunning(false);
         m_running = false;
@@ -144,7 +144,7 @@ void SysfsAdaptor::stopSensor()
     AdaptedSensorEntry *entry = getAdaptedSensor();
 
     if (entry == NULL) {
-        sensordLogW() << "Sensor not found " << name();
+        sensordLogW() << id() << "Sensor not found " << name();
         return;
     }
 
@@ -222,7 +222,7 @@ bool SysfsAdaptor::openFds()
     int fd;
     for (int i = 0; i < m_paths.size(); i++) {
         if ((fd = open(m_paths.at(i).toLatin1().constData(), O_RDONLY)) == -1) {
-            sensordLogW() << "open(): " << strerror(errno);
+            sensordLogW() << id() << "open(): " << strerror(errno);
             return false;
         }
         m_sysfsDescriptors.append(fd);
@@ -232,18 +232,18 @@ bool SysfsAdaptor::openFds()
     if (m_mode == SelectMode) {
 
         if (pipe(m_pipeDescriptors) == -1 ) {
-            sensordLogW() << "pipe(): " << strerror(errno);
+            sensordLogW() << id() << "pipe(): " << strerror(errno);
             return false;
         }
 
         if (fcntl(m_pipeDescriptors[0], F_SETFD, FD_CLOEXEC) == -1) {
-            sensordLogW() << "fcntl(): " << strerror(errno);
+            sensordLogW() << id() << "fcntl(): " << strerror(errno);
             return false;
         }
 
         // Set up epoll fd
         if ((m_epollDescriptor = epoll_create(m_sysfsDescriptors.size() + 1)) == -1) {
-            sensordLogW() << "epoll_create(): " << strerror(errno);
+            sensordLogW() << id() << "epoll_create(): " << strerror(errno);
             return false;
         }
 
@@ -255,7 +255,7 @@ bool SysfsAdaptor::openFds()
         for (int i = 0; i < m_sysfsDescriptors.size(); ++i) {
             ev.data.fd = m_sysfsDescriptors.at(i);
             if (epoll_ctl(m_epollDescriptor, EPOLL_CTL_ADD, m_sysfsDescriptors.at(i), &ev) == -1) {
-                sensordLogW() << "epoll_ctl(): " << strerror(errno);
+                sensordLogW() << id() << "epoll_ctl(): " << strerror(errno);
                 return false;
             }
         }
@@ -263,7 +263,7 @@ bool SysfsAdaptor::openFds()
         // Add control pipe to poll list
         ev.data.fd = m_pipeDescriptors[0];
         if (epoll_ctl(m_epollDescriptor, EPOLL_CTL_ADD, m_pipeDescriptors[0], &ev) == -1) {
-            sensordLogW() << "epoll_ctl(): " << strerror(errno);
+            sensordLogW() << id() << "epoll_ctl(): " << strerror(errno);
             return false;
         }
     }
@@ -304,7 +304,7 @@ void SysfsAdaptor::stopReaderThread()
         quint64 dummy = 1;
         ssize_t bytesWritten = write(m_pipeDescriptors[1], &dummy, 8);
         if (!bytesWritten)
-            qWarning() << "Could not write pipe descriptors";
+            qWarning() << id() << "Could not write pipe descriptors";
     }
     else
         m_reader.stopReader();
@@ -370,7 +370,7 @@ bool SysfsAdaptor::checkIntervalUsage() const
         const QList<DataRange>& list = getAvailableIntervals();
         if (list.size() > 1 || (list.size() == 1 && list.first().min != list.first().max))
         {
-            sensordLogW() << "Attempting to use IntervalMode interval() function for adaptor in SelectMode. Must reimplement!";
+            sensordLogW() << id() << "Attempting to use IntervalMode interval() function for adaptor in SelectMode. Must reimplement!";
             return false;
         }
     }
@@ -425,14 +425,14 @@ void SysfsAdaptorReader::run()
             int descriptors = epoll_wait(m_parent->m_epollDescriptor, events, m_parent->m_sysfsDescriptors.size() + 1, -1);
 
             if (descriptors == -1) {
-                sensordLogD() << "epoll_wait(): " << strerror(errno);
+                sensordLogD() << m_parent->id() << "epoll_wait(): " << strerror(errno);
                 QThread::msleep(1000);
             } else {
                 bool errorInInput = false;
                 for (int i = 0; i < descriptors; ++i) {
                     if (events[i].events & (EPOLLHUP | EPOLLERR)) {
                         //Note: we ignore error so the sensordiverter.sh works. This should be handled better when testcases are improved.
-                        sensordLogD() << "epoll_wait(): error in input fd";
+                        sensordLogD() << m_parent->id() << "epoll_wait(): error in input fd";
                         errorInInput = true;
                     }
                     int index = m_parent->m_sysfsDescriptors.lastIndexOf(events[i].data.fd);
@@ -443,7 +443,7 @@ void SysfsAdaptorReader::run()
                         {
                             if (lseek(events[i].data.fd, 0, SEEK_SET) == -1)
                             {
-                                sensordLogW() << "Failed to lseek fd: " << strerror(errno);
+                                sensordLogW() << m_parent->id() << "Failed to lseek fd: " << strerror(errno);
                                 QThread::msleep(1000);
                             }
                         }
@@ -464,7 +464,7 @@ void SysfsAdaptorReader::run()
                 {
                     if (lseek(m_parent->m_sysfsDescriptors.at(i), 0, SEEK_SET) == -1)
                     {
-                        sensordLogW() << "Failed to lseek fd: " << strerror(errno);
+                        sensordLogW() << m_parent->id() << "Failed to lseek fd: " << strerror(errno);
                         QThread::msleep(1000);
                     }
                 }
@@ -485,7 +485,7 @@ void SysfsAdaptor::init()
     }
     else
     {
-        sensordLogW() << "No sysfs path defined for: " << name();
+        sensordLogW() << id() << "No sysfs path defined for: " << name();
     }
     m_mode = (PollMode)SensorFrameworkConfig::configuration()->value<int>(name() + "/mode", m_mode);
     m_doSeek = SensorFrameworkConfig::configuration()->value<bool>(name() + "/seek", m_doSeek);

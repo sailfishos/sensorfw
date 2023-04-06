@@ -43,13 +43,13 @@ bool OemtabletAccelAdaptor::startSensor () {
     if ( !(SysfsAdaptor::startSensor ()) )
         return false;
 
-    sensordLogD() << "OEM tablet AccelAdaptor start\n";
+    sensordLogD() << id() << "OEM tablet AccelAdaptor start";
     return true;
 }
 
 void OemtabletAccelAdaptor::stopSensor () {
     SysfsAdaptor::stopSensor();
-    sensordLogD() << "OEM tablet AccelAdaptor stop\n";
+    sensordLogD() << id() << "OEM tablet AccelAdaptor stop";
 }
 
 void OemtabletAccelAdaptor::processSample (int pathId, int fd) {

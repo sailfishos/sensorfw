@@ -38,7 +38,7 @@ HybrisAlsAdaptor::HybrisAlsAdaptor(const QString& id) :
     powerStatePath = SensorFrameworkConfig::configuration()->value("als/powerstate_path").toByteArray();
     if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
     {
-    	sensordLogW() << "Path does not exists: " << powerStatePath;
+        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
 }
@@ -54,7 +54,7 @@ bool HybrisAlsAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << "Hybris HybrisAlsAdaptor start\n";
+    sensordLogD() << id() << "Hybris HybrisAlsAdaptor start";
     return true;
 }
 
@@ -80,7 +80,7 @@ void HybrisAlsAdaptor::sendInitialData()
         }
 
         if (inputDev.isEmpty()) {
-            sensordLogW() << "No sysfs als device found";
+            sensordLogD() << id() << "No sysfs als device found";
             return;
         }
 
@@ -101,11 +101,11 @@ void HybrisAlsAdaptor::sendInitialData()
                 buffer->commit();
                 buffer->wakeUpReaders();
             } else {
-                qDebug() << "ioctl not opened" ;
+                qDebug() << id() << "ioctl not opened" ;
             }
             close(fd);
         } else {
-            qDebug() << "could not open als evdev";
+            qDebug() << id() << "could not open als evdev";
             TimedUnsigned *d = buffer->nextSlot();
             d->timestamp_ = Utils::getTimeStamp();
             d->value_ = lastLightValue;
@@ -120,7 +120,7 @@ void HybrisAlsAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << "Hybris HybrisAlsAdaptor stop\n";
+    sensordLogD() << id() << "Hybris HybrisAlsAdaptor stop";
 }
 
 void HybrisAlsAdaptor::processSample(const sensors_event_t& data)

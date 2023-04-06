@@ -5,7 +5,7 @@
 
 void SteAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering steaccelerometeradaptor";
+    sensordLogD() << id() << "registering steaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<SteAccelAdaptor>("accelerometeradaptor");
 }

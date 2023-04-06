@@ -84,7 +84,7 @@ void ALSAdaptor::enableALS()
 {
     if(!alsEnabled)
     {
-        sensordLogT() << "Requesting MCE to enable ALS";
+        sensordLogT() << id() << "Requesting MCE to enable ALS";
         dbusIfc->call(QDBus::NoBlock, "req_als_enable");
         alsEnabled = true;
     }
@@ -94,7 +94,7 @@ void ALSAdaptor::disableALS()
 {
     if(alsEnabled)
     {
-        sensordLogT() << "Requesting MCE to disable ALS";
+        sensordLogT() << id() << "Requesting MCE to disable ALS";
         dbusIfc->call(QDBus::NoBlock, "req_als_disable");
         alsEnabled = false;
     }
@@ -165,10 +165,10 @@ void ALSAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &als_data, sizeof(als_data));
 
         if (bytesRead <= 0) {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
-        sensordLogT() << "Ambient light value: " << als_data.lux;
+        sensordLogT() << id() << "Ambient light value: " << als_data.lux;
 
         TimedUnsigned* lux = alsBuffer_->nextSlot();
         lux->value_ = als_data.lux;
@@ -182,10 +182,10 @@ void ALSAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &als_data, sizeof(als_data));
 
         if (bytesRead <= 0) {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
-        sensordLogT() << "Ambient light value: " << als_data.lux;
+        sensordLogT() << id() << "Ambient light value: " << als_data.lux;
 
         TimedUnsigned* lux = alsBuffer_->nextSlot();
         lux->value_ = als_data.lux;
@@ -197,24 +197,24 @@ void ALSAdaptor::processSample(int pathId, int fd)
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = read(fd, &buffer, sizeof(buffer));
         if (bytesRead <= 0) {
-            sensordLogW() << "read(): " << strerror(errno);
+            sensordLogW() << id() << "read(): " << strerror(errno);
             return;
         }
         QVariant value(buffer);
         bool ok;
         double fValue(value.toDouble(&ok));
         if(!ok) {
-            sensordLogT() << "read(): failed to parse float from: " << buffer;
+            sensordLogT() << id() << "read(): failed to parse float from: " << buffer;
             return;
         }
         TimedUnsigned* lux = alsBuffer_->nextSlot();
         lux->value_ = fValue * 10;
         lux->timestamp_ = Utils::getTimeStamp();
-        sensordLogT() << "Ambient light value: " << lux->value_;
+        sensordLogT() << id() << "Ambient light value: " << lux->value_;
     }
     else
     {
-        sensordLogW() << "Not known device type: " << deviceType_;
+        sensordLogW() << id() << "Not known device type: " << deviceType_;
         return;
     }
     alsBuffer_->commit();

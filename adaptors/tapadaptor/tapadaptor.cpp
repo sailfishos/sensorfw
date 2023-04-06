@@ -64,7 +64,7 @@ void TapAdaptor::interpretEvent(int src, struct input_event *ev)
                 break;
             default:
                 dir = TapData::X;
-                sensordLogW() << "TapAdaptor: Unknown event-code received: " << ev->code;
+                sensordLogW() << id() << "TapAdaptor: Unknown event-code received: " << ev->code;
                 break;
         }
         TapData tapValue;

@@ -40,7 +40,7 @@ HybrisProximityAdaptor::HybrisProximityAdaptor(const QString& id) :
         powerStatePath = SensorFrameworkConfig::configuration()->value("proximity/powerstate_path").toByteArray();
 	if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
 	{
-	    sensordLogW() << "Path does not exists: " << powerStatePath;
+	    sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
 	    powerStatePath.clear();
 	}
     }
@@ -59,7 +59,7 @@ bool HybrisProximityAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << "HybrisProximityAdaptor start\n";
+    sensordLogD() << id() << "HybrisProximityAdaptor start";
     return true;
 }
 
@@ -85,7 +85,7 @@ void HybrisProximityAdaptor::sendInitialData()
        }
 
        if (inputDev.isEmpty()) {
-           sensordLogW() << "No sysfs proximity device found";
+           sensordLogD() << id() << "No sysfs proximity device found";
            return;
        }
 
@@ -106,11 +106,11 @@ void HybrisProximityAdaptor::sendInitialData()
                buffer->commit();
                buffer->wakeUpReaders();
            } else {
-               qDebug() << "ioctl not opened" ;
+               qDebug() << id() << "ioctl not opened" ;
            }
            close(fd);
        } else {
-           qDebug() << "could not open proximity evdev";
+           qDebug() << id() << "could not open proximity evdev";
            ProximityData *d = buffer->nextSlot();
 
            d->timestamp_ = Utils::getTimeStamp();
@@ -128,7 +128,7 @@ void HybrisProximityAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << "HybrisProximityAdaptor stop\n";
+    sensordLogD() << id() << "HybrisProximityAdaptor stop";
 }
 
 void HybrisProximityAdaptor::processSample(const sensors_event_t& data)

@@ -194,7 +194,7 @@ HybrisManager::HybrisManager(QObject *parent)
                         (hw_module_t const**)&m_halModule);
     if (err != 0) {
         m_halModule = 0;
-        sensordLogW() << "hw_get_module() failed" <<  strerror(-err);
+        sensordLogW() << id() << "hw_get_module() failed" <<  strerror(-err);
         return ;
     }
 
@@ -202,7 +202,7 @@ HybrisManager::HybrisManager(QObject *parent)
     err = sensors_open(&m_halModule->common, &m_halDevice);
     if (err != 0) {
         m_halDevice = 0;
-        sensordLogW() << "sensors_open() failed:" << strerror(-err);
+        sensordLogW() << id() << "sensors_open() failed:" << strerror(-err);
         return;
     }
 
@@ -262,13 +262,13 @@ void HybrisManager::initManager()
         // Pick wake-up variant for the types which are wake-up sensors by default
         if (typeRequiresWakeup(m_sensorArray[i].type)) {
             if ((m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP) == 0) {
-                sensordLogD() << "Ignoring non-wake-up sensor of type " << m_sensorArray[i].type;
+                sensordLogD() << "Ignoring non-wake-up sensor of type " << m_sensorArray[i].type << sensorTypeName(m_sensorArray[i].type);
                 use = false;
             }
         } else {
             // All other sensors shall use non-wake-up sensor variant
             if ((m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP) != 0) {
-                sensordLogD() << "Ignoring wake-up sensor of type " << m_sensorArray[i].type;
+                sensordLogD() << "Ignoring wake-up sensor of type " << m_sensorArray[i].type << sensorTypeName(m_sensorArray[i].type);
                 use = false;
             }
         }
@@ -276,7 +276,7 @@ void HybrisManager::initManager()
 
         sensordLogD() << Q_FUNC_INFO
             << (use ? "SELECT" : "IGNORE")
-            << "type:" << m_sensorArray[i].type
+            << "type:" << m_sensorArray[i].type << sensorTypeName(m_sensorArray[i].type)
 #ifdef USE_BINDER
             << "name:" << (m_sensorArray[i].name.data.str ?: "n/a");
 #else
@@ -1037,7 +1037,7 @@ bool HybrisManager::setActive(int handle, bool active)
         HybrisSensorState     *state  = &m_sensorState[index];
 
         if (state->m_active == active) {
-            sensordLogT("HYBRIS CTL setActive%d=%s, %s) -> no-change",
+            sensordLogT("HYBRIS CTL setActive(%d=%s, %s) -> no-change",
                         sensor->handle, sensorTypeName(sensor->type), active ? "true" : "false");
             success = true;
         } else {
@@ -1302,6 +1302,9 @@ HybrisAdaptor::HybrisAdaptor(const QString& id, int type)
         return;
     }
 
+    introduceAvailableDataRange(DataRange(minRange(), maxRange(), resolution()));
+    introduceAvailableInterval(DataRange(minInterval(), maxInterval(), 0));
+
     hybrisManager()->registerAdaptor(this);
 }
 
@@ -1311,8 +1314,6 @@ HybrisAdaptor::~HybrisAdaptor()
 
 void HybrisAdaptor::init()
 {
-    introduceAvailableDataRange(DataRange(minRange(), maxRange(), resolution()));
-    introduceAvailableInterval(DataRange(minInterval(), maxInterval(), 0));
 }
 
 void HybrisAdaptor::sendInitialData()
@@ -1386,7 +1387,7 @@ bool HybrisAdaptor::setInterval(const int sessionId, const unsigned int interval
     bool ok = hybrisManager()->setDelay(m_sensorHandle, interval_us, false);
 
     if (!ok) {
-        sensordLogW() << Q_FUNC_INFO << "setInterval not ok";
+        sensordLogW() << id() << Q_FUNC_INFO << "setInterval not ok";
     } else {
         /* If we have not yet received sensor data, apply fallback value */
         sensors_event_t *fallback = hybrisManager()->eventForHandle(m_sensorHandle);
@@ -1433,7 +1434,7 @@ void HybrisAdaptor::evaluateSensor()
     // Get listener object
     AdaptedSensorEntry *entry = getAdaptedSensor();
     if (entry == NULL) {
-        sensordLogW() << Q_FUNC_INFO << "Sensor not found: " << name();
+        sensordLogW() << id() << Q_FUNC_INFO << "Sensor not found: " << name();
         return;
     }
 
@@ -1465,7 +1466,7 @@ void HybrisAdaptor::evaluateSensor()
             }
             hybrisManager()->stopReader(this);
         }
-        sensordLogT() << Q_FUNC_INFO << "entry" << entry->name()
+        sensordLogT() << id() << Q_FUNC_INFO << "entry" << entry->name()
                       << "refs:" << entry->referenceCount() << "running:" << entry->isRunning();
     }
 }

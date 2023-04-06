@@ -115,48 +115,48 @@ CompassChain::CompassChain(const QString& id) :
         // accelchain > avg filter > downsamplefilter > compassfilter
 
         if (!filterBin->join("magnetometer", "source", "compassfilter", "magsink"))
-            qDebug() << Q_FUNC_INFO << "magnetometer join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "magnetometer join failed";
 
         if (!filterBin->join("accelerometer", "source", "avgaccelerometer", "sink"))
-            qDebug() << Q_FUNC_INFO << "accelerometer join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "accelerometer join failed";
 
         if (!filterBin->join("avgaccelerometer", "source", "downsamplefilter", "sink"))
-            qDebug() << Q_FUNC_INFO << "avgaccelerometer join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "avgaccelerometer join failed";
 
         if (!filterBin->join("downsamplefilter", "source", "compassfilter", "accsink"))
-            qDebug() << Q_FUNC_INFO << "downsamplefilter join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "downsamplefilter join failed";
 
         if (!filterBin->join("compassfilter", "magnorthangle", "magneticnorth", "sink"))
-            qDebug() << Q_FUNC_INFO << "compassfilter/magnorth join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "compassfilter/magnorth join failed";
 
         if (!filterBin->join("compassfilter", "magnorthangle", "declinationcorrection", "sink"))
-            qDebug() << Q_FUNC_INFO << "compassfilter/declination join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "compassfilter/declination join failed";
 
     } else {
         ////////////////////
         if (!filterBin->join("orientation", "source", "orientationfilter", "orientsink"))
-            qDebug() << Q_FUNC_INFO << "orientation join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "orientation join failed";
 
         if (!filterBin->join("orientationfilter", "magnorthangle", "magneticnorth", "sink"))
-            qDebug() << Q_FUNC_INFO << "orientation2 join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "orientation2 join failed";
 
         if (!filterBin->join("orientationfilter", "magnorthangle", "declinationcorrection", "sink"))
-            qDebug() << Q_FUNC_INFO << "orientation3 join failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "orientation3 join failed";
     }
 
     if (!filterBin->join("declinationcorrection", "source", "truenorth", "sink"))
-        qDebug() << Q_FUNC_INFO << "declinationfilter join failed";
+        qDebug() << NodeBase::id() << Q_FUNC_INFO << "declinationfilter join failed";
 
     if (!hasOrientationAdaptor) {
         if (!connectToSource(accelerometerChain, "accelerometer", accelerometerReader))
-            qDebug() << Q_FUNC_INFO << "accelerometer connect failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "accelerometer connect failed";
 
         if (!connectToSource(magChain, "calibratedmagnetometerdata", magReader))
-            qDebug() << Q_FUNC_INFO << "magnetometer connect failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "magnetometer connect failed";
     } else {
         ////////////////////
         if (!connectToSource(orientAdaptor, "orientation", orientationdataReader))
-            qDebug() << Q_FUNC_INFO << "orientation connect failed";
+            qDebug() << NodeBase::id() << Q_FUNC_INFO << "orientation connect failed";
     }
 
     setDescription("Compass direction"); //compass north in degrees
@@ -211,7 +211,7 @@ CompassChain::~CompassChain()
 bool CompassChain::start()
 {
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << "Starting compassChain" << hasOrientationAdaptor;
+        sensordLogD() << id() << "Starting compassChain" << hasOrientationAdaptor;
         filterBin->start();
         if (hasOrientationAdaptor) {
             orientAdaptor->startSensor();
@@ -220,7 +220,7 @@ bool CompassChain::start()
             magChain->start();
         }
     } else {
-        qDebug() << Q_FUNC_INFO <<"Failed: not started";
+        qDebug() << id() << Q_FUNC_INFO <<"Failed: not started";
     }
     return true;
 }

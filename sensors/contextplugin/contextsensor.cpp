@@ -36,7 +36,7 @@ ContextSensorChannel::ContextSensorChannel(const QString& id) :
     {
         compassBin = new CompassBin(service);
     } else {
-        sensordLogD() << "Loading of 'compasschain' failed, no Location.Heading available";
+        sensordLogD() << id() << "Loading of 'compasschain' failed, no Location.Heading available";
 
         // Creating as dummy to provide the service with value 'unknown'
         // rather than miss the service.

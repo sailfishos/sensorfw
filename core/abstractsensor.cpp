@@ -43,7 +43,7 @@ AbstractSensorChannel::AbstractSensorChannel(const QString& id) :
 
 void AbstractSensorChannel::setError(SensorError errorCode, const QString& errorString)
 {
-    sensordLogC() << "SensorError: " <<  errorString;
+    sensordLogC() << id() << "SensorError: " <<  errorString;
 
     errorCode_   = errorCode;
     errorString_ = errorString;
@@ -89,7 +89,7 @@ bool AbstractSensorChannel::stop()
 bool AbstractSensorChannel::writeToSession(int sessionId, const void* source, int size)
 {
     if (!(SensorManager::instance().write(sessionId, source, size))) {
-        sensordLogD() << "AbstractSensor failed to write to session " << sessionId;
+        sensordLogD() << id() << "AbstractSensor failed to write to session " << sessionId;
         return false;
     }
     return true;
@@ -239,7 +239,7 @@ void AbstractSensorChannel::setDownsamplingEnabled(int sessionId, bool value)
 {
     if(downsamplingSupported())
     {
-        sensordLogT() << "Downsampling state for session " << sessionId << ": " << value;
+        sensordLogT() << id() << "Downsampling state for session " << sessionId << ": " << value;
         downsampling_[sessionId] = value;
     }
 }
@@ -296,6 +296,6 @@ void AbstractSensorChannel::signalPropertyChanged(const QString& name)
 
 RingBufferBase* AbstractSensorChannel::findBuffer(const QString&) const
 {
-    sensordLogW() << "Tried to locate buffer from SensorChannel!";
+    sensordLogW() << id() << "Tried to locate buffer from SensorChannel!";
     return NULL;
 }
