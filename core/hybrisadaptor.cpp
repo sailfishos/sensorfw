@@ -194,7 +194,7 @@ HybrisManager::HybrisManager(QObject *parent)
                         (hw_module_t const**)&m_halModule);
     if (err != 0) {
         m_halModule = 0;
-        sensordLogW() << id() << "hw_get_module() failed" <<  strerror(-err);
+        sensordLogW() << "hw_get_module() failed" <<  strerror(-err);
         return ;
     }
 
@@ -202,7 +202,7 @@ HybrisManager::HybrisManager(QObject *parent)
     err = sensors_open(&m_halModule->common, &m_halDevice);
     if (err != 0) {
         m_halDevice = 0;
-        sensordLogW() << id() << "sensors_open() failed:" << strerror(-err);
+        sensordLogW() << "sensors_open() failed:" << strerror(-err);
         return;
     }
 
