@@ -1,3 +1,11 @@
+sensorfw-qt5 (0.14.1) unstable; urgency=medium
+
+  * [sensorfwd] Add node id to diagnostic logging messages
+  * [hybrisadaptor] Define data and interval ranges earlier. JB#60480
+  * [hybrisadaptor] Silence als/ps initial value warnings. Fixes JB#60480
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Thu, 06 Apr 2023 09:11:11 +0300
+
 sensorfw-qt5 (0.14.0) unstable; urgency=medium
 
   * [tapadaptor] Silence unused parameter warnings
