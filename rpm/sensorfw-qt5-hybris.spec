@@ -1,5 +1,5 @@
 Name: hybris-libsensorfw-qt5-hal
-Version:    0.14.2
+Version:    0.14.3
 Release:    0
 Provides: hybris-libsensorfw-qt5 = %{version}-%{release}
 Conflicts: hybris-libsensorfw-qt5 <= 0.10.9

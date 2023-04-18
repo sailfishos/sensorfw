@@ -1,3 +1,9 @@
+sensorfw-qt5 (0.14.3) unstable; urgency=medium
+
+  * [sensorfwd] Use ms values for getAvailableIntervals() reply. Fixes JB#60583
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Tue, 18 Apr 2023 15:33:32 +0300
+
 sensorfw-qt5 (0.14.2) unstable; urgency=medium
 
   * [hybrisadaptor] Fix build errors from unresolvable id() calls. JB#60480
