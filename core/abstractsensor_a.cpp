@@ -161,7 +161,12 @@ void AbstractSensorChannelAdaptor::removeDataRangeRequest(int sessionId)
 
 DataRangeList AbstractSensorChannelAdaptor::getAvailableIntervals()
 {
-    return node()->getAvailableIntervals();
+    // D-Bus interface -> interval is milliseconds
+    DataRangeList ranges_us(node()->getAvailableIntervals());
+    DataRangeList ranges_ms;
+    for (auto it = ranges_us.begin(); it != ranges_us.end(); ++it)
+        ranges_ms.append(DataRange(it->min * 0.001, it->max * 0.001, it->resolution));
+    return ranges_ms;
 }
 
 bool AbstractSensorChannelAdaptor::setDefaultInterval(int sessionId)
