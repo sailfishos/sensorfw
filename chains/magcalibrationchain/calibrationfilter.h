@@ -52,7 +52,7 @@ private:
     CalibratedMagneticFieldData magData;
     CalibratedMagneticFieldData transformed;
 
-    QList <QPair<int,int> > minMaxList;
+    QList <QPair<float,float> > minMaxList;
 
     qreal offsetX;
     qreal offsetY;

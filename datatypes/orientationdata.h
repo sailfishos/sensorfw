@@ -78,7 +78,7 @@ public:
      * @param rz raw Z coordinate value.
      * @param level Calibration level.
      */
-    CalibratedMagneticFieldData(const quint64& timestamp, int x, int y, int z, int rx, int ry, int rz, int level) :
+    CalibratedMagneticFieldData(const quint64& timestamp, float x, float y, float z, float rx, float ry, float rz, int level) :
         TimedData(timestamp),
         x_(x), y_(y), z_(z),
         rx_(rx), ry_(ry), rz_(rz),
@@ -96,12 +96,12 @@ public:
         rx_(magData.x_), ry_(magData.y_), rz_(magData.z_),
         level_(level) {}
 
-    int x_;     /**< X coordinate value */
-    int y_;     /**< Y coordinate value */
-    int z_;     /**< Z coordinate value */
-    int rx_;    /**< raw X coordinate value */
-    int ry_;    /**< raw Y coordinate value */
-    int rz_;    /**< raw Z coordinate value */
+    float x_;     /**< X coordinate value */
+    float y_;     /**< Y coordinate value */
+    float z_;     /**< Z coordinate value */
+    float rx_;    /**< raw X coordinate value */
+    float ry_;    /**< raw Y coordinate value */
+    float rz_;    /**< raw Z coordinate value */
     int level_; /**< Magnetometer calibration level. Higher value means better calibration. */
 };
 

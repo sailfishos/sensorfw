@@ -127,37 +127,37 @@ public:
      * Returns the value for X.
      * @return x value.
      */
-    int x() const { return data_.x_; }
+    float x() const { return data_.x_; }
 
     /**
      * Returns the value for Y.
      * @return y value.
      */
-    int y() const { return data_.y_; }
+    float y() const { return data_.y_; }
 
     /**
      * Returns the value for Z.
      * @return z value.
      */
-    int z() const { return data_.z_; }
+    float z() const { return data_.z_; }
 
      /**
      * Returns the raw value for X.
      * @return raw x value.
      */
-    int rx() const { return data_.rx_; }
+    float rx() const { return data_.rx_; }
 
     /**
      * Returns the raw value for Y.
      * @return raw y value.
      */
-    int ry() const { return data_.ry_; }
+    float ry() const { return data_.ry_; }
 
     /**
      * Returns the raw value for Z.
      * @return raw z value.
      */
-    int rz() const { return data_.rz_; }
+    float rz() const { return data_.rz_; }
 
     /**
      * Returns the magnetometer calibration level.
@@ -188,6 +188,7 @@ Q_DECLARE_METATYPE( MagneticField )
  */
 inline QDBusArgument &operator<<(QDBusArgument &argument, const MagneticField &data)
 {
+    // No floats on D-Bus: Implicit float to double conversion
     argument.beginStructure();
     argument << data.data().timestamp_ << data.data().level_;
     argument << data.data().x_ << data.data().y_ << data.data().z_;
@@ -205,10 +206,18 @@ inline QDBusArgument &operator<<(QDBusArgument &argument, const MagneticField &d
  */
 inline const QDBusArgument &operator>>(const QDBusArgument &argument, MagneticField &data)
 {
+    // No floats on D-Bus: Explicit double to float conversion
     argument.beginStructure();
     argument >> data.data_.timestamp_ >> data.data_.level_;
-    argument >> data.data_.x_ >> data.data_.y_ >> data.data_.z_;
-    argument >> data.data_.rx_ >> data.data_.ry_ >> data.data_.rz_;
+    double x, y, z;
+    argument >> x >> y >> z;
+    data.data_.x_ = float(x);
+    data.data_.y_ = float(y);
+    data.data_.z_ = float(z);
+    argument >> x >> y >> z;
+    data.data_.rx_ = float(x);
+    data.data_.ry_ = float(y);
+    data.data_.rz_ = float(z);
     argument.endStructure();
     return argument;
 }
