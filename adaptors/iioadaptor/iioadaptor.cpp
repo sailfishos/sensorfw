@@ -459,7 +459,8 @@ void IioAdaptor::processSample(int fileId, int fd)
                 break;
             case IioAdaptor::IIO_MAGNETOMETER:
                 calData = magnetometerBuffer_->nextSlot();
-                calData->rx_ = (result + iioDevice.offset) * iioDevice.scale;
+                calData->x_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
+                calData->rx_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
                 break;
             case IioAdaptor::IIO_ALS:
                 uData = alsBuffer_->nextSlot();
@@ -493,8 +494,8 @@ void IioAdaptor::processSample(int fileId, int fd)
                 break;
             case IioAdaptor::IIO_MAGNETOMETER:
                 calData = magnetometerBuffer_->nextSlot();
-                result = (result * iioDevice.scale);
-                calData->y_ = result;
+                calData->y_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
+                calData->ry_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
                 break;
             default:
                 break;
@@ -511,8 +512,8 @@ void IioAdaptor::processSample(int fileId, int fd)
                 break;
             case IioAdaptor::IIO_MAGNETOMETER:
                 calData = magnetometerBuffer_->nextSlot();
-                result = ((result + iioDevice.offset) * iioDevice.scale) * 100;
-                calData->rz_ = result;
+                calData->z_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
+                calData->rz_ = (result + iioDevice.offset) * iioDevice.scale * 100000;
                 break;
             default:
                 break;
