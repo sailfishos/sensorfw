@@ -449,6 +449,10 @@ void IioAdaptor::processSample(int fileId, int fd)
             return;
         }
 
+if (iioDevice.sensorType == IioAdaptor::IIO_MAGNETOMETER) {
+    sensordLogW() << "processSample " << channel << "type" << iioDevice.sensorType << "result" << result << "scaled" << ((result + iioDevice.offset) * iioDevice.scale);
+}
+
         switch(channel) {
         case 0: {
             switch (iioDevice.sensorType) {
@@ -522,6 +526,10 @@ void IioAdaptor::processSample(int fileId, int fd)
             break;
         };
 
+if (iioDevice.sensorType == IioAdaptor::IIO_MAGNETOMETER) {
+    sensordLogW() << "processSample " << channel << "type" << iioDevice.sensorType << "result" << result;
+}
+
         if (channel == iioDevice.channels - 1) {
             switch (iioDevice.sensorType) {
             case IioAdaptor::IIO_ACCELEROMETER:
@@ -534,6 +542,7 @@ void IioAdaptor::processSample(int fileId, int fd)
                 calData->timestamp_ = Utils::getTimeStamp();
                 magnetometerBuffer_->commit();
                 magnetometerBuffer_->wakeUpReaders();
+    sensordLogW() << "magn offset=" << iioDevice.offset << "scale=" << iioDevice.scale << "timestamp=" << calData->timestamp_ << "rx" << calData->rx_ << "ry" << calData->ry_ << "rz" << calData->rz_;
                 break;
             case IioAdaptor::IIO_ALS:
                 uData->timestamp_ = Utils::getTimeStamp();
