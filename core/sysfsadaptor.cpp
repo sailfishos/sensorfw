@@ -471,7 +471,8 @@ void SysfsAdaptorReader::run()
             }
 
             // Sleep for interval
-            QThread::msleep(m_parent->interval());
+            int interval_ms = (m_parent->m_interval_us + 999) / 1000;
+            QThread::msleep(interval_ms);
         }
     }
 }
