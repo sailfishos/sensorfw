@@ -64,6 +64,8 @@ contains(CONFIG,hybris) {
                adaptors
 } else {
     config_hybris {
+    # Reorder so that adaptors are built after hybris.
+    SUBDIRS -= adaptors
     SUBDIRS += core/hybris.pro \
                adaptors
     }
