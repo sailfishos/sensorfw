@@ -1,3 +1,10 @@
+sensorfw-qt5 (0.14.4) unstable; urgency=medium
+
+  * [sensorfwd] Fix units used for sleep in sysfsadaptor. Fixes JB#60958
+  * [magcalibrationchain] Always substract offset regardless of calLevel
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Wed, 05 Jul 2023 14:05:32 +0300
+
 sensorfw-qt5 (0.14.3) unstable; urgency=medium
 
   * [sensorfwd] Use ms values for getAvailableIntervals() reply. Fixes JB#60583

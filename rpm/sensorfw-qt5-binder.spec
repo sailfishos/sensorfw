@@ -1,5 +1,5 @@
 Name: hybris-libsensorfw-qt5-binder
-Version:    0.14.3
+Version:    0.14.4
 Release:    0
 Provides: hybris-libsensorfw-qt5 = %{version}-%{release}
 Conflicts: hybris-libsensorfw-qt5 <= 0.10.9
