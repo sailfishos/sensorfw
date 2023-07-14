@@ -37,5 +37,9 @@ void CompassPlugin::Register(class Loader&)
 }
 
 QStringList CompassPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("compasschain").split(":", Qt::SkipEmptyParts);
+#else
     return QString("compasschain").split(":", QString::SkipEmptyParts);
+#endif
 }

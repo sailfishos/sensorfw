@@ -37,5 +37,9 @@ void GyroscopePlugin::Register(class Loader&)
 }
 
 QStringList GyroscopePlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("gyroscopeadaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("gyroscopeadaptor").split(":", QString::SkipEmptyParts);
+#endif
 }

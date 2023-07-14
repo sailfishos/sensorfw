@@ -42,5 +42,9 @@ void PressurePlugin::Init(class Loader& l)
 }
 
 QStringList PressurePlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("pressureadaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("pressureadaptor").split(":", QString::SkipEmptyParts);
+#endif
 }

@@ -36,7 +36,7 @@ QMAKE_LIBDIR_FLAGS += -L../../qt-api\
                       -L../../datatypes  \
                       -L../../core
 
-QMAKE_LIBDIR_FLAGS += -lsensorclient-qt5
+QMAKE_LIBDIR_FLAGS += -lsensorclient-qt$${QT_MAJOR_VERSION}
 
 include(../../common.pri)
 

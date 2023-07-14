@@ -41,5 +41,9 @@ void SampleChainPlugin::Register(class Loader&)
 //
 // Here we have one adaptor and one filter that we need.
 QStringList SampleChainPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("sampleadaptor:samplefilter").split(":", Qt::SkipEmptyParts);
+#else
     return QString("sampleadaptor:samplefilter").split(":", QString::SkipEmptyParts);
+#endif
 }

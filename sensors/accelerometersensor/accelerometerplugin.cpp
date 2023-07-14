@@ -37,5 +37,9 @@ void AccelerometerPlugin::Register(class Loader&)
 }
 
 QStringList AccelerometerPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("accelerometerchain").split(":", Qt::SkipEmptyParts);
+#else
     return QString("accelerometerchain").split(":", QString::SkipEmptyParts);
+#endif
 }

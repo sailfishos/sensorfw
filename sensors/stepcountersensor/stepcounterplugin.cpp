@@ -45,5 +45,9 @@ void StepCounterPlugin::Init(class Loader& l)
 }
 
 QStringList StepCounterPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("stepcounteradaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("stepcounteradaptor").split(":", QString::SkipEmptyParts);
+#endif
 }

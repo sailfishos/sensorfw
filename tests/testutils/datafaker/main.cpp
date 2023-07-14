@@ -74,7 +74,11 @@ int main(int argc, char** argv)
             break;
         }
         QString line(buffer);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        QStringList numberList = line.split(" ", Qt::SkipEmptyParts);
+#else
         QStringList numberList = line.split(" ", QString::SkipEmptyParts);
+#endif
         if (numberList.length() % 3 != 0) {
             qDebug() << "Too many / too few numbers on line, skipping:" << line;
         }

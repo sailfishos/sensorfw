@@ -15,7 +15,7 @@ INCLUDEPATH += $$SENSORFW_INCLUDEPATHS
 
 SOURCES += hybrisadaptor.cpp
 HEADERS += hybrisadaptor.h
-LIBS += -L$$[QT_INSTALL_LIBS] -L../datatypes -lsensordatatypes-qt5 -L. -lsensorfw-qt5
+LIBS += -L$$[QT_INSTALL_LIBS] -L../datatypes -lsensordatatypes-qt$${QT_MAJOR_VERSION} -L. -lsensorfw-qt$${QT_MAJOR_VERSION}
 
 CONFIG += link_pkgconfig
 
