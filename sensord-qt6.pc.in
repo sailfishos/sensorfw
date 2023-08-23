@@ -1,0 +1,10 @@
+prefix=/usr
+includedir=${prefix}/include/sensord-qt6
+libdir=${prefix}/@LIB@
+
+Name: Sensorfw-qt6
+Description: Sensord for Qt 6
+Version: 0.14.4
+Requires:
+Libs: -L${libdir} -lsensorclient-qt6 -lsensordatatypes-qt6
+Cflags: -I${includedir} -I${includedir}/datatypes

@@ -15,10 +15,10 @@ SENSORFW_INCLUDEPATHS = .. \
 DEPENDPATH += $$SENSORFW_INCLUDEPATHS
 INCLUDEPATH += $$SENSORFW_INCLUDEPATHS
 
-DEFINES += PLUGIN_DIRECTORY=\"\\\"$$[QT_INSTALL_LIBS]/sensord-qt5\\\"\"
+DEFINES += PLUGIN_DIRECTORY=\"\\\"$$[QT_INSTALL_LIBS]/sensord-qt$${QT_MAJOR_VERSION}\\\"\"
 
 QMAKE_LIBDIR_FLAGS += -L../datatypes\
-                      -lsensordatatypes-qt5
+                      -lsensordatatypes-qt$${QT_MAJOR_VERSION}
 
 SOURCES += sensormanager.cpp \
     sensormanager_a.cpp \
@@ -85,7 +85,7 @@ lunaservice {
     SOURCES += lsclient.cpp
     HEADERS += lsclient.h
     DEFINES += SENSORFW_LUNA_SERVICE_CLIENT
-    PKGCONFIG += Qt5Gui json-c
+    PKGCONFIG += Qt$${QT_MAJOR_VERSION}Gui json-c
     PKGCONFIG += luna-service2 LunaSysMgrCommon LunaSysMgrIpcMessages
 }
 

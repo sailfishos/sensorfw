@@ -37,5 +37,9 @@ void TapPlugin::Register(class Loader&)
 }
 
 QStringList TapPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("tapadaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("tapadaptor").split(":", QString::SkipEmptyParts);
+#endif
 }

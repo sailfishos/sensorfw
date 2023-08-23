@@ -80,15 +80,16 @@ contains(CONFIG,hybris) {
     include( common-install.pri )
     include( common-config.pri )
 
-    PKGCONFIGFILES.files = sensord-qt5.pc
-    PKGCONFIGFILES.commands = 'sed -i "s/Version:.*/Version: $$PC_VERSION/" $$_PRO_FILE_PWD_/sensord-qt5.pc'
-    QTCONFIGFILES.path = /usr/share/qt5/mkspecs/features
+    PKGCONFIGFILES.files = sensord-qt$${QT_MAJOR_VERSION}.pc
+    PKGCONFIGFILES.commands = 'sed -i "s/Version:.*/Version: $$PC_VERSION/" $$_PRO_FILE_PWD_/sensord-qt$${QT_MAJOR_VERSION}.pc'
+    QTCONFIGFILES.path = $$[QT_INSTALL_ARCHDATA]/mkspecs/features
+
 }
 
 
 
 # How to make this work in all cases?
-#PKGCONFIGFILES.commands = sed -i \"s/Version:.*$$/Version: `head -n1 debian/changelog | cut -f 2 -d\' \' | tr -d \'()\'`/\" sensord-qt5.pc
+#PKGCONFIGFILES.commands = sed -i \"s/Version:.*$$/Version: `head -n1 debian/changelog | cut -f 2 -d\' \' | tr -d \'()\'`/\" sensord-qt$${QT_MAJOR_VERSION}.pc
 
 
 !contains(CONFIG,hybris) {
@@ -111,9 +112,9 @@ contains(CONFIG,systemdunit) {
     INSTALLS += SENSORSYSTEMD
 }
 
-OTHER_FILES += rpm/sensorfw-qt5.spec \
-               rpm/sensorfw-qt5-binder.spec \
-               rpm/sensorfw-qt5-hybris.inc \
-               rpm/sensorfw-qt5-hybris.spec
+OTHER_FILES += rpm/sensorfw-qt$${QT_MAJOR_VERSION}.spec \
+               rpm/sensorfw-qt$${QT_MAJOR_VERSION}-binder.spec \
+               rpm/sensorfw-qt$${QT_MAJOR_VERSION}-hybris.inc \
+               rpm/sensorfw-qt$${QT_MAJOR_VERSION}-hybris.spec
 
 OTHER_FILES += config/*

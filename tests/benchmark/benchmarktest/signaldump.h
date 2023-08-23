@@ -74,13 +74,25 @@ public:
         while (!line.isEmpty()) {
             if (*(line.constData()) == 'P' || *(line.constData()) == 'S') {
                 if (strncmp(line.constData(), "Private_Clean", 13) == 0) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+                    clean += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#else
                     clean += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#endif
                 }
                 else if (strncmp(line.constData(), "Private_Dirty", 13) == 0) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+                    dirty += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#else
                     dirty += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#endif
                 }
                 else if (strncmp(line.constData(), "Swap", 4) == 0) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+                    dirty += atoi(QString(line).split(' ', Qt::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#else
                     dirty += atoi(QString(line).split(' ', QString::SkipEmptyParts).at(1).toLocal8Bit().constData());
+#endif
                 }
             }
             line.clear();

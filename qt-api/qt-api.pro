@@ -51,7 +51,7 @@ SENSORFW_INCLUDEPATHS = .. \
 DEPENDPATH += $$SENSORFW_INCLUDEPATHS
 INCLUDEPATH += $$SENSORFW_INCLUDEPATHS
 
-QMAKE_LIBDIR_FLAGS += -L../datatypes -lsensordatatypes-qt5
+QMAKE_LIBDIR_FLAGS += -L../datatypes -lsensordatatypes-qt$${QT_MAJOR_VERSION}
 
 include(../common-install.pri)
 publicheaders.files = $$HEADERS

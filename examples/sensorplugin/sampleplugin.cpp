@@ -40,5 +40,9 @@ void SamplePlugin::Register(class Loader&)
 // dependency here. We can rely on it to provide further dependencies to
 // any plugins it may need.
 QStringList SamplePlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("samplechain").split(":", Qt::SkipEmptyParts);
+#else
     return QString("samplechain").split(":", QString::SkipEmptyParts);
+#endif
 }

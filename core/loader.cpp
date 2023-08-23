@@ -55,7 +55,11 @@ Loader& Loader::instance()
 
 #define PLUGIN_PREFIX_ENV "SENSORFW_LIBRARY_PATH"
 #define PLUGIN_PREFIX     "lib"
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#define PLUGIN_SUFFIX     "-qt6.so"
+#else
 #define PLUGIN_SUFFIX     "-qt5.so"
+#endif
 #define SENSOR_SUFFIX     "sensor"
 
 static QString getPluginDirectory()

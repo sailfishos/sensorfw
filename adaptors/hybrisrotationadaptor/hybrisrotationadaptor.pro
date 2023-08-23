@@ -6,7 +6,7 @@ HEADERS += hybrisrotationadaptor.h \
 SOURCES += hybrisrotationadaptor.cpp \
            hybrisrotationadaptorplugin.cpp
 
-LIBS+= -L../../core -lhybrissensorfw-qt5
+LIBS+= -L../../core -lhybrissensorfw-qt$${QT_MAJOR_VERSION}
 
 include( ../adaptor-config.pri )
 config_hybris {

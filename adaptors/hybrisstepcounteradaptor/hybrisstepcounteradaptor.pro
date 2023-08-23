@@ -5,7 +5,7 @@ HEADERS += hybrisstepcounteradaptor.h \
 
 SOURCES += hybrisstepcounteradaptor.cpp \
            hybrisstepcounteradaptorplugin.cpp
-LIBS+= -L../../core -lhybrissensorfw-qt5
+LIBS+= -L../../core -lhybrissensorfw-qt$${QT_MAJOR_VERSION}
 
 include( ../adaptor-config.pri )
 config_hybris {

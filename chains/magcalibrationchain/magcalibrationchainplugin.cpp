@@ -32,5 +32,9 @@ void MagCalibrationChainPlugin::Register(class Loader&)
 }
 
 QStringList MagCalibrationChainPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("magcoordinatealignfilter:magnetometeradaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("magcoordinatealignfilter:magnetometeradaptor").split(":", QString::SkipEmptyParts);
+#endif
 }
