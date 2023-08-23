@@ -37,5 +37,9 @@ void OrientationPlugin::Register(class Loader&)
 }
 
 QStringList OrientationPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("orientationchain").split(":", Qt::SkipEmptyParts);
+#else
     return QString("orientationchain").split(":", QString::SkipEmptyParts);
+#endif
 }

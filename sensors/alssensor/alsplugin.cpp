@@ -43,5 +43,9 @@ void ALSPlugin::Init(class Loader& l)
 }
 
 QStringList ALSPlugin::Dependencies() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    return QString("alsadaptor").split(":", Qt::SkipEmptyParts);
+#else
     return QString("alsadaptor").split(":", QString::SkipEmptyParts);
+#endif
 }

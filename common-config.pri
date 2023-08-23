@@ -29,7 +29,7 @@ profile-libc {
   QMAKE_LFLAGS += -lc_p
 }
 
-TARGET = $$TARGET-qt5
+TARGET = $$TARGET-qt$${QT_MAJOR_VERSION}
 
 OTHER_FILES += \
     ../../common.pri

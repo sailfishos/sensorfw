@@ -33,7 +33,7 @@ for( folder, DOC_FOLDERS ) {
 QMAKE_EXTRA_TARGETS += doccleantarget
 
 # Documentation install target
-documentation.path = /usr/share/doc/sensord-qt5
+documentation.path = /usr/share/doc/sensord-qt$${QT_MAJOR_VERSION}
 documentation.files = doc/html
 documentation.depends = docs
 
