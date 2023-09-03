@@ -14,7 +14,6 @@ contains(CONFIG,autohybris) {
 }
 
 TEMPLATE = subdirs
-CONFIG += ordered
 SUBDIRS = datatypes \
           adaptors \
           core \
@@ -59,15 +58,14 @@ contains(CONFIG,configs) {
 }
 
 contains(CONFIG,hybris) {
-
     SUBDIRS = core/hybris.pro \
-               adaptors
+              adaptors
+
+    adaptors.depends = core/hybris.pro
 } else {
     config_hybris {
-    # Reorder so that adaptors are built after hybris.
-    SUBDIRS -= adaptors
-    SUBDIRS += core/hybris.pro \
-               adaptors
+        SUBDIRS += core/hybris.pro
+        adaptors.depends = core/hybris.pro
     }
     publicheaders.files += include/*.h
 
@@ -75,8 +73,10 @@ contains(CONFIG,hybris) {
     PKGCONFIGFILES.path = $$[QT_INSTALL_LIBS]/pkgconfig
     QTCONFIGFILES.files = sensord.prf
 
+    core.depends = datatypes
     qt-api.depends = datatypes
-    sensord.depends = datatypes adaptors sensors chains
+    sensord.depends = datatypes core adaptors sensors chains
+    tests.depends = datatypes core qt-api
 
     include( doc/doc.pri )
     include( common-install.pri )
