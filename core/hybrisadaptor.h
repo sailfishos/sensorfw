@@ -186,7 +186,7 @@ public:
 private:
     // fields
     bool                          m_initialized;
-    QMap <int, HybrisAdaptor *>   m_registeredAdaptors; // type -> obj
+    QMultiMap <int, HybrisAdaptor *>   m_registeredAdaptors; // type -> obj
 
 #ifdef USE_BINDER
     // Binder backend
