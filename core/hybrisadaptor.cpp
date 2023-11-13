@@ -832,7 +832,7 @@ void HybrisManager::processSample(const sensors_event_t& data)
 void HybrisManager::registerAdaptor(HybrisAdaptor *adaptor)
 {
     if (!m_registeredAdaptors.values().contains(adaptor) && adaptor->isValid()) {
-        m_registeredAdaptors.insertMulti(adaptor->m_sensorType, adaptor);
+        m_registeredAdaptors.insert(adaptor->m_sensorType, adaptor);
     }
 }
 
