@@ -19,7 +19,7 @@ LIBS += -L$$[QT_INSTALL_LIBS] -L../datatypes -lsensordatatypes-qt$${QT_MAJOR_VER
 
 CONFIG += link_pkgconfig
 
-!contains(CONFIG,binder) {
+!contains(CONFIG,binder)&!contains(CONFIG,luneos) {
     LIBS += -lhybris-common
     PKGCONFIG += android-headers libhardware
 }

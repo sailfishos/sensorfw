@@ -34,7 +34,7 @@ TARGET = $$TARGET-qt$${QT_MAJOR_VERSION}
 OTHER_FILES += \
     ../../common.pri
 
-contains(CONFIG,hybris) {
+contains(CONFIG,hybris)|contains(CONFIG,luneos) {
     CONFIG += link_pkgconfig
     contains(CONFIG,binder) {
         DEFINES += USE_BINDER=1

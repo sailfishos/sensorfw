@@ -7,8 +7,11 @@
 #   qmake CONFIG+=autohybris
 # And pro-file behavioral differences are handled via:
 #   config_hybris { ... }
+#
+# LuneOS builds: Uses build time hybris check and special handling of hybris in core/hybris.pro:
+#   qmake CONFIG+=autohybris CONFIG+=luneos
 
-contains(CONFIG,autohybris) {
+contains(CONFIG,autohybris)|contains(CONFIG,luneos) {
     load(configure)
     qtCompileTest(hybris)
 }
