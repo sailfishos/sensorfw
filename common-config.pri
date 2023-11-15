@@ -46,5 +46,10 @@ contains(CONFIG,hybris) {
 
 config_hybris {
     CONFIG += link_pkgconfig
-    PKGCONFIG += android-headers libhardware
+    contains(CONFIG,binder) {
+        DEFINES += USE_BINDER=1
+        PKGCONFIG += libgbinder libglibutil gobject-2.0 glib-2.0
+    } else {
+        PKGCONFIG += android-headers libhardware
+    }
 }
