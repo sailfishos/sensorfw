@@ -1,8 +1,6 @@
 sensorfw
 ========
 
-Please use https://bugs.merproject.org to file bugs.
-
 Debugging
 ---------
 
