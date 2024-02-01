@@ -24,6 +24,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QFile>
+#include <QSocketNotifier>
 
 #include "deviceadaptor.h"
 
@@ -215,6 +216,9 @@ private:
     HybrisSensorState            *m_sensorState;   // [m_sensorCount]
     QMap <int, int>               m_indexOfType;   // type   -> index
     QMap <int, int>               m_indexOfHandle; // handle -> index
+    int                           m_eventPipeReadFd;
+    int                           m_eventPipeWriteFd;
+    QSocketNotifier              *m_eventPipeNotifier;
 
 #ifdef USE_BINDER
     static GBinderLocalReply *sensorCallbackHandler(
@@ -240,8 +244,11 @@ private:
 private:
     static void *eventReaderThread(void *aptr);
     float scaleSensorValue(const float value, const int type) const;
-    void processEvents(const sensors_event_t *buffer,
-        int numberOfEvents, int &blockSuspend, bool &errorInInput);
+    void initEventPipe();
+    void cleanupEventPipe();
+    void eventPipeWakeup(int fd);
+    int queueEvents(const sensors_event_t *buffer, int numberOfEvents);
+    int processEvents(const sensors_event_t *buffer, int numberOfEvents);
 };
 
 class HybrisAdaptor : public DeviceAdaptor
