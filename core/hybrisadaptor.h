@@ -247,8 +247,8 @@ private:
     void initEventPipe();
     void cleanupEventPipe();
     void eventPipeWakeup(int fd);
-    int queueEvents(const sensors_event_t *buffer, int numberOfEvents);
-    int processEvents(const sensors_event_t *buffer, int numberOfEvents);
+    int queueEvents(const sensors_event_t *buffer, int numEvents);
+    int processEvents(const sensors_event_t *buffer, int numEvents);
 };
 
 class HybrisAdaptor : public DeviceAdaptor

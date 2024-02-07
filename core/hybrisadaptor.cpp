@@ -62,6 +62,13 @@ const char* const sensors_2_callback_ifaces[] = {
 
 #endif
 
+namespace {
+/* Maximum number of events to transmit over event pipe in one go.
+ * Also defines maximum number of events to ask from android hal/service.
+ */
+const size_t maxEvents = 64;
+}
+
 /* ========================================================================= *
  * UTILITIES
  * ========================================================================= */
@@ -1177,8 +1184,7 @@ void HybrisManager::pollEventsCallback(
 void *HybrisManager::eventReaderThread(void *aptr)
 {
     HybrisManager *manager = static_cast<HybrisManager *>(aptr);
-    const size_t numEvents = 64;
-    sensors_event_t buffer[numEvents];
+    sensors_event_t buffer[maxEvents];
 
     /* Async cancellation, but disabled */
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
@@ -1192,9 +1198,9 @@ void *HybrisManager::eventReaderThread(void *aptr)
     /* Loop until explicitly canceled */
     for (;;) {
 #ifdef USE_BINDER
-        size_t numberOfEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
+        size_t availableEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
 
-        if (numberOfEvents <= 0) {
+        if (availableEvents <= 0) {
             guint32 state = 0;
             /* Async cancellation point */
             pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
@@ -1208,13 +1214,13 @@ void *HybrisManager::eventReaderThread(void *aptr)
                 }
                 continue;
             }
-            numberOfEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
+            availableEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
         }
-        size_t eventsToRead = std::min(numberOfEvents, numEvents);
-        if (eventsToRead == 0) {
+        size_t numEvents = std::min(availableEvents, maxEvents);
+        if (numEvents == 0) {
             continue;
         }
-        if (gbinder_fmq_read(manager->m_eventQueue, buffer, eventsToRead)) {
+        if (gbinder_fmq_read(manager->m_eventQueue, buffer, numEvents)) {
             gbinder_fmq_wake(manager->m_eventQueue, EVENT_QUEUE_FLAG_EVENTS_READ);
         } else {
             sensordLogW() << "Reading events failed";
@@ -1222,7 +1228,7 @@ void *HybrisManager::eventReaderThread(void *aptr)
         }
 
         // Queue received events for processing in main thread
-        int wakeupEventCount = manager->queueEvents(buffer, eventsToRead);
+        int wakeupEventCount = manager->queueEvents(buffer, numEvents);
 
         // Acknowledge wakeup events
         if (wakeupEventCount) {
@@ -1236,20 +1242,20 @@ void *HybrisManager::eventReaderThread(void *aptr)
         /* Async cancellation point at android hal poll() */
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
 #ifdef SENSORS_DEVICE_API_VERSION_1_0
-        int numberOfEvents = manager->m_halDevice->poll((struct sensors_poll_device_t *)manager->m_halDevice, buffer, numEvents);
+        int numEvents = manager->m_halDevice->poll((struct sensors_poll_device_t *)manager->m_halDevice, buffer, maxEvents);
 #else
-        int numberOfEvents = manager->m_halDevice->poll(manager->m_halDevice, buffer, numEvents);
+        int numEvents = manager->m_halDevice->poll(manager->m_halDevice, buffer, maxEvents);
 #endif
         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
         /* Rate limit in poll() error situations */
-        if (numberOfEvents < 0) {
-            sensordLogW() << "android device->poll() failed" << strerror(-numberOfEvents);
+        if (numEvents < 0) {
+            sensordLogW() << "android device->poll() failed" << strerror(-numEvents);
             struct timespec ts = { 1, 0 }; // 1000 ms
             do { } while (nanosleep(&ts, &ts) == -1 && errno == EINTR);
             continue;
         }
         // Queue received events for processing in main thread
-        manager->queueEvents(buffer, numberOfEvents);
+        manager->queueEvents(buffer, numEvents);
 #endif
     }
     return 0;
@@ -1293,7 +1299,6 @@ void HybrisManager::eventPipeWakeup(int fd)
         m_eventPipeNotifier->setEnabled(false);
         sensordLogW("fd mismatch, event pipe notifier disabled");
     } else {
-        const size_t maxEvents = 64;
         sensors_event_t events[maxEvents];
         ssize_t rc = ::read(m_eventPipeReadFd, events, sizeof events);
         if (rc == 0) {
@@ -1311,12 +1316,12 @@ void HybrisManager::eventPipeWakeup(int fd)
     }
 }
 
-int HybrisManager::queueEvents(const sensors_event_t *buffer, int numberOfEvents)
+int HybrisManager::queueEvents(const sensors_event_t *buffer, int numEvents)
 {
     /* Pre-checks */
     int wakeupEventCount = 0;
     bool errorInInput = false;
-    for (int i = 0; i < numberOfEvents; i++) {
+    for (int i = 0; i < numEvents; i++) {
         const sensors_event_t &data = buffer[i];
         sensordLogT("QUEUE HYBRIS EVE %s", sensorTypeName(data.type));
 #ifdef USE_BINDER
@@ -1341,8 +1346,8 @@ int HybrisManager::queueEvents(const sensors_event_t *buffer, int numberOfEvents
         ObtainTemporaryWakeLock();
 
     /* Forward via pipe for processing in main threah */
-    if (!errorInInput && numberOfEvents > 0 && m_eventPipeWriteFd != -1) {
-        if (::write(m_eventPipeWriteFd, buffer, numberOfEvents * sizeof *buffer) == -1) {
+    if (!errorInInput && numEvents > 0 && m_eventPipeWriteFd != -1) {
+        if (::write(m_eventPipeWriteFd, buffer, numEvents * sizeof *buffer) == -1) {
             sensordLogW("event pipe write failure: %s", strerror(errno));
             errorInInput = true;
         }
@@ -1356,11 +1361,11 @@ int HybrisManager::queueEvents(const sensors_event_t *buffer, int numberOfEvents
     return wakeupEventCount;
 }
 
-int HybrisManager::processEvents(const sensors_event_t *buffer, int numberOfEvents)
+int HybrisManager::processEvents(const sensors_event_t *buffer, int numEvents)
 {
     /* Pre-checks */
     int wakeupEventCount = 0;
-    for (int i = 0; i < numberOfEvents; i++) {
+    for (int i = 0; i < numEvents; i++) {
         const sensors_event_t& data = buffer[i];
 #ifdef USE_BINDER
         int index = indexForHandle(data.sensor);
@@ -1380,7 +1385,7 @@ int HybrisManager::processEvents(const sensors_event_t *buffer, int numberOfEven
         ObtainTemporaryWakeLock();
 
     /* Push the sensor data down chains */
-    for (int i = 0; i < numberOfEvents; i++) {
+    for (int i = 0; i < numEvents; i++) {
         const sensors_event_t& data = buffer[i];
         sensordLogT("HYBRIS EVE %s", sensorTypeName(data.type));
 
