@@ -204,11 +204,7 @@ private:
 #else
     // HAL backend
     struct sensors_module_t      *m_halModule;
-#ifdef SENSORS_DEVICE_API_VERSION_1_0
     sensors_poll_device_1_t      *m_halDevice;
-#else
-    struct sensors_poll_device_t *m_halDevice;
-#endif
     const struct sensor_t        *m_sensorArray;   // [m_sensorCount]
 #endif
     pthread_t                     m_eventReaderTid;
