@@ -1012,7 +1012,7 @@ bool HybrisManager::setDelay(int handle, int delay_us, bool force)
             if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0)
                 error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
             else
-                error = m_halDevice->setDelay((sensors_poll_device_t *)m_halDevice, sensor->handle, delay_ns);
+                error = m_halDevice->setDelay(m_halDevice->v0, sensor->handle, delay_ns);
 #endif
             if (error) {
                 sensordLogW("HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
@@ -1093,7 +1093,7 @@ bool HybrisManager::setActive(int handle, bool active)
 
             gbinder_remote_reply_unref(reply);
 #else
-            int error = m_halDevice->activate((struct sensors_poll_device_t *)m_halDevice, sensor->handle, active);
+            int error = m_halDevice->activate(m_halDevice, sensor->handle, active);
 #endif
             if (error) {
                 sensordLogW("HYBRIS CTL setActive%d=%s, %s) -> %d=%s",
@@ -1229,7 +1229,7 @@ void *HybrisManager::eventReaderThread(void *aptr)
 #else // HAL reader
         /* Async cancellation point at android hal poll() */
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
-        int numEvents = manager->m_halDevice->poll((struct sensors_poll_device_t *)manager->m_halDevice, buffer, maxEvents);
+        int numEvents = manager->m_halDevice->poll(manager->m_halDevice, buffer, maxEvents);
         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
         /* Rate limit in poll() error situations */
         if (numEvents < 0) {
