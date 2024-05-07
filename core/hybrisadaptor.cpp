@@ -1008,11 +1008,18 @@ bool HybrisManager::setDelay(int handle, int delay_us, bool force)
 
             gbinder_remote_reply_unref(reply);
 #else
-            int error;
-            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0)
-                error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
-            else
-                error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+            int error = EBADSLT;
+            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0) {
+                if (m_halDevice->batch)
+                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
+                else if (m_halDevice->setDelay)
+                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+            } else {
+                if (m_halDevice->setDelay)
+                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+                else if (m_halDevice->batch) // Here be dragons
+                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
+            }
 #endif
             if (error) {
                 sensordLogW("HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
