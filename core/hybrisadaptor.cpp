@@ -28,6 +28,9 @@
 #include <hardware/hardware.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -200,12 +203,56 @@ HybrisManager::HybrisManager(QObject *parent)
     int err;
 
     /* Open android sensor plugin */
-    err = hw_get_module(SENSORS_HARDWARE_MODULE_ID,
-                        (hw_module_t const**)&m_halModule);
-    if (err != 0) {
-        m_halModule = 0;
-        sensordLogW() << "hw_get_module() failed" <<  strerror(-err);
-        return ;
+    for (int retries = 4; ;) {
+        // Try module loading in throwaway child process
+        // so that we can retry from clean slate if needed
+        fflush(nullptr);
+        pid_t child_pid = fork();
+
+        if (child_pid == 0) {
+            // Child process
+            const hw_module_t *dummyModule = nullptr;
+            err = hw_get_module(SENSORS_HARDWARE_MODULE_ID, &dummyModule);
+            _exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
+        }
+
+        if (child_pid == -1) {
+            sensordLogW() << "w_get_module() probe, fork failed:"
+                          << strerror(errno);
+            QCoreApplication::exit(EXIT_FAILURE);
+            return;
+        }
+
+        int status = 0;
+        if (waitpid(child_pid, &status, 0) == -1) {
+            sensordLogW() << "w_get_module() probe, waitpid failed:"
+                          << strerror(errno);
+            QCoreApplication::exit(EXIT_FAILURE);
+            return;
+        }
+
+        // If probe in child process was successful, do it for real
+        if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
+            err = hw_get_module(SENSORS_HARDWARE_MODULE_ID,
+                                (hw_module_t const **)&m_halModule);
+            if (err == 0)
+                break;
+
+            sensordLogW() << "hw_get_module() failed:" << strerror(-err);
+            m_halModule = nullptr;
+            QCoreApplication::exit(EXIT_FAILURE);
+            return;
+        }
+
+        // Bailout or retry after brief delay
+        if (--retries < 0) {
+            sensordLogW() << "hw_get_module() probe failed - giving up";
+            QCoreApplication::exit(EXIT_FAILURE);
+            return;
+        }
+
+        sensordLogW() << "hw_get_module() probe failed";
+        QThread::msleep(2000);
     }
 
     /* Open android sensor device */
@@ -213,11 +260,17 @@ HybrisManager::HybrisManager(QObject *parent)
     if (err != 0) {
         m_halDevice = 0;
         sensordLogW() << "sensors_open() failed:" << strerror(-err);
+        QCoreApplication::exit(EXIT_FAILURE);
         return;
     }
 
     /* Get static sensor information */
     m_sensorCount = m_halModule->get_sensors_list(m_halModule, &m_sensorArray);
+    if (m_sensorCount <= 0) {
+        sensordLogW() << "no sensors found";
+        QCoreApplication::exit(EXIT_FAILURE);
+        return;
+    }
 
     initManager();
 #endif
@@ -1008,11 +1061,18 @@ bool HybrisManager::setDelay(int handle, int delay_us, bool force)
 
             gbinder_remote_reply_unref(reply);
 #else
-            int error;
-            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0)
-                error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
-            else
-                error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+            int error = EBADSLT;
+            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0) {
+                if (m_halDevice->batch)
+                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
+                else if (m_halDevice->setDelay)
+                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+            } else {
+                if (m_halDevice->setDelay)
+                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
+                else if (m_halDevice->batch) // Here be dragons
+                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
+            }
 #endif
             if (error) {
                 sensordLogW("HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
