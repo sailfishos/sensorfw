@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Jolla Ltd
+** Copyright (c) 2013 Jolla Ltd.
+** Copyright (c) 2025 Jollyboys Ltd.
 **
 **
 ** $QT_BEGIN_LICENSE:LGPL$
@@ -81,37 +82,101 @@ static char const *
 sensorTypeName(int type)
 {
     switch (type) {
-    case SENSOR_TYPE_META_DATA:                   return "META_DATA";
-    case SENSOR_TYPE_ACCELEROMETER:               return "ACCELEROMETER";
-    case SENSOR_TYPE_GEOMAGNETIC_FIELD:           return "GEOMAGNETIC_FIELD";
-    case SENSOR_TYPE_ORIENTATION:                 return "ORIENTATION";
-    case SENSOR_TYPE_GYROSCOPE:                   return "GYROSCOPE";
-    case SENSOR_TYPE_LIGHT:                       return "LIGHT";
-    case SENSOR_TYPE_PRESSURE:                    return "PRESSURE";
-    case SENSOR_TYPE_TEMPERATURE:                 return "TEMPERATURE";
-    case SENSOR_TYPE_PROXIMITY:                   return "PROXIMITY";
-    case SENSOR_TYPE_GRAVITY:                     return "GRAVITY";
-    case SENSOR_TYPE_LINEAR_ACCELERATION:         return "LINEAR_ACCELERATION";
-    case SENSOR_TYPE_ROTATION_VECTOR:             return "ROTATION_VECTOR";
-    case SENSOR_TYPE_RELATIVE_HUMIDITY:           return "RELATIVE_HUMIDITY";
-    case SENSOR_TYPE_AMBIENT_TEMPERATURE:         return "AMBIENT_TEMPERATURE";
-    case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED: return "MAGNETIC_FIELD_UNCALIBRATED";
-    case SENSOR_TYPE_GAME_ROTATION_VECTOR:        return "GAME_ROTATION_VECTOR";
-    case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:      return "GYROSCOPE_UNCALIBRATED";
-    case SENSOR_TYPE_SIGNIFICANT_MOTION:          return "SIGNIFICANT_MOTION";
-    case SENSOR_TYPE_STEP_DETECTOR:               return "STEP_DETECTOR";
-    case SENSOR_TYPE_STEP_COUNTER:                return "STEP_COUNTER";
-    case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR: return "GEOMAGNETIC_ROTATION_VECTOR";
-    case SENSOR_TYPE_HEART_RATE:                  return "HEART_RATE";
-    case SENSOR_TYPE_TILT_DETECTOR:               return "TILT_DETECTOR";
-    case SENSOR_TYPE_WAKE_GESTURE:                return "WAKE_GESTURE";
-    case SENSOR_TYPE_GLANCE_GESTURE:              return "GLANCE_GESTURE";
-    case SENSOR_TYPE_PICK_UP_GESTURE:             return "PICK_UP_GESTURE";
-    case SENSOR_TYPE_WRIST_TILT_GESTURE:          return "WRIST_TILT_GESTURE";
+    case SENSOR_TYPE_META_DATA:
+        return "META_DATA";
+    case SENSOR_TYPE_ACCELEROMETER:
+        return "ACCELEROMETER";
+    case SENSOR_TYPE_MAGNETIC_FIELD:
+        return "MAGNETIC_FIELD";
+    case SENSOR_TYPE_ORIENTATION:
+        return "ORIENTATION";
+    case SENSOR_TYPE_GYROSCOPE:
+        return "GYROSCOPE";
+    case SENSOR_TYPE_LIGHT:
+        return "LIGHT";
+    case SENSOR_TYPE_PRESSURE:
+        return "PRESSURE";
+    case SENSOR_TYPE_TEMPERATURE:
+        return "TEMPERATURE";
+    case SENSOR_TYPE_PROXIMITY:
+        return "PROXIMITY";
+    case SENSOR_TYPE_GRAVITY:
+        return "GRAVITY";
+    case SENSOR_TYPE_LINEAR_ACCELERATION:
+        return "LINEAR_ACCELERATION";
+    case SENSOR_TYPE_ROTATION_VECTOR:
+        return "ROTATION_VECTOR";
+    case SENSOR_TYPE_RELATIVE_HUMIDITY:
+        return "RELATIVE_HUMIDITY";
+    case SENSOR_TYPE_AMBIENT_TEMPERATURE:
+        return "AMBIENT_TEMPERATURE";
+    case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+        return "MAGNETIC_FIELD_UNCALIBRATED";
+    case SENSOR_TYPE_GAME_ROTATION_VECTOR:
+        return "GAME_ROTATION_VECTOR";
+    case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
+        return "GYROSCOPE_UNCALIBRATED";
+    case SENSOR_TYPE_SIGNIFICANT_MOTION:
+        return "SIGNIFICANT_MOTION";
+    case SENSOR_TYPE_STEP_DETECTOR:
+        return "STEP_DETECTOR";
+    case SENSOR_TYPE_STEP_COUNTER:
+        return "STEP_COUNTER";
+    case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR:
+        return "GEOMAGNETIC_ROTATION_VECTOR";
+    case SENSOR_TYPE_HEART_RATE:
+        return "HEART_RATE";
+    case SENSOR_TYPE_TILT_DETECTOR:
+        return "TILT_DETECTOR";
+    case SENSOR_TYPE_WAKE_GESTURE:
+        return "WAKE_GESTURE";
+    case SENSOR_TYPE_GLANCE_GESTURE:
+        return "GLANCE_GESTURE";
+    case SENSOR_TYPE_PICK_UP_GESTURE:
+        return "PICK_UP_GESTURE";
+    case SENSOR_TYPE_WRIST_TILT_GESTURE:
+        return "WRIST_TILT_GESTURE";
+    case SENSOR_TYPE_DEVICE_ORIENTATION:
+        return "DEVICE_ORIENTATION";
+    case SENSOR_TYPE_POSE_6DOF:
+        return "POSE_6DOF";
+    case SENSOR_TYPE_STATIONARY_DETECT:
+        return "STATIONARY_DETECT";
+    case SENSOR_TYPE_MOTION_DETECT:
+        return "MOTION_DETECT";
+    case SENSOR_TYPE_HEART_BEAT:
+        return "HEART_BEAT";
+    case SENSOR_TYPE_DYNAMIC_SENSOR_META:
+        return "DYNAMIC_SENSOR_META";
+    case SENSOR_TYPE_ADDITIONAL_INFO:
+        return "ADDITIONAL_INFO";
+    case SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT:
+        return "LOW_LATENCY_OFFBODY_DETECT";
+    case SENSOR_TYPE_ACCELEROMETER_UNCALIBRATED:
+        return "ACCELEROMETER_UNCALIBRATED";
+    case SENSOR_TYPE_HINGE_ANGLE:
+        return "HINGE_ANGLE";
+    case SENSOR_TYPE_HEAD_TRACKER:
+        return "HEAD_TRACKER";
+    case SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES:
+        return "ACCELEROMETER_LIMITED_AXES";
+    case SENSOR_TYPE_GYROSCOPE_LIMITED_AXES:
+        return "GYROSCOPE_LIMITED_AXES";
+    case SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED:
+        return "ACCELEROMETER_LIMITED_AXES_UNCALIBRATED";
+    case SENSOR_TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED:
+        return "GYROSCOPE_LIMITED_AXES_UNCALIBRATED";
+    case SENSOR_TYPE_HEADING:
+        return "HEADING";
     }
 
     static char buf[32];
-    snprintf(buf, sizeof buf, "type%d", type);
+
+    if (type >= SENSOR_TYPE_DEVICE_PRIVATE_BASE)
+        snprintf(buf, sizeof buf, "SENSOR_TYPE_PRIVATE_%d", type);
+    else
+        snprintf(buf, sizeof buf, "SENSOR_TYPE_%d", type);
+
     return buf;
 }
 
@@ -1183,12 +1248,11 @@ bool HybrisManager::setActive(int handle, bool active)
             int error = m_halDevice->activate(&m_halDevice->v0, sensor->handle, active);
 #endif
             if (error) {
-                qCWarning(lcSensorFw, "HYBRIS CTL setActive%d=%s, %s) -> %d=%s",
-                          sensor->handle, sensorTypeName(sensor->type), active ? "true" : "false",
-                          error, strerror(error));
+                qCWarning(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> %d=%s", sensor->handle,
+                          sensorTypeName(sensor->type), active ? "true" : "false", error, strerror(error));
             } else {
-                qCInfo(lcSensorFw, "HYBRIS CTL setActive%d=%s, %s) -> success",
-                       sensor->handle, sensorTypeName(sensor->type), active ? "true" : "false");
+                qCInfo(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> success", sensor->handle,
+                       sensorTypeName(sensor->type), active ? "true" : "false");
                 state->m_active = active;
                 success = true;
             }
