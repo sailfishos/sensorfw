@@ -15,6 +15,7 @@ SUBDIRS  = accelerometersensor \
            lidsensor \
            humiditysensor \
            pressuresensor \
+           wakeupsensor \
            temperaturesensor \
            stepcountersensor
 
