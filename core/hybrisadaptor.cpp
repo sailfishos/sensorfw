@@ -340,7 +340,6 @@ HybrisManager::HybrisManager(QObject *parent)
 #endif
 }
 
-#ifdef USE_BINDER
 bool HybrisManager::typeRequiresWakeup(int type)
 {
     // Sensors which are wake-up sensors by default
@@ -355,10 +354,11 @@ bool HybrisManager::typeRequiresWakeup(int type)
     case SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT:
         return true;
     default:
-        return false;
+        // Assumption: private types are going to be something that is utilized
+        //             as wakeup sensor and for those we want SENSOR_FLAG_WAKE_UP
+        return type >= SENSOR_TYPE_DEVICE_PRIVATE_BASE;
     }
 }
-#endif
 
 void HybrisManager::initManager()
 {
@@ -377,52 +377,58 @@ void HybrisManager::initManager()
     /* Reserve space for sensor state data */
     m_sensorState = new HybrisSensorState[m_sensorCount];
 
-    /* Select and initialize sensors to be used */
-    for (int i = 0 ; i < m_sensorCount ; i++) {
-        /* Always do handle -> index mapping */
-        m_indexOfHandle.insert(m_sensorArray[i].handle, i);
+    /* Selected sensors to use */
+    for (int i = 0; i < m_sensorCount; ++i) {
+#ifdef USE_BINDER
+        const char *sensorName = m_sensorArray[i].name.data.str ?: "unknown";
+#else
+        const char *sensorName = m_sensorArray[i].name ?: "unknown";
+#endif
 
-        bool use = true;
-        // Assumption: The primary sensor variants that we want to
-        // use are listed before the secondary ones that we want
-        // to ignore -> Use the 1st entry found for each sensor type.
-        if (m_indexOfType.contains(m_sensorArray[i].type)) {
-            use = false;
-        }
+        /* Always add to handle -> index mapping */
+        m_indexOfHandle.insert(m_sensorArray[i].handle, i);
 
         // some devices have compass and compass raw,
         // ignore compass raw. compass has range 360
-        if (m_sensorArray[i].type == SENSOR_TYPE_ORIENTATION &&
-            m_sensorArray[i].maxRange != 360) {
-            use = false;
-        }
+        if (m_sensorArray[i].type == SENSOR_TYPE_ORIENTATION && m_sensorArray[i].maxRange != 360)
+            continue;
 
-#ifdef USE_BINDER
-        // Pick wake-up variant for the types which are wake-up sensors by default
-        if (typeRequiresWakeup(m_sensorArray[i].type)) {
-            if ((m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP) == 0) {
-                qCInfo(lcSensorFw) << "Ignoring non-wake-up sensor of type " << m_sensorArray[i].type
-                                   << sensorTypeName(m_sensorArray[i].type);
-                use = false;
-            }
+        /* Update type -> index mapping if wake flag requirements are met or we have no candidate yet */
+        bool wantWakeup = typeRequiresWakeup(m_sensorArray[i].type);
+        bool haveWakeup = false;
+#if defined(USE_BINDER)
+        if (m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP)
+            haveWakeup = true;
+#elif defined(SENSORS_DEVICE_API_VERSION_1_3)
+        if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_3) {
+            if (m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP)
+                haveWakeup = true;
         } else {
-            // All other sensors shall use non-wake-up sensor variant
-            if ((m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP) != 0) {
-                qCInfo(lcSensorFw) << "Ignoring wake-up sensor of type " << m_sensorArray[i].type
-                                   << sensorTypeName(m_sensorArray[i].type);
-                use = false;
-            }
+            if (strstr(sensorName, "(WAKE_UP)"))
+                haveWakeup = true;
         }
+#else
+        if (strstr(sensorName, "(WAKE_UP)"))
+            haveWakeup = true;
 #endif
+
+        if (haveWakeup == wantWakeup || !m_indexOfType.contains(m_sensorArray[i].type))
+            m_indexOfType.insert(m_sensorArray[i].type, i);
+    }
+
+    /* Initialize selected sensors */
+    for (int i = 0; i < m_sensorCount; ++i) {
+#ifdef USE_BINDER
+        const char *sensorName = m_sensorArray[i].name.data.str ?: "unknown";
+#else
+        const char *sensorName = m_sensorArray[i].name ?: "unknown";
+#endif
+        bool use = m_indexOfType.value(m_sensorArray[i].type) == i;
 
         qCInfo(lcSensorFw) << Q_FUNC_INFO
             << (use ? "SELECT" : "IGNORE")
             << "type:" << m_sensorArray[i].type << sensorTypeName(m_sensorArray[i].type)
-#ifdef USE_BINDER
-            << "name:" << (m_sensorArray[i].name.data.str ?: "n/a");
-#else
-            << "name:" << (m_sensorArray[i].name ?: "n/a");
-#endif
+            << "name:" << sensorName;
 
         if (use) {
             // min/max delay in hal is specified in [us]
@@ -1470,7 +1476,7 @@ int HybrisManager::queueEvents(const sensors_event_t *buffer, int numEvents)
             qCWarning(lcSensorFw) << QString("incorrect event version (version=%1, expected=%2").arg(data.version).arg(sizeof(sensors_event_t));
             errorInInput = true;
         }
-        if (data.type == SENSOR_TYPE_PROXIMITY) {
+        if (typeRequiresWakeup(data.type)) {
             ++wakeupEventCount;
         }
 #endif
@@ -1509,7 +1515,7 @@ int HybrisManager::processEvents(const sensors_event_t *buffer, int numEvents)
             ++wakeupEventCount;
         }
 #else
-        if (data.type == SENSOR_TYPE_PROXIMITY) {
+        if (typeRequiresWakeup(data.type)) {
             ++wakeupEventCount;
         }
 #endif

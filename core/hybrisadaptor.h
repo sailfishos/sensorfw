@@ -287,8 +287,8 @@ private:
     static void pollEventsCallback(
         GBinderClient* /*client*/, GBinderRemoteReply* reply,
         int status, void* userData);
-    bool typeRequiresWakeup(int type);
 #endif
+    bool typeRequiresWakeup(int type);
 
     friend class HybrisAdaptorReader;
 
