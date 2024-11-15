@@ -19,6 +19,7 @@
 
 #include "hybrisadaptor.h"
 #include "deviceadaptor.h"
+#include "config.h"
 
 #include <QDebug>
 #include <QCoreApplication>
@@ -298,6 +299,15 @@ bool HybrisManager::typeRequiresWakeup(int type)
 
 void HybrisManager::initManager()
 {
+    QString sensorTypes = SensorFrameworkConfig::configuration()->value("hybrisQuirks/doubleStopReader", QString());
+    for (const QString &iter : sensorTypes.split(" ")) {
+        int sensorType = iter.toInt();
+        if (sensorType > 0) {
+            m_doubleStopReaderQuirkSensorTypes.insert(sensorType);
+            sensordLogD() << "doubleStopReaderQuirk selected for" << sensorTypeName(sensorType);
+        }
+    }
+
     /* Initialize sensor data forwarding pipe */
     initEventPipe();
 
@@ -882,10 +892,27 @@ void HybrisManager::startReader(HybrisAdaptor *adaptor)
 void HybrisManager::stopReader(HybrisAdaptor *adaptor)
 {
     if (m_registeredAdaptors.values().contains(adaptor)) {
-            sensordLogD() << "deactivating " << adaptor->name();
-            if (!setActive(adaptor->m_sensorHandle, false)) {
-                sensordLogW() <<Q_FUNC_INFO<< "failed";
-            }
+        sensordLogD() << "deactivating " << adaptor->name();
+        if (!setActive(adaptor->m_sensorHandle, false)) {
+            sensordLogW() << Q_FUNC_INFO << "failed";
+        } else if (m_doubleStopReaderQuirkSensorTypes.contains(adaptor->m_sensorType)) {
+            /* For example: in C2 stopping gyroscope can cause accelerometer
+             * reporting to freeze. Situation can be remedied by doing an
+             * extra gyroscope enable and disable with forced datarate change.
+             *
+             * This behavior needs to be enabled in sensorfwd configuration.
+             */
+            sensordLogD() << "doubleStopReaderQuirk executed for" << sensorTypeName(adaptor->m_sensorType);
+            HybrisSensorState *state = &m_sensorState[indexForHandle(adaptor->m_sensorHandle)];
+            int curr_delay_us = state->m_delay_us;
+            int temp_delay_us = 100000;
+            if (temp_delay_us == curr_delay_us)
+                temp_delay_us *= 2;
+            setDelay(adaptor->m_sensorHandle, temp_delay_us, false);
+            setActive(adaptor->m_sensorHandle, true);
+            setActive(adaptor->m_sensorHandle, false);
+            setDelay(adaptor->m_sensorHandle, curr_delay_us, false);
+        }
     }
 }
 
