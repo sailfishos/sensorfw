@@ -45,6 +45,17 @@ const int OrientationInterpreter::AVG_BUFFER_MAX_SIZE = 10;
 const char* OrientationInterpreter::CPU_BOOST_PATH = "/sys/power/pm_optimizer_rotation";
 typedef PoseData (OrientationInterpreter::*ptrFUN)(int);
 
+namespace {
+inline int squaredLimit(int limit)
+{
+    if (limit <= 0)
+        return 0;
+    if (limit <= int(sqrt(INT_MAX)))
+        return limit * limit;
+    return INT_MAX;
+}
+}
+
 OrientationInterpreter::OrientationInterpreter() :
         accDataSink(this, &OrientationInterpreter::accDataAvailable),
         topEdge(PoseData::Undefined),
@@ -59,8 +70,15 @@ OrientationInterpreter::OrientationInterpreter() :
     addSource(&faceSource, "face");
     addSource(&orientationSource, "orientation");
 
-    minLimit = SensorFrameworkConfig::configuration()->value("orientation/overflow_min", QVariant(OVERFLOW_MIN)).toInt();
-    maxLimit = SensorFrameworkConfig::configuration()->value("orientation/overflow_max", QVariant(OVERFLOW_MAX)).toInt();
+    int minLimit = SensorFrameworkConfig::configuration()->value("orientation/overflow_min",
+                                                                 QVariant(OVERFLOW_MIN)).toInt();
+    int maxLimit = SensorFrameworkConfig::configuration()->value("orientation/overflow_max",
+                                                                 QVariant(OVERFLOW_MAX)).toInt();
+    minLimitSquared = squaredLimit(minLimit);
+    maxLimitSquared = squaredLimit(maxLimit);
+
+    sensordLogW() << "minLimit:" << minLimit << minLimitSquared;
+    sensordLogW() << "maxLimit:" << maxLimit << maxLimitSquared;
 
     angleThresholdPortrait = SensorFrameworkConfig::configuration()->value("orientation/threshold_portrait",QVariant(THRESHOLD_PORTRAIT)).toInt();
     angleThresholdLandscape = SensorFrameworkConfig::configuration()->value("orientation/threshold_landscape",QVariant(THRESHOLD_LANDSCAPE)).toInt();
@@ -80,7 +98,7 @@ void OrientationInterpreter::accDataAvailable(unsigned, const AccelerationData* 
     // Check overflow
     if (overFlowCheck())
     {
-        sensordLogT() << "Acc value discarded due to over/underflow";
+        sensordLogD() << "Acc value" << data.x_ << data.y_ << data.z_ << "discarded due to over/underflow";
         return;
     }
 
@@ -120,8 +138,8 @@ void OrientationInterpreter::accDataAvailable(unsigned, const AccelerationData* 
 
 bool OrientationInterpreter::overFlowCheck()
 {
-    int vector = ((data.x_ * data.x_ + data.y_ * data.y_ + data.z_ * data.z_) / 1000);
-    return !((vector >= minLimit) && (vector <= maxLimit));
+    int m = int(data.x_ * data.x_ + data.y_ * data.y_ + data.z_ * data.z_);
+    return m < minLimitSquared || m > maxLimitSquared;
 }
 
 int OrientationInterpreter::orientationCheck(const AccelerationData &data,  OrientationMode mode) const
