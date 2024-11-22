@@ -35,7 +35,6 @@ AbstractSensorChannelInterface* ProximitySensorChannelInterface::factoryMethod(c
     return new ProximitySensorChannelInterface(OBJECT_PATH + "/" + id, sessionId);
 }
 
-
 ProximitySensorChannelInterface::ProximitySensorChannelInterface(const QString& path, int sessionId)
     : AbstractSensorChannelInterface(path, ProximitySensorChannelInterface::staticInterfaceName, sessionId)
 {
@@ -54,9 +53,8 @@ ProximitySensorChannelInterface* ProximitySensorChannelInterface::controlInterfa
 ProximitySensorChannelInterface* ProximitySensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, ProximitySensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, ProximitySensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
     return dynamic_cast<ProximitySensorChannelInterface*>(sm.interface(id));
 }
@@ -64,10 +62,10 @@ ProximitySensorChannelInterface* ProximitySensorChannelInterface::interface(cons
 bool ProximitySensorChannelInterface::dataReceivedImpl()
 {
     QVector<ProximityData> values;
-    if(!read<ProximityData>(values))
+    if (!read<ProximityData>(values))
         return false;
-    foreach(const ProximityData& data, values)
-    {
+
+    foreach (const ProximityData& data, values) {
         Proximity proximity(data);
         emit dataAvailable(proximity);
         emit reflectanceDataAvailable(proximity);

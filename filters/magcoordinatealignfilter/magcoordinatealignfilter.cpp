@@ -26,8 +26,9 @@
 
 #include "magcoordinatealignfilter.h"
 
-MagCoordinateAlignFilter::MagCoordinateAlignFilter() :
-        Filter<CalibratedMagneticFieldData, MagCoordinateAlignFilter, CalibratedMagneticFieldData>(this, &MagCoordinateAlignFilter::filter)
+MagCoordinateAlignFilter::MagCoordinateAlignFilter()
+    : Filter<CalibratedMagneticFieldData, MagCoordinateAlignFilter,
+      CalibratedMagneticFieldData>(this, &MagCoordinateAlignFilter::filter)
 {
 }
 

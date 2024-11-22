@@ -61,7 +61,6 @@ class AbstractSensorChannelInterface : public QObject
     Q_PROPERTY(bool downsampling READ downsampling WRITE setDownsampling)
 
 public:
-
     /**
      * Destructor
      */
@@ -516,8 +515,7 @@ template<typename T>
 T AbstractSensorChannelInterface::getAccessor(const char* name)
 {
     QDBusReply<T> reply(call(QDBus::Block, QLatin1String(name)));
-    if(!reply.isValid())
-    {
+    if (!reply.isValid()) {
         qDebug() << "Failed to get '" << name << "' from sensord: " << reply.error().message();
         return T();
     }
@@ -528,8 +526,7 @@ template<typename T>
 void AbstractSensorChannelInterface::setAccessor(const char* name, const T& value)
 {
     QDBusReply<void> reply(call(QDBus::NoBlock, QLatin1String(name), QVariant::fromValue(value)));
-    if(!reply.isValid())
-    {
+    if (!reply.isValid()) {
         qDebug() << "Failed to set '" << name << " = " << value << "' to sensord: " << reply.error().message();
     }
 }

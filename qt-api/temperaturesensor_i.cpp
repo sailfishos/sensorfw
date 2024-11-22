@@ -49,12 +49,11 @@ TemperatureSensorChannelInterface* TemperatureSensorChannelInterface::controlInt
     return interface(id);
 }
 
-
 TemperatureSensorChannelInterface* TemperatureSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, TemperatureSensorChannelInterface::staticMetaObject.className())) {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, TemperatureSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<TemperatureSensorChannelInterface*>(sm.interface(id));
@@ -63,9 +62,9 @@ TemperatureSensorChannelInterface* TemperatureSensorChannelInterface::interface(
 bool TemperatureSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedUnsigned> values;
-    if(!read<TimedUnsigned>(values))
+    if (!read<TimedUnsigned>(values))
         return false;
-    foreach(const TimedUnsigned& data, values)
+    foreach (const TimedUnsigned& data, values)
         emit temperatureChanged(data);
     return true;
 }

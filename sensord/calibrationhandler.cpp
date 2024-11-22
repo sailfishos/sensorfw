@@ -33,11 +33,11 @@
 
 const QString CalibrationHandler::SENSOR_NAME("magnetometersensor");
 
-CalibrationHandler::CalibrationHandler(QObject* parent) :
-    QObject(parent),
-    m_sensor(NULL),
-    m_sessionId(-1),
-    m_level(-1)
+CalibrationHandler::CalibrationHandler(QObject* parent)
+    : QObject(parent)
+    , m_sensor(NULL)
+    , m_sessionId(-1)
+    , m_level(-1)
 {
     m_timer.setSingleShot(true);
 
@@ -47,8 +47,7 @@ CalibrationHandler::CalibrationHandler(QObject* parent) :
 
 CalibrationHandler::~CalibrationHandler()
 {
-    if (m_sessionId > 0)
-    {
+    if (m_sessionId > 0) {
         SensorManager& sm = SensorManager::instance();
         sm.releaseSensor(SENSOR_NAME, m_sessionId);
         m_sensor = NULL;
@@ -59,18 +58,14 @@ bool CalibrationHandler::initiateSession()
 {
     SensorManager& sm = SensorManager::instance();
     sensordLogD() << "Loading MagnetometerSensorPlugin";
-    if (!sm.loadPlugin(SENSOR_NAME))
-    {
+    if (!sm.loadPlugin(SENSOR_NAME)) {
         sensordLogW() << "Failed to load magnetometer plug-in";
         return false;
     }
     m_sessionId = sm.requestSensor(SENSOR_NAME);
-    if (m_sessionId <= 0)
-    {
+    if (m_sessionId <= 0) {
         sensordLogW() << "Failed to get session for magnetometersensor.";
-    }
-    else
-    {
+    } else {
         m_sensor = reinterpret_cast<MagnetometerSensorChannel*>(sm.getSensorInstance(SENSOR_NAME)->sensor_);
     }
 
@@ -83,8 +78,7 @@ bool CalibrationHandler::initiateSession()
 void CalibrationHandler::sampleReceived(const MagneticField& sample)
 {
     //Reset timer when level changes
-    if ((sample.level() != m_level))
-    {
+    if (sample.level() != m_level) {
         m_level = sample.level();
         m_timer.start(m_calibTimeout);
     }
@@ -92,36 +86,36 @@ void CalibrationHandler::sampleReceived(const MagneticField& sample)
 
 void CalibrationHandler::stopCalibration()
 {
-    if (m_sensor && m_timer.isActive())
-    {
+    if (m_sensor && m_timer.isActive()) {
         m_timer.stop();
         m_sensor->setStandbyOverrideRequest(m_sessionId, false);
         m_sensor->stop();
-        disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)), this, SLOT(sampleReceived(const MagneticField&)));
+        disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)),
+                   this, SLOT(sampleReceived(const MagneticField&)));
         sensordLogD() << "Stopping magnetometer background calibration due to PSM on";
     }
 }
 
 void CalibrationHandler::calibrationTimeout()
 {
-    if (m_sensor)
-    {
+    if (m_sensor) {
         sensordLogD() << "Stopping magnetometer background calibration due to timeout.";
         m_sensor->setStandbyOverrideRequest(m_sessionId, false);
         m_sensor->stop();
-        disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)), this, SLOT(sampleReceived(const MagneticField&)));
+        disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)),
+                   this, SLOT(sampleReceived(const MagneticField&)));
     }
 }
 
 void CalibrationHandler::resumeCalibration()
 {
     sensordLogD() << "Resuming magnetometer background calibration";
-    if (m_sensor && !m_timer.isActive())
-    {
+    if (m_sensor && !m_timer.isActive()) {
         m_sensor->start();
         m_sensor->setIntervalRequest(m_sessionId, m_calibRate);
         m_sensor->setStandbyOverrideRequest(m_sessionId, true);
-        connect(m_sensor, SIGNAL(internalData(const MagneticField&)), this, SLOT(sampleReceived(const MagneticField&)));
+        connect(m_sensor, SIGNAL(internalData(const MagneticField&)),
+                this, SLOT(sampleReceived(const MagneticField&)));
     }
     m_timer.start(m_calibTimeout);
 }

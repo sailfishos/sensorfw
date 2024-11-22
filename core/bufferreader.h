@@ -48,9 +48,9 @@ public:
      *
      * @param chunkSize how many objects reader can process with single call
      */
-    BufferReader(unsigned chunkSize) :
-        chunkSize_(chunkSize),
-        chunk_(new TYPE[chunkSize])
+    BufferReader(unsigned chunkSize)
+        : chunkSize_(chunkSize)
+        , chunk_(new TYPE[chunkSize])
     {
         this->addSource(&source_, "source");
     }

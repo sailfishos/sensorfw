@@ -82,8 +82,7 @@ ALSAdaptor::~ALSAdaptor()
 #ifdef SENSORFW_MCE_WATCHER
 void ALSAdaptor::enableALS()
 {
-    if(!alsEnabled)
-    {
+    if (!alsEnabled) {
         sensordLogT() << id() << "Requesting MCE to enable ALS";
         dbusIfc->call(QDBus::NoBlock, "req_als_enable");
         alsEnabled = true;
@@ -92,8 +91,7 @@ void ALSAdaptor::enableALS()
 
 void ALSAdaptor::disableALS()
 {
-    if(alsEnabled)
-    {
+    if (alsEnabled) {
         sensordLogT() << id() << "Requesting MCE to disable ALS";
         dbusIfc->call(QDBus::NoBlock, "req_als_disable");
         alsEnabled = false;
@@ -103,12 +101,10 @@ void ALSAdaptor::disableALS()
 
 bool ALSAdaptor::startSensor()
 {
-    if(!powerStatePath_.isEmpty())
-    {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "1");
     }
-    if (SysfsAdaptor::startSensor())
-    {
+    if (SysfsAdaptor::startSensor()) {
 #ifdef SENSORFW_MCE_WATCHER
         enableALS();
 #endif
@@ -119,8 +115,7 @@ bool ALSAdaptor::startSensor()
 
 void ALSAdaptor::stopSensor()
 {
-    if(!powerStatePath_.isEmpty())
-    {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "0");
     }
 #ifdef SENSORFW_MCE_WATCHER
@@ -131,8 +126,7 @@ void ALSAdaptor::stopSensor()
 
 bool ALSAdaptor::standby()
 {
-    if(SysfsAdaptor::standby())
-    {
+    if (SysfsAdaptor::standby()) {
 #ifdef SENSORFW_MCE_WATCHER
         disableALS();
 #endif
@@ -143,8 +137,7 @@ bool ALSAdaptor::standby()
 
 bool ALSAdaptor::resume()
 {
-    if(SysfsAdaptor::resume())
-    {
+    if (SysfsAdaptor::resume()) {
 #ifdef SENSORFW_MCE_WATCHER
         enableALS();
 #endif
@@ -157,8 +150,7 @@ void ALSAdaptor::processSample(int pathId, int fd)
 {
     Q_UNUSED(pathId);
 
-    if(deviceType_ == RM680)
-    {
+    if (deviceType_ == RM680) {
         struct bh1770glc_als als_data;
         als_data.lux = 0;
 
@@ -173,9 +165,7 @@ void ALSAdaptor::processSample(int pathId, int fd)
         TimedUnsigned* lux = alsBuffer_->nextSlot();
         lux->value_ = als_data.lux;
         lux->timestamp_ = Utils::getTimeStamp();
-    }
-    else if (deviceType_ == RM696)
-    {
+    } else if (deviceType_ == RM696) {
         struct apds990x_data als_data;
         als_data.lux = 0;
 
@@ -190,9 +180,7 @@ void ALSAdaptor::processSample(int pathId, int fd)
         TimedUnsigned* lux = alsBuffer_->nextSlot();
         lux->value_ = als_data.lux;
         lux->timestamp_ = Utils::getTimeStamp();
-    }
-    else if (deviceType_ == NCDK)
-    {
+    } else if (deviceType_ == NCDK) {
         char buffer[32];
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = read(fd, &buffer, sizeof(buffer));
@@ -203,7 +191,7 @@ void ALSAdaptor::processSample(int pathId, int fd)
         QVariant value = QVariant::fromValue(QByteArray(buffer));
         bool ok;
         double fValue(value.toDouble(&ok));
-        if(!ok) {
+        if (!ok) {
             sensordLogT() << id() << "read(): failed to parse float from: " << buffer;
             return;
         }
@@ -211,9 +199,7 @@ void ALSAdaptor::processSample(int pathId, int fd)
         lux->value_ = fValue * 10;
         lux->timestamp_ = Utils::getTimeStamp();
         sensordLogT() << id() << "Ambient light value: " << lux->value_;
-    }
-    else
-    {
+    } else {
         sensordLogW() << id() << "Not known device type: " << deviceType_;
         return;
     }

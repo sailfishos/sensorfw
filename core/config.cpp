@@ -33,21 +33,24 @@
 #include <QDir>
 #include <QList>
 
-static SensorFrameworkConfig *static_configuration = 0;
+static SensorFrameworkConfig *static_configuration = nullptr;
 
 SensorFrameworkConfig::SensorFrameworkConfig()
     : m_settings(QString(), QSettings::IniFormat)
 {
 }
 
-SensorFrameworkConfig::~SensorFrameworkConfig() {
+SensorFrameworkConfig::~SensorFrameworkConfig()
+{
 }
 
-void SensorFrameworkConfig::clearConfig() {
+void SensorFrameworkConfig::clearConfig()
+{
     m_settings.clear();
 }
 
-bool SensorFrameworkConfig::loadConfig(const QString &defConfigPath, const QString &configDPath) {
+bool SensorFrameworkConfig::loadConfig(const QString &defConfigPath, const QString &configDPath)
+{
     /* Not having config files is ok, failing to load one that exists is not */
     bool ret = true;
     if (!static_configuration) {
@@ -56,7 +59,7 @@ bool SensorFrameworkConfig::loadConfig(const QString &defConfigPath, const QStri
     /* Process config.d dir in alnum order */
     if (!configDPath.isEmpty()) {
         QDir dir(configDPath, "*.conf", QDir::Name, QDir::Files);
-        foreach(const QString &file, dir.entryList()) {
+        foreach (const QString &file, dir.entryList()) {
             if (!static_configuration->loadConfigFile(dir.absoluteFilePath(file))) {
                 ret = false;
             }
@@ -70,7 +73,8 @@ bool SensorFrameworkConfig::loadConfig(const QString &defConfigPath, const QStri
     return ret;
 }
 
-bool SensorFrameworkConfig::loadConfigFile(const QString &configFileName) {
+bool SensorFrameworkConfig::loadConfigFile(const QString &configFileName)
+{
     /* Success means the file was loaded and processed without hiccups */
     bool loaded = false;
     if (!QFile::exists(configFileName)) {
@@ -92,9 +96,10 @@ bool SensorFrameworkConfig::loadConfigFile(const QString &configFileName) {
     return loaded;
 }
 
-QVariant SensorFrameworkConfig::value(const QString &key) const {
+QVariant SensorFrameworkConfig::value(const QString &key) const
+{
     QVariant var = m_settings.value(key, QVariant());
-    if(var.isValid()) {
+    if (var.isValid()) {
         sensordLogT() << "Value for key" << key << ":" << var.toString();
     }
     return var;
@@ -106,16 +111,18 @@ QStringList SensorFrameworkConfig::groups() const
     return groups;
 }
 
-SensorFrameworkConfig *SensorFrameworkConfig::configuration() {
+SensorFrameworkConfig *SensorFrameworkConfig::configuration()
+{
     if (!static_configuration) {
         sensordLogW() << "Configuration has not been loaded";
     }
     return static_configuration;
 }
 
-void SensorFrameworkConfig::close() {
+void SensorFrameworkConfig::close()
+{
     delete static_configuration;
-    static_configuration = 0;
+    static_configuration = nullptr;
 }
 
 bool SensorFrameworkConfig::exists(const QString &key) const

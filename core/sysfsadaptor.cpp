@@ -93,7 +93,7 @@ bool SysfsAdaptor::startAdaptor()
 void SysfsAdaptor::stopAdaptor()
 {
     sensordLogD() << "Stopping adaptor: " << id();
-    if ( getAdaptedSensor()->isRunning() )
+    if (getAdaptedSensor()->isRunning())
         stopSensor();
 }
 
@@ -101,7 +101,7 @@ bool SysfsAdaptor::startSensor()
 {
     AdaptedSensorEntry *entry = getAdaptedSensor();
 
-    if (entry == NULL) {
+    if (entry == nullptr) {
         sensordLogW() << id() << "Sensor not found: " << name();
         return false;
     }
@@ -143,7 +143,7 @@ void SysfsAdaptor::stopSensor()
 {
     AdaptedSensorEntry *entry = getAdaptedSensor();
 
-    if (entry == NULL) {
+    if (entry == nullptr) {
         sensordLogW() << id() << "Sensor not found " << name();
         return;
     }
@@ -314,7 +314,6 @@ void SysfsAdaptor::stopReaderThread()
 bool SysfsAdaptor::startReaderThread()
 {
     if (!openFds()) {
-
         closeAllFds();
         return false;
     }
@@ -327,14 +326,12 @@ bool SysfsAdaptor::startReaderThread()
 bool SysfsAdaptor::writeToFile(const QByteArray& path, const QByteArray& content)
 {
     sensordLogT() << "Writing to '" << path << ": " << content;
-    if (!QFile::exists(path))
-    {
+    if (!QFile::exists(path)) {
         sensordLogW() << "Path does not exists: " << path;
         return false;
     }
     int fd = open(path.constData(), O_WRONLY);
-    if (fd == -1)
-    {
+    if (fd == -1) {
         sensordLogW() << "Failed to open '" << path << "': " << strerror(errno);
         return false;
     }
@@ -352,8 +349,7 @@ bool SysfsAdaptor::writeToFile(const QByteArray& path, const QByteArray& content
 QByteArray SysfsAdaptor::readFromFile(const QByteArray& path)
 {
     QFile file(path);
-    if (!file.exists(path) || !(file.open(QIODevice::ReadOnly)))
-    {
+    if (!file.exists(path) || !(file.open(QIODevice::ReadOnly))) {
         sensordLogW() << "Path does not exists or open file failed: " << path;
         return QByteArray();
     }
@@ -365,12 +361,11 @@ QByteArray SysfsAdaptor::readFromFile(const QByteArray& path)
 
 bool SysfsAdaptor::checkIntervalUsage() const
 {
-    if (m_mode == SysfsAdaptor::SelectMode)
-    {
+    if (m_mode == SysfsAdaptor::SelectMode) {
         const QList<DataRange>& list = getAvailableIntervals();
-        if (list.size() > 1 || (list.size() == 1 && list.first().min != list.first().max))
-        {
-            sensordLogW() << id() << "Attempting to use IntervalMode interval() function for adaptor in SelectMode. Must reimplement!";
+        if (list.size() > 1 || (list.size() == 1 && list.first().min != list.first().max)) {
+            sensordLogW() << id()
+                          << "Attempting to use IntervalMode interval() function for adaptor in SelectMode. Must reimplement!";
             return false;
         }
     }
@@ -379,7 +374,7 @@ bool SysfsAdaptor::checkIntervalUsage() const
 
 unsigned int SysfsAdaptor::interval() const
 {
-    if(!checkIntervalUsage())
+    if (!checkIntervalUsage())
         return 0;
     return m_interval_us;
 }
@@ -387,7 +382,7 @@ unsigned int SysfsAdaptor::interval() const
 bool SysfsAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
     Q_UNUSED(sessionId);
-    if(!checkIntervalUsage())
+    if (!checkIntervalUsage())
         return false;
     m_interval_us = interval_us;
     return true;
@@ -398,7 +393,8 @@ SysfsAdaptor::PollMode SysfsAdaptor::mode() const
     return m_mode;
 }
 
-SysfsAdaptorReader::SysfsAdaptorReader(SysfsAdaptor *parent) : m_running(false), m_parent(parent)
+SysfsAdaptorReader::SysfsAdaptorReader(SysfsAdaptor *parent)
+    : m_running(false), m_parent(parent)
 {
 }
 
@@ -416,7 +412,6 @@ void SysfsAdaptorReader::startReader()
 void SysfsAdaptorReader::run()
 {
     while (m_running) {
-
         if (m_parent->m_mode == SysfsAdaptor::SelectMode) {
 
             struct epoll_event events[m_parent->m_sysfsDescriptors.size() + 1];
@@ -431,7 +426,8 @@ void SysfsAdaptorReader::run()
                 bool errorInInput = false;
                 for (int i = 0; i < descriptors; ++i) {
                     if (events[i].events & (EPOLLHUP | EPOLLERR)) {
-                        //Note: we ignore error so the sensordiverter.sh works. This should be handled better when testcases are improved.
+                        // Note: we ignore error so the sensordiverter.sh works.
+                        // This should be handled better when testcases are improved.
                         sensordLogD() << m_parent->id() << "epoll_wait(): error in input fd";
                         errorInInput = true;
                     }
@@ -439,10 +435,8 @@ void SysfsAdaptorReader::run()
                     if (index != -1) {
                         m_parent->processSample(m_parent->m_pathIds.at(index), events[i].data.fd);
 
-                        if (m_parent->m_doSeek)
-                        {
-                            if (lseek(events[i].data.fd, 0, SEEK_SET) == -1)
-                            {
+                        if (m_parent->m_doSeek) {
+                            if (lseek(events[i].data.fd, 0, SEEK_SET) == -1) {
                                 sensordLogW() << m_parent->id() << "Failed to lseek fd: " << strerror(errno);
                                 QThread::msleep(1000);
                             }
@@ -460,10 +454,8 @@ void SysfsAdaptorReader::run()
             for (int i = 0; i < m_parent->m_sysfsDescriptors.size(); ++i) {
                 m_parent->processSample(m_parent->m_pathIds.at(i), m_parent->m_sysfsDescriptors.at(i));
 
-                if (m_parent->m_doSeek)
-                {
-                    if (lseek(m_parent->m_sysfsDescriptors.at(i), 0, SEEK_SET) == -1)
-                    {
+                if (m_parent->m_doSeek) {
+                    if (lseek(m_parent->m_sysfsDescriptors.at(i), 0, SEEK_SET) == -1) {
                         sensordLogW() << m_parent->id() << "Failed to lseek fd: " << strerror(errno);
                         QThread::msleep(1000);
                     }
@@ -480,12 +472,9 @@ void SysfsAdaptorReader::run()
 void SysfsAdaptor::init()
 {
     QString path = SensorFrameworkConfig::configuration()->value(name() + "/path").toString();
-    if(!path.isEmpty())
-    {
+    if (!path.isEmpty()) {
         addPath(path);
-    }
-    else
-    {
+    } else {
         sensordLogW() << id() << "No sysfs path defined for: " << name();
     }
     m_mode = (PollMode)SensorFrameworkConfig::configuration()->value<int>(name() + "/mode", m_mode);

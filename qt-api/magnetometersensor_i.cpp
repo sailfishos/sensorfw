@@ -35,9 +35,9 @@ AbstractSensorChannelInterface* MagnetometerSensorChannelInterface::factoryMetho
     return new MagnetometerSensorChannelInterface(OBJECT_PATH + "/" + id, sessionId);
 }
 
-MagnetometerSensorChannelInterface::MagnetometerSensorChannelInterface(const QString& path, int sessionId) :
-    AbstractSensorChannelInterface(path, MagnetometerSensorChannelInterface::staticInterfaceName, sessionId),
-    frameAvailableConnected(false)
+MagnetometerSensorChannelInterface::MagnetometerSensorChannelInterface(const QString& path, int sessionId)
+    : AbstractSensorChannelInterface(path, MagnetometerSensorChannelInterface::staticInterfaceName, sessionId)
+    , frameAvailableConnected(false)
 {
 }
 
@@ -54,9 +54,8 @@ MagnetometerSensorChannelInterface* MagnetometerSensorChannelInterface::controlI
 MagnetometerSensorChannelInterface* MagnetometerSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, MagnetometerSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, MagnetometerSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<MagnetometerSensorChannelInterface*>(sm.interface(id));
@@ -65,18 +64,15 @@ MagnetometerSensorChannelInterface* MagnetometerSensorChannelInterface::interfac
 bool MagnetometerSensorChannelInterface::dataReceivedImpl()
 {
     QVector<CalibratedMagneticFieldData> values;
-    if(!read<CalibratedMagneticFieldData>(values))
+    if (!read<CalibratedMagneticFieldData>(values))
         return false;
-    if(!frameAvailableConnected || values.size() == 1)
-    {
-        foreach(const CalibratedMagneticFieldData& data, values)
+    if (!frameAvailableConnected || values.size() == 1) {
+        foreach (const CalibratedMagneticFieldData& data, values)
             emit dataAvailable(MagneticField(data));
-    }
-    else
-    {
+    } else {
         QVector<MagneticField> realValues;
         realValues.reserve(values.size());
-        foreach(const CalibratedMagneticFieldData& data, values)
+        foreach (const CalibratedMagneticFieldData& data, values)
             realValues.push_back(MagneticField(data));
         emit frameAvailable(realValues);
     }
@@ -86,7 +82,7 @@ bool MagnetometerSensorChannelInterface::dataReceivedImpl()
 void MagnetometerSensorChannelInterface::connectNotify(const QMetaMethod &signal)
 {
     static const QMetaMethod frameAvailableSignal = QMetaMethod::fromSignal(&MagnetometerSensorChannelInterface::frameAvailable);
-    if(signal == frameAvailableSignal)
+    if (signal == frameAvailableSignal)
         frameAvailableConnected = true;
     dbusConnectNotify(signal);
 }

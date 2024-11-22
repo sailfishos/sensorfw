@@ -33,7 +33,8 @@
 /**
  * TMagMatrix holds a transformation matrix.
  */
-class TMagMatrix {
+class TMagMatrix
+{
 private:
     static const int DIM = 3;
 

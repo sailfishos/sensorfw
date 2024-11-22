@@ -53,8 +53,7 @@ void AbstractSensorChannel::setError(SensorError errorCode, const QString& error
 
 bool AbstractSensorChannel::start(int sessionId)
 {
-    if(!activeSessions_.contains(sessionId))
-    {
+    if (!activeSessions_.contains(sessionId)) {
         activeSessions_.insert(sessionId);
         requestDefaultInterval(sessionId);
         return start();
@@ -64,14 +63,14 @@ bool AbstractSensorChannel::start(int sessionId)
 
 bool AbstractSensorChannel::start()
 {
-    return (++cnt_ == 1) ? true : false;
+    return ++cnt_ == 1;
 }
 
 bool AbstractSensorChannel::stop(int sessionId)
 {
-    if(activeSessions_.remove(sessionId))
-    {
-        removeSession(sessionId); //Note: when client restarts the session it is responsible to reconfiguring the sensor.
+    if (activeSessions_.remove(sessionId)) {
+        // Note: when client restarts the session it is responsible to reconfiguring the sensor.
+        removeSession(sessionId);
         return stop();
     }
     return false;
@@ -98,7 +97,7 @@ bool AbstractSensorChannel::writeToSession(int sessionId, const void* source, in
 bool AbstractSensorChannel::writeToClients(const void* source, int size)
 {
     bool ret = true;
-    foreach(int sessionId, activeSessions_) {
+    foreach (int sessionId, activeSessions_) {
         ret &= writeToSession(sessionId, source, size);
     }
     return ret;
@@ -108,10 +107,9 @@ bool AbstractSensorChannel::downsampleAndPropagate(const TimedXyzData& data, Tim
 {
     bool ret = true;
     unsigned int currentInterval = getInterval();
-    foreach(int sessionId, activeSessions_)
-    {
-        if(!downsamplingEnabled(sessionId))
-        {
+
+    foreach (int sessionId, activeSessions_) {
+        if (!downsamplingEnabled(sessionId)) {
             ret &= writeToSession(sessionId, (const void *)& data, sizeof(TimedXyzData));
             continue;
         }
@@ -121,27 +119,25 @@ bool AbstractSensorChannel::downsampleAndPropagate(const TimedXyzData& data, Tim
         QList<TimedXyzData>& samples(buffer[sessionId]);
         samples.push_back(data);
 
-        for(QList<TimedXyzData>::iterator it = samples.begin(); it != samples.end(); ++it)
-        {
-            if(samples.size() > bufferSize ||
-               data.timestamp_ - it->timestamp_ > 2000000)
-            {
+        for (QList<TimedXyzData>::iterator it = samples.begin(); it != samples.end(); ++it) {
+            if (samples.size() > bufferSize
+                    || data.timestamp_ - it->timestamp_ > 2000000) {
                 it = samples.erase(it);
-                if(it == samples.end())
+                if (it == samples.end())
                     break;
-            }
-            else
+            } else {
                 break;
+            }
         }
 
-        if(samples.size() < bufferSize)
+        if (samples.size() < bufferSize)
             continue;
 
         float x = 0;
         float y = 0;
         float z = 0;
-        foreach(const TimedXyzData& data, samples)
-        {
+
+        foreach (const TimedXyzData& data, samples) {
             x += data.x_;
             y += data.y_;
             z += data.z_;
@@ -151,12 +147,9 @@ bool AbstractSensorChannel::downsampleAndPropagate(const TimedXyzData& data, Tim
                                  y / samples.count(),
                                  z / samples.count());
 
-        if (writeToSession(sessionId, (const void*)& downsampled, sizeof(TimedXyzData)))
-        {
+        if (writeToSession(sessionId, (const void*)& downsampled, sizeof(TimedXyzData))) {
             samples.clear();
-        }
-        else
-        {
+        } else {
             ret = false;
         }
     }
@@ -168,10 +161,9 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
 {
     bool ret = true;
     unsigned int currentInterval = getInterval();
-    foreach(int sessionId, activeSessions_)
-    {
-        if(!downsamplingEnabled(sessionId))
-        {
+
+    foreach (int sessionId, activeSessions_) {
+        if (!downsamplingEnabled(sessionId)) {
             ret &= writeToSession(sessionId, (const void *)& data, sizeof(CalibratedMagneticFieldData));
             continue;
         }
@@ -181,20 +173,18 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
         QList<CalibratedMagneticFieldData>& samples(buffer[sessionId]);
         samples.push_back(data);
 
-        for(QList<CalibratedMagneticFieldData>::iterator it = samples.begin(); it != samples.end(); ++it)
-        {
-            if(samples.size() > bufferSize ||
-               data.timestamp_ - it->timestamp_ > 2000000)
-            {
+        for (QList<CalibratedMagneticFieldData>::iterator it = samples.begin(); it != samples.end(); ++it) {
+            if (samples.size() > bufferSize
+                    || data.timestamp_ - it->timestamp_ > 2000000) {
                 it = samples.erase(it);
-                if(it == samples.end())
+                if (it == samples.end())
                     break;
-            }
-            else
+            } else {
                 break;
+            }
         }
 
-        if(samples.size() < bufferSize)
+        if (samples.size() < bufferSize)
             continue;
 
         long x = 0;
@@ -203,8 +193,8 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
         long rx = 0;
         long ry = 0;
         long rz = 0;
-        foreach(const CalibratedMagneticFieldData& data, samples)
-        {
+
+        foreach (const CalibratedMagneticFieldData& data, samples) {
             x += data.x_;
             y += data.y_;
             z += data.z_;
@@ -221,12 +211,9 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
                                                 rz / samples.count(),
                                                 data.level_);
 
-        if (writeToSession(sessionId, (const void*)& downsampled, sizeof(CalibratedMagneticFieldData)))
-        {
+        if (writeToSession(sessionId, (const void*)& downsampled, sizeof(CalibratedMagneticFieldData))) {
             samples.clear();
-        }
-        else
-        {
+        } else {
             ret = false;
         }
 
@@ -237,8 +224,7 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
 
 void AbstractSensorChannel::setDownsamplingEnabled(int sessionId, bool value)
 {
-    if(downsamplingSupported())
-    {
+    if (downsamplingSupported()) {
         sensordLogT() << id() << "Downsampling state for session " << sessionId << ": " << value;
         downsampling_[sessionId] = value;
     }
@@ -247,7 +233,7 @@ void AbstractSensorChannel::setDownsamplingEnabled(int sessionId, bool value)
 bool AbstractSensorChannel::downsamplingEnabled(int sessionId) const
 {
     QMap<int, bool>::const_iterator it(downsampling_.find(sessionId));
-    if(it == downsampling_.end())
+    if (it == downsampling_.end())
         return downsamplingSupported();
     return it.value() && getInterval(sessionId);
 }
@@ -297,5 +283,5 @@ void AbstractSensorChannel::signalPropertyChanged(const QString& name)
 RingBufferBase* AbstractSensorChannel::findBuffer(const QString&) const
 {
     sensordLogW() << id() << "Tried to locate buffer from SensorChannel!";
-    return NULL;
+    return nullptr;
 }

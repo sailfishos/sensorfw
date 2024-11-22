@@ -147,19 +147,19 @@ static bool evaluateAvailabilityValue(const QString &name, const QString &val)
         const QStringList features(val.split("|"));
         bool allow = false;
         bool deny  = false;
-        foreach(const QString &feature, features) {
+        foreach (const QString &feature, features) {
             hw_feature_t id = ssusysinfo_hw_feature_from_name(feature.toUtf8().constData());
             if (id == Feature_Invalid ) {
                 sensordLogW() << "unknown hw feature:" << feature;
                 continue;
             }
-            if( ssusysinfo_has_hw_feature(ssusysinfo, id) ) {
+            if (ssusysinfo_has_hw_feature(ssusysinfo, id)) {
                 allow = true;
                 break;
             }
             deny = true;
         }
-        if( deny && !allow ) {
+        if (deny && !allow) {
             sensordLogD() << "plugin disabled in hw-config: " << name << "value" << val;
             available = false;
         }
@@ -196,7 +196,7 @@ void Loader::scanAvailablePlugins()
             const QString name(file.mid(beg, end-beg));
             QString key = QString("available/%1").arg(name);
             QString val = SensorFrameworkConfig::configuration()->value(key).toString();
-            if( evaluateAvailabilityValue(name, val) ) {
+            if (evaluateAvailabilityValue(name, val)) {
                 res.append(name);
             }
         }
@@ -215,7 +215,7 @@ QStringList Loader::availablePlugins() const
 QStringList Loader::availableSensorPlugins() const
 {
     QStringList res;
-    foreach(const QString &name, availablePluginNames_) {
+    foreach (const QString &name, availablePluginNames_) {
         if (name.endsWith(SENSOR_SUFFIX)) {
             res.append(name);
         }

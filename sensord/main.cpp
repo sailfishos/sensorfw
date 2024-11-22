@@ -85,8 +85,7 @@ static void signalUSR1(int param)
     if (logLevel != QtDebugMsg) {
         logLevel = QtDebugMsg;
         sensordLogW() << "Debug logging enabled";
-    }
-    else {
+    } else {
         logLevel = QtWarningMsg;
         sensordLogW() << "Debug logging disabled";
     }
@@ -150,9 +149,10 @@ SignalNotifier::SignalNotifier()
 SignalNotifier::~SignalNotifier()
 {
     sensordLogD() << "Reset async signal handlers";
-    for (size_t i = 0; s_signals[i] != -1; ++i )
+    for (size_t i = 0; s_signals[i] != -1; ++i)
         signal(s_signals[i], SIG_DFL);
-    delete m_socketNotifier; m_socketNotifier = 0;
+    delete m_socketNotifier;
+    m_socketNotifier = nullptr;
     close(s_pipe[1]), s_pipe[1] = -1;
     close(s_pipe[0]), s_pipe[0] = -1;
 }
@@ -201,12 +201,10 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     Parser parser(app.arguments());
 
-    if (parser.printHelp())
-    {
+    if (parser.printHelp()) {
         printUsage();
         app.exit(EXIT_SUCCESS);
         return 0;
-
     }
 
     logLevel = parser.getLogLevel();
@@ -215,35 +213,29 @@ int main(int argc, char *argv[])
     const char* CONFIG_DIR_PATH = "/etc/sensorfw/sensord.conf.d/";
 
     QString defConfigFile = CONFIG_FILE_PATH;
-    if(parser.configFileInput())
-    {
+    if (parser.configFileInput()) {
         defConfigFile = parser.configFilePath();
     }
 
     QString defConfigDir = CONFIG_DIR_PATH;
-    if(parser.configDirInput())
-    {
+    if (parser.configDirInput()) {
         defConfigDir = parser.configDirPath();
     }
 
-    if (!SensorFrameworkConfig::loadConfig(defConfigFile, defConfigDir))
-    {
+    if (!SensorFrameworkConfig::loadConfig(defConfigFile, defConfigDir)) {
         sensordLogC() << "SensorFrameworkConfig file error! Load using default paths.";
-        if (!SensorFrameworkConfig::loadConfig(CONFIG_FILE_PATH, CONFIG_DIR_PATH))
-        {
+        if (!SensorFrameworkConfig::loadConfig(CONFIG_FILE_PATH, CONFIG_DIR_PATH)) {
             sensordLogC() << "Which also failed. Bailing out";
             return 1;
         }
     }
 
-    if (parser.createDaemon())
-    {
+    if (parser.createDaemon()) {
         fflush(0);
 
         int pid = fork();
 
-        if(pid < 0)
-        {
+        if (pid < 0) {
             sensordLogC() << "Failed to create a daemon: " << strerror(errno);
             exit(EXIT_FAILURE);
         } else if (pid > 0) {
@@ -255,29 +247,25 @@ int main(int argc, char *argv[])
     SensorManager& sm = SensorManager::instance();
 
 #ifdef PROVIDE_CONTEXT_INFO
-    if (parser.contextInfo())
-    {
+    if (parser.contextInfo()) {
         sensordLogD() << "Loading ContextSensor " << sm.loadPlugin("contextsensor");
         sensordLogD() << "Loading ALSSensor " << sm.loadPlugin("alssensor");
     }
 #endif
 
-    if (parser.magnetometerCalibration())
-    {
-        CalibrationHandler* calibrationHandler_ = new CalibrationHandler(NULL);
+    if (parser.magnetometerCalibration()) {
+        CalibrationHandler* calibrationHandler_ = new CalibrationHandler(nullptr);
         calibrationHandler_->initiateSession();
         QObject::connect(&sm, SIGNAL(resumeCalibration()), calibrationHandler_, SLOT(resumeCalibration()));
         QObject::connect(&sm, SIGNAL(stopCalibration()), calibrationHandler_, SLOT(stopCalibration()));
     }
 
-    if (!sm.registerService())
-    {
+    if (!sm.registerService()) {
         sensordLogW() << "Failed to register service on D-Bus. Aborting.";
         exit(EXIT_FAILURE);
     }
 
-    if (parser.notifySystemd())
-    {
+    if (parser.notifySystemd()) {
         sd_notify(0, "READY=1");
     }
 

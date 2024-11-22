@@ -35,22 +35,17 @@ QMap<QString, QString> ParameterParser::getPropertyMap(const QString& id)
     QMap<QString, QString> propMap;
 
     int pos = id.indexOf(TYPE_SEPARATOR);
-    if ( pos != -1 )
-    {
+    if (pos != -1) {
         QString propertiesString = id.mid(pos + 1);
         QStringList properties = propertiesString.split(PROP_STRING_SEPARATOR);
 
-        foreach (const QString& property, properties)
-        {
+        foreach (const QString& property, properties) {
             pos = property.indexOf(PROP_NAME_VALUE_SEPARATOR);
-            if ( pos != -1 )
-            {
+            if (pos != -1) {
                 QString name  = property.left( pos );
                 QString value = property.mid( pos + 1 );
                 propMap[name] = value;
-            }
-            else
-            {
+            } else {
                 sensordLogW() << "Propery value missing. Ignoring property: " << property;
             }
         }
@@ -63,8 +58,7 @@ void ParameterParser::applyPropertyMap(QObject* object, const QMap<QString, QStr
 {
     Q_ASSERT( object );
 
-    for(QMap<QString, QString>::const_iterator it = propertyMap.constBegin(); it != propertyMap.constEnd(); ++it)
-    {
+    for (QMap<QString, QString>::const_iterator it = propertyMap.constBegin(); it != propertyMap.constEnd(); ++it) {
         object->setProperty(it.key().toLatin1().data(), QVariant(it.value()));
     }
 }

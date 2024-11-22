@@ -56,7 +56,7 @@ AccelerometerAdaptor::~AccelerometerAdaptor()
 
 bool AccelerometerAdaptor::startSensor()
 {
-    if(!powerStatePath_.isEmpty()) {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "1");
     }
     return SysfsAdaptor::startSensor();
@@ -64,7 +64,7 @@ bool AccelerometerAdaptor::startSensor()
 
 void AccelerometerAdaptor::stopSensor()
 {
-    if(!powerStatePath_.isEmpty()) {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "0");
     }
     SysfsAdaptor::stopSensor();

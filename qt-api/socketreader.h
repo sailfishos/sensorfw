@@ -133,20 +133,17 @@ bool SocketReader::read(QVector<T>& values)
     }
 
     unsigned int count;
-    if(!read((void*)&count, sizeof(unsigned int)))
-    {
+    if (!read((void*)&count, sizeof(unsigned int))) {
         socket_->readAll();
         return false;
     }
-    if(count > 1000)
-    {
+    if (count > 1000) {
         qWarning() << "Too many samples waiting in socket. Flushing it to empty";
         socket_->readAll();
         return false;
     }
     values.resize(values.size() + count);
-    if(!read((void*)values.data(), sizeof(T) * count))
-    {
+    if (!read((void*)values.data(), sizeof(T) * count)) {
         qWarning() << "Error occured while reading data from socket: " << socket_->errorString();
         socket_->readAll();
         return false;

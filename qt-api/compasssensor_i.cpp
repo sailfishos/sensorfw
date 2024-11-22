@@ -34,10 +34,11 @@ AbstractSensorChannelInterface* CompassSensorChannelInterface::factoryMethod(con
     return new CompassSensorChannelInterface(OBJECT_PATH + "/" + id, sessionId);
 }
 
-CompassSensorChannelInterface::CompassSensorChannelInterface(const QString &path, int sessionId) :
-    AbstractSensorChannelInterface(path, CompassSensorChannelInterface::staticInterfaceName, sessionId),
-    useDeclination_(true)
-{}
+CompassSensorChannelInterface::CompassSensorChannelInterface(const QString &path, int sessionId)
+    : AbstractSensorChannelInterface(path, CompassSensorChannelInterface::staticInterfaceName, sessionId)
+    , useDeclination_(true)
+{
+}
 
 const CompassSensorChannelInterface* CompassSensorChannelInterface::listenInterface(const QString& id)
 {
@@ -52,8 +53,7 @@ CompassSensorChannelInterface* CompassSensorChannelInterface::controlInterface(c
 CompassSensorChannelInterface* CompassSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, CompassSensorChannelInterface::staticMetaObject.className() ) )
-    {
+    if (!sm.registeredAndCorrectClassName(id, CompassSensorChannelInterface::staticMetaObject.className())) {
         return 0;
     }
 
@@ -63,9 +63,9 @@ CompassSensorChannelInterface* CompassSensorChannelInterface::interface(const QS
 bool CompassSensorChannelInterface::dataReceivedImpl()
 {
     QVector<CompassData> values;
-    if(!read<CompassData>(values))
+    if (!read<CompassData>(values))
         return false;
-    foreach(const CompassData& data, values)
+    foreach (const CompassData& data, values)
         emit dataAvailable(Compass(data, useDeclination_));
     return true;
 }

@@ -24,7 +24,8 @@ INCLUDEPATH += $$SENSORFW_INCLUDEPATHS
 QMAKE_LIBDIR_FLAGS += -L../datatypes\
                       -lsensordatatypes-qt$${QT_MAJOR_VERSION}
 
-SOURCES += sensormanager.cpp \
+SOURCES += \
+    sensormanager.cpp \
     sensormanager_a.cpp \
     pusher.cpp \
     ringbuffer.cpp \
@@ -46,7 +47,8 @@ SOURCES += sensormanager.cpp \
     config.cpp \
     nodebase.cpp
 
-HEADERS += sensormanager.h \
+HEADERS += \
+    sensormanager.h \
     sensormanager_a.h \
     dataemitter.h \
     pusher.h \

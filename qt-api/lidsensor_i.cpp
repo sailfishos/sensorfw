@@ -49,12 +49,11 @@ LidSensorChannelInterface* LidSensorChannelInterface::controlInterface(const QSt
     return interface(id);
 }
 
-
 LidSensorChannelInterface* LidSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
     if (!sm.registeredAndCorrectClassName(id, LidSensorChannelInterface::staticMetaObject.className())) {
-        return 0;
+        return nullptr;
     }
 
     return dynamic_cast<LidSensorChannelInterface*>(sm.interface(id));
@@ -65,7 +64,7 @@ bool LidSensorChannelInterface::dataReceivedImpl()
     QVector<LidData> values;
     if (!read<LidData>(values))
         return false;
-    foreach(const LidData &data, values)
+    foreach (const LidData &data, values)
         emit lidChanged(data);
     return true;
 }

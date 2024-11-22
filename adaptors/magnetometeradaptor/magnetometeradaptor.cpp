@@ -92,9 +92,10 @@ void MagnetometerAdaptor::processSample(int pathId, int fd)
 
 bool MagnetometerAdaptor::setInterval(const int sessionId, const unsigned int interval_us)
 {
-    if(m_intervalCompensation_us)
-    {
-        return SysfsAdaptor::setInterval(sessionId, (signed)interval_us >m_intervalCompensation_us ? interval_us - m_intervalCompensation_us : 0);
+    if (m_intervalCompensation_us) {
+        return SysfsAdaptor::setInterval(sessionId,
+                                         (signed)interval_us >m_intervalCompensation_us
+                                         ? interval_us - m_intervalCompensation_us : 0);
     }
     return SysfsAdaptor::setInterval(sessionId, interval_us);
 }

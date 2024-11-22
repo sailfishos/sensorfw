@@ -22,8 +22,8 @@
 #include "datatypes/utils.h"
 #include "config.h"
 
-HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id) :
-    HybrisAdaptor(id,SENSOR_TYPE_ACCELEROMETER)
+HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id)
+    : HybrisAdaptor(id, SENSOR_TYPE_ACCELEROMETER)
 {
     buffer = new DeviceAdaptorRingBuffer<AccelerationData>(1);
     setAdaptedSensor("accelerometer", "Internal accelerometer coordinates", buffer);

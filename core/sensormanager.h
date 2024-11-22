@@ -571,8 +571,7 @@ void SensorManager::registerSensor(const QString& sensorName)
     QString typeName = SENSOR_TYPE::staticMetaObject.className();
     sensorInstanceMap_.insert(sensorName, SensorInstanceEntry(typeName));
 
-    if ( !sensorFactoryMap_.contains(typeName) )
-    {
+    if (!sensorFactoryMap_.contains(typeName)) {
         sensorFactoryMap_[typeName] = SENSOR_TYPE::factoryMethod;
     }
 
@@ -593,8 +592,7 @@ void SensorManager::registerChain(const QString& chainName)
     QString typeName = CHAIN_TYPE::staticMetaObject.className();
     chainInstanceMap_.insert(chainName, ChainInstanceEntry(typeName));
 
-    if (!chainFactoryMap_.contains(typeName))
-    {
+    if (!chainFactoryMap_.contains(typeName)) {
         chainFactoryMap_[typeName] = CHAIN_TYPE::factoryMethod;
     }
 
@@ -617,8 +615,7 @@ void SensorManager::registerDeviceAdaptor(const QString& adaptorName)
     QString typeName = DEVICE_ADAPTOR_TYPE::staticMetaObject.className();
     deviceAdaptorInstanceMap_.insert(cleanAdaptorName, DeviceAdaptorInstanceEntry(typeName, adaptorName));
 
-    if ( !deviceAdaptorFactoryMap_.contains(typeName) )
-    {
+    if (!deviceAdaptorFactoryMap_.contains(typeName)) {
         deviceAdaptorFactoryMap_[typeName] = DEVICE_ADAPTOR_TYPE::factoryMethod;
     }
 

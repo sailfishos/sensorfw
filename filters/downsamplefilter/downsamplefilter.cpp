@@ -60,28 +60,25 @@ void DownsampleFilter::filter(unsigned, const TimedXyzData* data)
 {
     buffer_.push_back(*data);
 
-    for(TimedXyzDownsampleBuffer::iterator it = buffer_.begin(); it != buffer_.end(); ++it)
-    {
-        if(static_cast<unsigned int>(buffer_.size()) > bufferSize_ ||
-           (timeout_ && (data->timestamp_ - it->timestamp_ >
-                         static_cast<unsigned long>(timeout_))))
-        {
+    for (TimedXyzDownsampleBuffer::iterator it = buffer_.begin(); it != buffer_.end(); ++it) {
+        if (static_cast<unsigned int>(buffer_.size()) > bufferSize_
+                || (timeout_ && (data->timestamp_ - it->timestamp_ > static_cast<unsigned long>(timeout_)))) {
             it = buffer_.erase(it);
-            if(it == buffer_.end())
+            if (it == buffer_.end())
                 break;
-        }
-        else
+        } else {
             break;
+        }
     }
 
-    if(static_cast<unsigned int>(buffer_.size()) < bufferSize_)
+    if (static_cast<unsigned int>(buffer_.size()) < bufferSize_)
         return;
 
     float x = 0;
     float y = 0;
     float z = 0;
-    foreach(const TimedXyzData& data, buffer_)
-    {
+
+    foreach (const TimedXyzData& data, buffer_) {
         x += data.x_;
         y += data.y_;
         z += data.z_;

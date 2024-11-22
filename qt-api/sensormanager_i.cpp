@@ -38,8 +38,9 @@ void __attribute__ ((constructor)) qtapi_init(void)
 
 const char* LocalSensorManagerInterface::staticInterfaceName = "local.SensorManager";
 
-LocalSensorManagerInterface::LocalSensorManagerInterface(const QString& service, const QString& path, const QDBusConnection& connection, QObject* parent) :
-    QDBusAbstractInterface(service, path, staticInterfaceName, connection, parent)
+LocalSensorManagerInterface::LocalSensorManagerInterface(const QString& service, const QString& path,
+                                                         const QDBusConnection& connection, QObject* parent)
+    : QDBusAbstractInterface(service, path, staticInterfaceName, connection, parent)
 {
 }
 
@@ -55,7 +56,7 @@ SensorManagerError LocalSensorManagerInterface::errorCode()
 QString LocalSensorManagerInterface::errorString()
 {
     QDBusReply<QString> reply = call(QDBus::Block, QLatin1String("errorString"));
-    if(reply.isValid())
+    if (reply.isValid())
         return reply.value();
     return "Failed to fetch error string";
 }
@@ -63,7 +64,7 @@ QString LocalSensorManagerInterface::errorString()
 int LocalSensorManagerInterface::errorCodeInt()
 {
     QDBusReply<int> reply = call(QDBus::Block, QLatin1String("errorCodeInt"));
-    if(reply.isValid())
+    if (reply.isValid())
         return reply.value();
     return -1;
 }
@@ -72,7 +73,7 @@ QDBusReply<bool> LocalSensorManagerInterface::loadPlugin(const QString& name)
 {
     QList<QVariant> argumentList;
     argumentList << QVariant::fromValue(name);
-    QDBusPendingReply <bool> reply = asyncCallWithArgumentList(QLatin1String("loadPlugin"), argumentList);
+    QDBusPendingReply<bool> reply = asyncCallWithArgumentList(QLatin1String("loadPlugin"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
             SLOT(loadPluginFinished(QDBusPendingCallWatcher*)));
@@ -85,7 +86,7 @@ void LocalSensorManagerInterface::loadPluginFinished(QDBusPendingCallWatcher *wa
     watch->deleteLater();
     QDBusPendingReply<bool> reply = *watch;
 
-    if(reply.isError()) {
+    if (reply.isError()) {
         qDebug() << Q_FUNC_INFO  << reply.error().message();
         Q_EMIT errorSignal(errorCode());
     }
@@ -98,7 +99,7 @@ QDBusReply<int> LocalSensorManagerInterface::requestSensor(const QString& id)
     QList<QVariant> argumentList;
     argumentList << QVariant::fromValue(id);
     argumentList << QVariant::fromValue(pid);
-    QDBusPendingReply <int> reply = asyncCallWithArgumentList(QLatin1String("requestSensor"), argumentList);
+    QDBusPendingReply<int> reply = asyncCallWithArgumentList(QLatin1String("requestSensor"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
             SLOT(requestSensorFinished(QDBusPendingCallWatcher*)));
@@ -110,7 +111,7 @@ void LocalSensorManagerInterface::requestSensorFinished(QDBusPendingCallWatcher 
     watch->deleteLater();
     QDBusPendingReply<int> reply = *watch;
 
-    if(reply.isError()) {
+    if (reply.isError()) {
         qDebug() << Q_FUNC_INFO  << reply.error().message();
         Q_EMIT errorSignal(errorCode());
     }
@@ -123,7 +124,7 @@ QDBusReply<bool> LocalSensorManagerInterface::releaseSensor(const QString& id, i
     QList<QVariant> argumentList;
     argumentList << QVariant::fromValue(id) << QVariant::fromValue(sessionId);
     argumentList << QVariant::fromValue(pid);
-    QDBusPendingReply <bool> reply = asyncCallWithArgumentList(QLatin1String("releaseSensor"), argumentList);
+    QDBusPendingReply<bool> reply = asyncCallWithArgumentList(QLatin1String("releaseSensor"), argumentList);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
     connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
             SLOT(releaseSensorFinished(QDBusPendingCallWatcher*)));
@@ -135,7 +136,7 @@ void LocalSensorManagerInterface::releaseSensorFinished(QDBusPendingCallWatcher 
     watch->deleteLater();
     QDBusPendingReply<bool> reply = *watch;
 
-    if(reply.isError()) {
+    if (reply.isError()) {
         qDebug() << Q_FUNC_INFO  << reply.error().message();
         Q_EMIT errorSignal(errorCode());
     }

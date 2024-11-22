@@ -99,7 +99,7 @@ void ALSAdaptorAscii::processSample(int pathId, int fd) {
 
 bool ALSAdaptorAscii::startSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, powerMode);
     }
 
@@ -111,7 +111,7 @@ bool ALSAdaptorAscii::startSensor()
 
 void ALSAdaptorAscii::stopSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, "0");
     }
     SysfsAdaptor::stopSensor();

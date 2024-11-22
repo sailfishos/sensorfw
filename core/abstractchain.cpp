@@ -25,9 +25,9 @@
 
 #include "abstractchain.h"
 
-AbstractChain::AbstractChain(const QString& id, bool deleteBuffers) :
-    AbstractSensorChannel(id),
-    deleteBuffers_(deleteBuffers)
+AbstractChain::AbstractChain(const QString& id, bool deleteBuffers)
+    : AbstractSensorChannel(id)
+    , deleteBuffers_(deleteBuffers)
 {
 }
 

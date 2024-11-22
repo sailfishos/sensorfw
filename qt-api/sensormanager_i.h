@@ -120,7 +120,6 @@ Q_SIGNALS:
     void releaseSensorFinished();
 
 protected:
-
     /**
      * Constructor.
      *
@@ -129,7 +128,8 @@ protected:
      * @param connection DBUs connection.
      * @param parent Parent object.
      */
-    LocalSensorManagerInterface(const QString& service, const QString& path, const QDBusConnection& connection, QObject* parent = 0);
+    LocalSensorManagerInterface(const QString& service, const QString& path, const QDBusConnection& connection,
+                                QObject *parent =  nullptr);
 
 protected slots:
     void loadPluginFinished(QDBusPendingCallWatcher *watch);

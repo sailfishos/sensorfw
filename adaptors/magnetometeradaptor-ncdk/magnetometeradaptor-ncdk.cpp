@@ -154,8 +154,7 @@ void MagnetometerAdaptorNCDK::stopSensor()
 
 bool MagnetometerAdaptorNCDK::setInterval(const int sessionId, const unsigned int interval_us)
 {
-    if(m_intervalCompensation_us)
-    {
+    if (m_intervalCompensation_us) {
         return SysfsAdaptor::setInterval(sessionId, (int)interval_us > m_intervalCompensation_us ? interval_us - m_intervalCompensation_us : 0);
     }
     return SysfsAdaptor::setInterval(sessionId, interval_us);

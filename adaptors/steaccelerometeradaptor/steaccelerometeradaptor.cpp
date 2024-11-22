@@ -30,7 +30,7 @@ range
 */
     QByteArray rangePath = SensorFrameworkConfig::configuration()->value("accelerometer/range_path").toByteArray();
     range = SensorFrameworkConfig::configuration()->value("accelerometer/range_mode").toByteArray();
-    if(!rangePath.isEmpty()) {
+    if (!rangePath.isEmpty()) {
         writeToFile(rangePath, range);
     }
 
@@ -59,7 +59,7 @@ SteAccelAdaptor::~SteAccelAdaptor()
 
 bool SteAccelAdaptor::startSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, range);
     }
 
@@ -71,7 +71,7 @@ bool SteAccelAdaptor::startSensor()
 
 void SteAccelAdaptor::stopSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, "0");
     }
     SysfsAdaptor::stopSensor();

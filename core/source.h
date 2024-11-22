@@ -107,8 +107,7 @@ private:
     bool joinTypeChecked(SinkBase* sink)
     {
         SinkTyped<TYPE>* type = dynamic_cast<SinkTyped<TYPE>*>(sink);
-        if(type)
-        {
+        if (type) {
             sinks_.insert(type);
             return true;
         }
@@ -119,8 +118,7 @@ private:
     bool unjoinTypeChecked(SinkBase* sink)
     {
         SinkTyped<TYPE>* type = dynamic_cast<SinkTyped<TYPE>*>(sink);
-        if(type)
-        {
+        if (type) {
             sinks_.remove(type);
             return true;
         }

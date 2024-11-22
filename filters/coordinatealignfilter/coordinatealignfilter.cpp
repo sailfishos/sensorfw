@@ -26,8 +26,8 @@
 
 #include "coordinatealignfilter.h"
 
-CoordinateAlignFilter::CoordinateAlignFilter() :
-        Filter<TimedXyzData, CoordinateAlignFilter, TimedXyzData>(this, &CoordinateAlignFilter::filter)
+CoordinateAlignFilter::CoordinateAlignFilter()
+    : Filter<TimedXyzData, CoordinateAlignFilter, TimedXyzData>(this, &CoordinateAlignFilter::filter)
 {
 }
 

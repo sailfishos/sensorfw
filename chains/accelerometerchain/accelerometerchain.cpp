@@ -53,17 +53,15 @@ AccelerometerChain::AccelerometerChain(const QString& id) :
 
     // Get the transformation matrix from config file
     QString aconvString = SensorFrameworkConfig::configuration()->value<QString>("accelerometer/transformation_matrix", "");
-    if (aconvString.size() > 0)
-    {
-        if (!setMatrixFromString(aconvString))
-        {
+    if (aconvString.size() > 0) {
+        if (!setMatrixFromString(aconvString)) {
             sensordLogW() << NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
         }
     }
 
     accCoordinateAlignFilter_ = sm.instantiateFilter("coordinatealignfilter");
     Q_ASSERT(accCoordinateAlignFilter_);
-    ((CoordinateAlignFilter*)accCoordinateAlignFilter_)->setMatrix(TMatrix(aconv_));
+    ((CoordinateAlignFilter*) accCoordinateAlignFilter_)->setMatrix(TMatrix(aconv_));
 
     outputBuffer_ = new RingBuffer<AccelerationData>(1);
     nameOutputBuffer("accelerometer", outputBuffer_);
@@ -143,8 +141,7 @@ bool AccelerometerChain::setMatrixFromString(const QString& str)
         return false;
     }
 
-    for (int i = 0; i < 9; ++i)
-    {
+    for (int i = 0; i < 9; ++i) {
         aconv_[i/3][i%3] = strList.at(i).toInt();
     }
 
