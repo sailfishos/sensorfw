@@ -24,10 +24,10 @@ BuildRequires:  pkgconfig(ssu-sysinfo)
 BuildRequires:  doxygen
 BuildRequires:  pkgconfig(libudev)
 Provides:   sensord-qt5
-Obsoletes:   sensorframework
 
 %description
-Sensor Framework provides an interface to hardware sensor drivers through logical sensors. This package contains sensor framework daemon and required libraries.
+Sensor Framework provides an interface to hardware sensor drivers through logical sensors.
+This package contains sensor framework daemon and required libraries.
 
 
 %package devel
@@ -44,7 +44,6 @@ Development headers for sensor framework daemon and libraries.
 %package tests
 Summary:    Unit test cases for sensord
 Requires:   %{name} = %{version}-%{release}
-Requires:   pkgconfig(Qt5Test)
 Requires:   testrunner-lite
 Requires:   python(abi) > 3.0
 Requires(post): /sbin/ldconfig
@@ -76,7 +75,6 @@ Summary:    API documentation for libsensord
 BuildArch:  noarch
 Requires:   %{name} = %{version}-%{release}
 Requires:   doxygen
-Obsoletes:  %{name}-docs
 
 %description doc
 API documentation for libsensord
@@ -127,7 +125,6 @@ systemctl daemon-reload || :
 %postun tests -p /sbin/ldconfig
 
 %files
-%defattr(-,root,root,-)
 %license COPYING
 %{_libdir}/libsensorclient-qt5.so.*
 %{_libdir}/libsensordatatypes-qt5.so.*
@@ -142,7 +139,6 @@ systemctl daemon-reload || :
 %{_unitdir}/graphical.target.wants/sensorfwd.service
 
 %files devel
-%defattr(-,root,root,-)
 %{_libdir}/libsensorfw*.so
 %{_libdir}/libsensordatatypes*.so
 %{_libdir}/libsensorclient*.so
@@ -151,7 +147,6 @@ systemctl daemon-reload || :
 %{_datadir}/qt5/mkspecs/features/sensord.prf
 
 %files tests
-%defattr(-,root,root,-)
 %{_libdir}/libsensorfakeopen*.so
 %{_libdir}/libsensorfakeopen*.so.*
 %dir %{_libdir}/sensord-qt5/testing
@@ -178,7 +173,6 @@ systemctl daemon-reload || :
 %attr(755,root,root)%{_bindir}/sensortestapp
 
 %files configs
-%defattr(-,root,root,-)
 %config %{_sysconfdir}/sensorfw/sensord.conf.d/*conf
 
 %files doc
