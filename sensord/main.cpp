@@ -77,9 +77,9 @@ static void messageOutput(QtMsgType type, const QMessageLogContext &context, con
     previousMessageHandler(type, context, str);
 }
 
-void printUsage();
+static void printUsage();
 
-void signalUSR1(int param)
+static void signalUSR1(int param)
 {
     Q_UNUSED(param);
     if (logLevel != QtDebugMsg) {
@@ -92,7 +92,7 @@ void signalUSR1(int param)
     }
 }
 
-void signalUSR2(int param)
+static void signalUSR2(int param)
 {
     Q_UNUSED(param);
 
@@ -107,7 +107,7 @@ void signalUSR2(int param)
     }
 }
 
-void signalINT(int param)
+static void signalINT(int param)
 {
     signal(param, SIG_DFL);
     sensordLogD() << "Terminating ...";
