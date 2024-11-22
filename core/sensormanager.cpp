@@ -105,10 +105,8 @@ SessionInstanceEntry::SessionInstanceEntry(QObject* parent, int sessionId, const
 
 SessionInstanceEntry::~SessionInstanceEntry()
 {
-    if (m_timer) {
-        delete m_timer;
-        m_timer = nullptr;
-    }
+    delete m_timer;
+    m_timer = nullptr;
 }
 
 void SessionInstanceEntry::expectConnection(int msec)
@@ -461,7 +459,7 @@ int SensorManager::requestSensor(const QString& id)
 
 bool SensorManager::releaseSensor(const QString& id, int sessionId)
 {
-    QString clientName = "";
+    QString clientName;
     QMap<int, SessionInstanceEntry*>::iterator sessionIt = sessionInstanceMap_.find(sessionId);
     if ( calledFromDBus() )
     {

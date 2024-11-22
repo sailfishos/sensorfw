@@ -310,12 +310,7 @@ unsigned int NodeBase::getInterval(int sessionId) const
     {
         return m_intervalSource->getInterval(sessionId);
     }
-    QMap<int, unsigned int>::const_iterator it(m_intervalMap.find(sessionId));
-    if(it == m_intervalMap.end())
-    {
-        return 0;
-    }
-    return it.value();
+    return m_intervalMap.value(sessionId, 0);
 }
 
 bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int interval_us)

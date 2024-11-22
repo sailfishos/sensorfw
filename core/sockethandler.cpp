@@ -227,9 +227,7 @@ SocketHandler::SocketHandler(QObject* parent) : QObject(parent), m_server(NULL)
 
 SocketHandler::~SocketHandler()
 {
-    if (m_server) {
-        delete m_server;
-    }
+    delete m_server;
 }
 
 bool SocketHandler::listen(const QString& serverName)
