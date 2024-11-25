@@ -72,20 +72,20 @@ void OrientationBin::startRun()
     sessionId = SensorManager::instance().requestSensor("contextsensor");
     if (sessionId == INVALID_SESSION)
     {
-        sensordLogC() << id() << "Failed to get unique sessionId for orientation detection.";
+        qCCritical(lcSensorFw) << id() << "Failed to get unique sessionId for orientation detection.";
     }
 
     orientationChain = SensorManager::instance().requestChain("orientationchain");
     if (!orientationChain)
     {
-        sensordLogC() << id() << "Unable to access OrientationChain for orientation properties.";
+        qCCritical(lcSensorFw) << id() << "Unable to access OrientationChain for orientation properties.";
         return;
     }
 
     RingBufferBase* rb = orientationChain->findBuffer("topedge");
     if (!rb)
     {
-        sensordLogC() << id() << "Unable to connect to TopEdge orientation buffer.";
+        qCCritical(lcSensorFw) << id() << "Unable to connect to TopEdge orientation buffer.";
     } else {
         rb->join(&topEdgeReader);
     }
@@ -93,7 +93,7 @@ void OrientationBin::startRun()
     rb = orientationChain->findBuffer("face");
     if (!rb)
     {
-        sensordLogC() << id() << "Unable to connect to face orientation buffer.";
+        qCCritical(lcSensorFw) << id() << "Unable to connect to face orientation buffer.";
     } else {
         rb->join(&faceReader);
     }

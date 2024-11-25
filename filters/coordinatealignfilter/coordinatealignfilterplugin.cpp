@@ -30,7 +30,7 @@
 
 void CoordinateAlignFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering coordinatealignfilter";
+    qCInfo(lcSensorFw) << "registering coordinatealignfilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<CoordinateAlignFilter>("coordinatealignfilter");
 }

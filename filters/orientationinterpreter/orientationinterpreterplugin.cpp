@@ -32,6 +32,6 @@
 void OrientationInterpreterPlugin::Register(class Loader&)
 {
     SensorManager& sm = SensorManager::instance();
-    sensordLogD() << "registering orientationinterpreter";
+    qCInfo(lcSensorFw) << "registering orientationinterpreter";
     sm.registerFilter<OrientationInterpreter>("orientationinterpreter");
 }

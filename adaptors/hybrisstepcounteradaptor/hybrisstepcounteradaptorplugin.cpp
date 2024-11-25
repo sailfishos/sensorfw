@@ -26,7 +26,7 @@
 
 void HybrisStepCounterAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrisstepcounteradaptor";
+    qCInfo(lcSensorFw) << "registering hybrisstepcounteradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisStepCounterAdaptor>("stepcounteradaptor");
 }

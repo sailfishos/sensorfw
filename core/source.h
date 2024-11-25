@@ -111,7 +111,7 @@ private:
             sinks_.insert(type);
             return true;
         }
-        sensordLogC() << "Failed to join type '" << typeid(type).name() << " to source!";
+        qCCritical(lcSensorFw) << "Failed to join type '" << typeid(type).name() << " to source!";
         return false;
     }
 
@@ -122,7 +122,7 @@ private:
             sinks_.remove(type);
             return true;
         }
-        sensordLogC() << "Failed to unjoin type '" << typeid(type).name() << " from source!";
+        qCCritical(lcSensorFw) << "Failed to unjoin type '" << typeid(type).name() << " from source!";
         return false;
     }
 

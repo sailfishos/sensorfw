@@ -56,10 +56,10 @@ void ProximityAdaptorAscii::processSample(int, int fd)
     char buf[16];
     lseek(fd, 0, SEEK_SET);
     if (read(fd, buf, sizeof(buf)) <= 0) {
-        sensordLogW() << id() << "read(): " << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
         return;
     }
-    sensordLogT() << id() << "Proximity output value: " << buf;
+    qCDebug(lcSensorFw) << id() << "Proximity output value: " << buf;
 
     ProximityData* proximity = proximityBuffer_->nextSlot();
     sscanf(buf, "%d", &proximity->value_);

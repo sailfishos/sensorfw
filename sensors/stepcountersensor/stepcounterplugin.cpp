@@ -33,7 +33,7 @@
 
 void StepCounterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering stepcountersensor";
+    qCInfo(lcSensorFw) << "registering stepcountersensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<StepCounterSensorChannel>("stepcountersensor");
 }

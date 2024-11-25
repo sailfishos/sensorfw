@@ -30,7 +30,7 @@
 
 void HumidityPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering humiditysensor";
+    qCInfo(lcSensorFw) << "registering humiditysensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<HumiditySensorChannel>("humiditysensor");
 }

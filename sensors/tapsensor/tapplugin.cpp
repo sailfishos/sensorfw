@@ -31,7 +31,7 @@
 
 void TapPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering tapsensor";
+    qCInfo(lcSensorFw) << "registering tapsensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<TapSensorChannel>("tapsensor");
 }

@@ -48,46 +48,28 @@
 #include "calibrationhandler.h"
 #include "parser.h"
 
-static QtMsgType logLevel;
-static QtMessageHandler previousMessageHandler;
-
-static int normalizeLevel(QtMsgType type)
-{
-    /* Map QtMsgType enum values to something that hopefully
-     * makes sense in less-than / greater-than sense too. */
-    switch (type) {
-    case QtDebugMsg:
-        return 0;
-    case QtInfoMsg:
-        return 1;
-    case QtWarningMsg:
-        return 3;
-    case QtCriticalMsg:
-        return 4;
-    default:
-        return static_cast<int>(type);
-    }
-}
-
-static void messageOutput(QtMsgType type, const QMessageLogContext &context, const QString &str)
-{
-    if (normalizeLevel(type) < normalizeLevel(logLevel))
-        return;
-
-    previousMessageHandler(type, context, str);
-}
+static QtMsgType logLevel = QtWarningMsg;
 
 static void printUsage();
 
 static void signalUSR1(int param)
 {
     Q_UNUSED(param);
-    if (logLevel != QtDebugMsg) {
-        logLevel = QtDebugMsg;
-        sensordLogW() << "Debug logging enabled";
+    bool enablingDebug = logLevel != QtDebugMsg;
+
+    // a bit nasty but simple way to get around qt logging macros that define const access
+    QLoggingCategory &category = const_cast<QLoggingCategory&>(lcSensorFw());
+    category.setEnabled(QtDebugMsg, enablingDebug);
+    category.setEnabled(QtInfoMsg, enablingDebug);
+
+    category.setEnabled(QtWarningMsg, true);
+    category.setEnabled(QtCriticalMsg, true);
+    category.setEnabled(QtFatalMsg, true);
+
+    if (enablingDebug) {
+        qCWarning(lcSensorFw) << "Debug logging enabled";
     } else {
-        logLevel = QtWarningMsg;
-        sensordLogW() << "Debug logging disabled";
+        qCWarning(lcSensorFw) << "Debug logging disabled";
     }
 }
 
@@ -102,14 +84,14 @@ static void signalUSR2(int param)
     SensorManager::instance().printStatus(output);
 
     foreach (const QString& line, output) {
-        sensordLogW() << line.toLocal8Bit().data();
+        qCWarning(lcSensorFw) << line.toLocal8Bit().data();
     }
 }
 
 static void signalINT(int param)
 {
     signal(param, SIG_DFL);
-    sensordLogD() << "Terminating ...";
+    qCInfo(lcSensorFw) << "Terminating ...";
     QCoreApplication::exit(0);
 }
 
@@ -130,7 +112,7 @@ private:
 SignalNotifier::SignalNotifier()
     : m_socketNotifier(0)
 {
-    sensordLogD() << "Setup async signal handlers";
+    qCInfo(lcSensorFw) << "Setup async signal handlers";
     if (pipe2(s_pipe, O_CLOEXEC) == -1) {
         qFatal("Failed to create a pipe for signal passunc");
     }
@@ -148,7 +130,7 @@ SignalNotifier::SignalNotifier()
 
 SignalNotifier::~SignalNotifier()
 {
-    sensordLogD() << "Reset async signal handlers";
+    qCInfo(lcSensorFw) << "Reset async signal handlers";
     for (size_t i = 0; s_signals[i] != -1; ++i)
         signal(s_signals[i], SIG_DFL);
     delete m_socketNotifier;
@@ -172,7 +154,7 @@ void SignalNotifier::handleSignalInput(int socket)
     if (read(s_pipe[0], &sig, sizeof sig) == -1) {
         // dontcare
     }
-    sensordLogD() << "Caught async signal"  << strsignal(sig);
+    qCInfo(lcSensorFw) << "Caught async signal"  << strsignal(sig);
     switch (sig) {
     case SIGINT:
     case SIGTERM:
@@ -196,8 +178,6 @@ const int SignalNotifier::s_signals[] =
 
 int main(int argc, char *argv[])
 {
-    previousMessageHandler = qInstallMessageHandler(messageOutput);
-
     QCoreApplication app(argc, argv);
     Parser parser(app.arguments());
 
@@ -223,9 +203,9 @@ int main(int argc, char *argv[])
     }
 
     if (!SensorFrameworkConfig::loadConfig(defConfigFile, defConfigDir)) {
-        sensordLogC() << "SensorFrameworkConfig file error! Load using default paths.";
+        qCCritical(lcSensorFw) << "SensorFrameworkConfig file error! Load using default paths.";
         if (!SensorFrameworkConfig::loadConfig(CONFIG_FILE_PATH, CONFIG_DIR_PATH)) {
-            sensordLogC() << "Which also failed. Bailing out";
+            qCCritical(lcSensorFw) << "Which also failed. Bailing out";
             return 1;
         }
     }
@@ -236,10 +216,10 @@ int main(int argc, char *argv[])
         int pid = fork();
 
         if (pid < 0) {
-            sensordLogC() << "Failed to create a daemon: " << strerror(errno);
+            qCCritical(lcSensorFw) << "Failed to create a daemon: " << strerror(errno);
             exit(EXIT_FAILURE);
         } else if (pid > 0) {
-            sensordLogD() << "Created a daemon";
+            qCInfo(lcSensorFw) << "Created a daemon";
             _exit(EXIT_SUCCESS);
         }
     }
@@ -248,8 +228,8 @@ int main(int argc, char *argv[])
 
 #ifdef PROVIDE_CONTEXT_INFO
     if (parser.contextInfo()) {
-        sensordLogD() << "Loading ContextSensor " << sm.loadPlugin("contextsensor");
-        sensordLogD() << "Loading ALSSensor " << sm.loadPlugin("alssensor");
+        qCInfo(lcSensorFw) << "Loading ContextSensor " << sm.loadPlugin("contextsensor");
+        qCInfo(lcSensorFw) << "Loading ALSSensor " << sm.loadPlugin("alssensor");
     }
 #endif
 
@@ -261,7 +241,7 @@ int main(int argc, char *argv[])
     }
 
     if (!sm.registerService()) {
-        sensordLogW() << "Failed to register service on D-Bus. Aborting.";
+        qCWarning(lcSensorFw) << "Failed to register service on D-Bus. Aborting.";
         exit(EXIT_FAILURE);
     }
 
@@ -273,7 +253,7 @@ int main(int argc, char *argv[])
     int ret = app.exec();
     delete signalNotifier; signalNotifier = 0;
 
-    sensordLogD() << "Exiting...";
+    qCInfo(lcSensorFw) << "Exiting...";
     SensorFrameworkConfig::close();
 
     /* Backends that use binder ipc can end up deadlocked at

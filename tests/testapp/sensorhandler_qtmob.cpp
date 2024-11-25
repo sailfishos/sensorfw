@@ -93,7 +93,7 @@ void SensorHandler::receivedAccelerometerData()
 {
     QAccelerometerReading* data = (QAccelerometerReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z();
 }
 
@@ -101,7 +101,7 @@ void SensorHandler::receivedCompassData()
 {
     QCompassReading* data = (QCompassReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
              << " azimuth: " << data->azimuth() << "calibrationLevel: " <<  data-> calibrationLevel();
 
 }
@@ -110,7 +110,7 @@ void SensorHandler::receivedAlsData()
 {
     QAmbientLightReading* data = (QAmbientLightReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "lightLevel  " << data->lightLevel();
 }
 
@@ -118,7 +118,7 @@ void SensorHandler::receivedMagnetometerData()
 {
     QMagnetometerReading* data = (QMagnetometerReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z()
                   << " calibrationLevel" << data->calibrationLevel();
 }
@@ -127,7 +127,7 @@ void SensorHandler::receivedOrientationData()
 {
     QOrientationReading* data = (QOrientationReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "orientation " << data->orientation();
 }
 
@@ -135,7 +135,7 @@ void SensorHandler::receivedRotationData()
 {
     QRotationReading* data = (QRotationReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "x " << data->x() << "y " <<  data->y() << "z " <<  data->z();
 }
 
@@ -143,7 +143,7 @@ void SensorHandler::receivedTapData()
 {
     QTapReading* data = (QTapReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "DoubleTap " <<  data->isDoubleTap();
 }
 
@@ -151,7 +151,7 @@ void SensorHandler::receivedProximityData()
 {
     QProximityReading* data = (QProximityReading*) m_sensor->reading();
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << "Close " <<  data->close();
 }
 

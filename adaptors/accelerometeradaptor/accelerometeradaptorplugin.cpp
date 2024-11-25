@@ -30,7 +30,7 @@
 
 void AccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering accelerometeradaptor";
+    qCInfo(lcSensorFw) << "registering accelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<AccelerometerAdaptor>("accelerometeradaptor");
 }

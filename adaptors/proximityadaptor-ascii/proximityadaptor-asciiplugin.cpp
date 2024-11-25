@@ -34,7 +34,7 @@
 
 void ProximityAdaptorAsciiPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering proximityadaptor-ascii";
+    qCInfo(lcSensorFw) << "registering proximityadaptor-ascii";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<ProximityAdaptorAscii>("proximityadaptor");
 }

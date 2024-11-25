@@ -84,13 +84,13 @@ void SteAccelAdaptor::processSample(int pathId, int fd)
     int x, y, z;
 
 //    if (pathId != devId) {
-//        sensordLogW () << "Wrong pathId" << pathId;
+//        qCWarning(lcSensorFw) << "Wrong pathId" << pathId;
 //        return;
 //    }
 
     lseek(fd, 0, SEEK_SET);
     if (read(fd, buf, sizeof(buf)) < 0 ) {
-        sensordLogW() << id() << "Read failed";
+        qCWarning(lcSensorFw) << id() << "Read failed";
         stopSensor();
         return;
     }

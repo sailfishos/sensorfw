@@ -52,10 +52,10 @@ void ClientAdmin::init()
     {
         QString defConfigFile = parser.configFilePath();
         if (SensorFrameworkConfig::loadConfig(defConfigFile, ""))
-            sensordLogT() << "SensorFrameworkConfig file is loading successfully.";
+            qCDebug(lcSensorFw) << "SensorFrameworkConfig file is loading successfully.";
         else
         {
-            sensordLogW() << "SensorFrameworkConfig file error! Load using default path.";
+            qCWarning(lcSensorFw) << "SensorFrameworkConfig file error! Load using default path.";
             SensorFrameworkConfig::loadConfig(CONFIG_FILE_PATH, "");
         }
     } else {
@@ -64,13 +64,13 @@ void ClientAdmin::init()
 
     if (SensorFrameworkConfig::configuration() == NULL)
     {
-        sensordLogC() << "Failed to load configuration. Aborting.";
+        qCCritical(lcSensorFw) << "Failed to load configuration. Aborting.";
         exit(EXIT_FAILURE);
     }
 
     if (!SensorHandler::init(SensorFrameworkConfig::configuration()->groups()))
     {
-        sensordLogC() << "Failed to initialize SensorHandler. Aborting.";
+        qCCritical(lcSensorFw) << "Failed to initialize SensorHandler. Aborting.";
         exit(EXIT_FAILURE);
     }
 }
@@ -99,14 +99,14 @@ void ClientAdmin::runClients()
         printer = new StatPrinter(handlers, parser.statInterval(), this);
     }
 
-    sensordLogD() << "Threads are waiting.";
+    qCInfo(lcSensorFw) << "Threads are waiting.";
 }
 
 ClientAdmin::~ClientAdmin()
 {
     if(!parser.gracefulShutdown())
         return;
-    sensordLogD() << "Exiting...";
+    qCInfo(lcSensorFw) << "Exiting...";
 
     delete printer;
     foreach(AbstractSensorHandler* handler, handlers)

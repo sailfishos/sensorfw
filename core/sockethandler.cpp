@@ -82,7 +82,7 @@ bool SessionData::write(void* source, int size, unsigned int count)
         memcpy(source, &count, sizeof(unsigned int));
         int written = m_socket->write((const char*)source, size * count + sizeof(unsigned int));
         if (written < 0) {
-            sensordLogW() << "[SocketHandler]: failed to write payload to the socket: " << m_socket->errorString();
+            qCWarning(lcSensorFw) << "[SocketHandler]: failed to write payload to the socket: " << m_socket->errorString();
             return false;
         }
         return true;
@@ -184,7 +184,7 @@ void SessionData::setBufferSize(unsigned int size)
         m_bufferSize = size;
         if (m_bufferSize < 1)
             m_bufferSize = 1;
-        sensordLogT() << "[SocketHandler]: new buffersize: " << m_bufferSize;
+        qCDebug(lcSensorFw) << "[SocketHandler]: new buffersize: " << m_bufferSize;
     }
 }
 
@@ -221,16 +221,16 @@ SocketHandler::~SocketHandler()
 bool SocketHandler::listen(const QString& serverName)
 {
     if (m_server->isListening()) {
-        sensordLogW() << "[SocketHandler]: Already listening";
+        qCWarning(lcSensorFw) << "[SocketHandler]: Already listening";
         return false;
     }
 
     bool unlinkDone = false;
     while (!m_server->listen(serverName) && !unlinkDone && serverName[0] == QChar('/')) {
         if (unlink(serverName.toLocal8Bit().constData()) == 0) {
-            sensordLogD() << "[SocketHandler]: Unlinked stale socket" << serverName;
+            qCInfo(lcSensorFw) << "[SocketHandler]: Unlinked stale socket" << serverName;
         } else {
-            sensordLogD() << m_server->errorString();
+            qCInfo(lcSensorFw) << m_server->errorString();
         }
         unlinkDone = true;
     }
@@ -241,7 +241,7 @@ bool SocketHandler::write(int id, const void* source, int size)
 {
     QMap<int, SessionData*>::iterator it = m_idMap.find(id);
     if (it == m_idMap.end()) {
-        sensordLogD() << "[SocketHandler]: Trying to write to nonexistent session (normal, no panic).";
+        qCInfo(lcSensorFw) << "[SocketHandler]: Trying to write to nonexistent session (normal, no panic).";
         return false;
     }
     return (*it)->write(source, size);
@@ -250,7 +250,7 @@ bool SocketHandler::write(int id, const void* source, int size)
 bool SocketHandler::removeSession(int sessionId)
 {
     if (!(m_idMap.keys().contains(sessionId))) {
-        sensordLogW() << "[SocketHandler]: Trying to remove nonexistent session.";
+        qCWarning(lcSensorFw) << "[SocketHandler]: Trying to remove nonexistent session.";
         return false;
     }
 
@@ -272,7 +272,7 @@ bool SocketHandler::removeSession(int sessionId)
 void SocketHandler::checkConnectionEstablished(int sessionId)
 {
     if (!(m_idMap.keys().contains(sessionId))) {
-        sensordLogW() << "[SocketHandler]: Socket connection for session" << sessionId
+        qCWarning(lcSensorFw) << "[SocketHandler]: Socket connection for session" << sessionId
                       << "hasn't been estabilished. Considering session lost";
         emit lostSession(sessionId);
     }
@@ -280,7 +280,7 @@ void SocketHandler::checkConnectionEstablished(int sessionId)
 
 void SocketHandler::newConnection()
 {
-    sensordLogT() << "[SocketHandler]: New connection received.";
+    qCDebug(lcSensorFw) << "[SocketHandler]: New connection received.";
 
     while (m_server->hasPendingConnections()) {
 
@@ -308,7 +308,7 @@ void SocketHandler::socketReadable()
         if (!m_idMap.contains(sessionId))
             m_idMap.insert(sessionId, new SessionData((QLocalSocket*)sender(), this));
     } else {
-        sensordLogC() << "[SocketHandler]: Failed to read valid session ID from client. Closing socket.";
+        qCCritical(lcSensorFw) << "[SocketHandler]: Failed to read valid session ID from client. Closing socket.";
         socket->abort();
     }
 }
@@ -324,17 +324,17 @@ void SocketHandler::socketDisconnected()
     }
 
     if (sessionId == -1) {
-        sensordLogW() << "[SocketHandler]: Noticed lost session, but can't find it.";
+        qCWarning(lcSensorFw) << "[SocketHandler]: Noticed lost session, but can't find it.";
         return;
     }
 
-    sensordLogW() << "[SocketHandler]: Noticed lost session: " << sessionId;
+    qCWarning(lcSensorFw) << "[SocketHandler]: Noticed lost session: " << sessionId;
     emit lostSession(sessionId);
 }
 
 void SocketHandler::socketError(QLocalSocket::LocalSocketError socketError)
 {
-    sensordLogW() << "[SocketHandler]: Socket error: " << socketError;
+    qCWarning(lcSensorFw) << "[SocketHandler]: Socket error: " << socketError;
     socketDisconnected();
 }
 

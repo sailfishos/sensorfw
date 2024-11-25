@@ -57,13 +57,13 @@ ALSAdaptorAscii::ALSAdaptorAscii(const QString& id) : SysfsAdaptor(id, SysfsAdap
         QFile sysFile(rangeFilePath_);
 
         if (!(sysFile.open(QIODevice::ReadOnly))) {
-            sensordLogW() << NodeBase::id() << "Unable to config ALS range from sysfs";
+            qCWarning(lcSensorFw) << NodeBase::id() << "Unable to config ALS range from sysfs";
         } else {
             sysFile.readLine(buf, sizeof(buf));
             int range = QString(buf).toInt();
 
             introduceAvailableDataRange(DataRange(0, range, 1));
-            sensordLogT() << NodeBase::id() << "Ambient light range: " << range;
+            qCDebug(lcSensorFw) << NodeBase::id() << "Ambient light range: " << range;
         }
     }
         powerStatePath = SensorFrameworkConfig::configuration()->value("als/powerstate_path").toByteArray();
@@ -79,12 +79,12 @@ void ALSAdaptorAscii::processSample(int pathId, int fd) {
     Q_UNUSED(pathId);
 
     if (read(fd, buf, sizeof(buf)) <= 0) {
-        sensordLogW() << id() << "read():" << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read():" << strerror(errno);
         return;
     }
     buf[sizeof(buf)-1] = '\0';
 
-    sensordLogT() << id() << "Ambient light value: " << buf;
+    qCDebug(lcSensorFw) << id() << "Ambient light value: " << buf;
 
     __u16 idata = atoi(buf);
 

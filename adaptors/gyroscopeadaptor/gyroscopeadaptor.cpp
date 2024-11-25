@@ -56,10 +56,10 @@ void GyroscopeAdaptor::processSample(int pathId, int fd)
     char buf[32];
 
     if (read(fd, buf, sizeof(buf)) <= 0) {
-        sensordLogW() << id() << "read():" << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read():" << strerror(errno);
         return;
     }
-    sensordLogT() << id() << "gyroscope output value: " << buf;
+    qCDebug(lcSensorFw) << id() << "gyroscope output value: " << buf;
 
     sscanf(buf, "%hd %hd %hd\n", &x, &y, &z);
 
@@ -80,7 +80,7 @@ bool GyroscopeAdaptor::setInterval(const int sessionId, const unsigned int inter
         rate_Hz = 1000000 / interval_us;
     if (rate_Hz <= 0)
         rate_Hz = 100;
-    sensordLogD() << id() << "Setting poll interval for " << dataRatePath_ << " to " << rate_Hz;
+    qCInfo(lcSensorFw) << id() << "Setting poll interval for " << dataRatePath_ << " to " << rate_Hz;
     QByteArray dataRateString(QString("%1\n").arg(rate_Hz).toLocal8Bit());
     return writeToFile(dataRatePath_, dataRateString);
 }

@@ -89,7 +89,7 @@ ProximitySensorChannel::~ProximitySensorChannel()
 
 bool ProximitySensorChannel::start()
 {
-    sensordLogD() << id() << "Starting ProximitySensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting ProximitySensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -101,7 +101,7 @@ bool ProximitySensorChannel::start()
 
 bool ProximitySensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping ProximitySensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping ProximitySensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         proximityAdaptor_->stopSensor();

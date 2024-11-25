@@ -30,7 +30,7 @@
 
 void KeyboardSliderAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering kbslideradaptor";
+    qCInfo(lcSensorFw) << "registering kbslideradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<KeyboardSliderAdaptor>("kbslideradaptor");
 }

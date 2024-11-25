@@ -43,7 +43,7 @@ HybrisGeoRotationAdaptor::HybrisGeoRotationAdaptor(const QString& id) :
     setDescription("Hybris georotation");
     m_powerStatePath = SensorFrameworkConfig::configuration()->value("georotation/powerstate_path").toByteArray();
     if (!m_powerStatePath.isEmpty() && !QFile::exists(m_powerStatePath)) {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << m_powerStatePath;
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << m_powerStatePath;
         m_powerStatePath.clear();
     }
 }
@@ -59,7 +59,7 @@ bool HybrisGeoRotationAdaptor::startSensor()
         return false;
     if (isRunning() && !m_powerStatePath.isEmpty())
         writeToFile(m_powerStatePath, "1");
-    sensordLogD() << id() << "Hybris GeoRotationAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris GeoRotationAdaptor start";
     return true;
 }
 
@@ -68,7 +68,7 @@ void HybrisGeoRotationAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !m_powerStatePath.isEmpty())
         writeToFile(m_powerStatePath, "0");
-    sensordLogD() << id() << "Hybris GeoRotationAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris GeoRotationAdaptor stop";
 }
 
 void HybrisGeoRotationAdaptor::processSample(const sensors_event_t& data)

@@ -27,7 +27,7 @@
 
 void CompassChainPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering compasschain";
+    qCInfo(lcSensorFw) << "registering compasschain";
     SensorManager& sm = SensorManager::instance();
 
     sm.registerChain<CompassChain>("compasschain");

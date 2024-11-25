@@ -23,7 +23,7 @@ PegatronAccelerometerAdaptor::PegatronAccelerometerAdaptor(const QString& id) :
     sleep(5);
 
     if (!getInputDevices(DEVICE_MATCH_STRING)) {
-        sensordLogW() << id() << "Input device not found.";
+        qCWarning(lcSensorFw) << id() << "Input device not found.";
     }
 
     accelerometerBuffer_ = new DeviceAdaptorRingBuffer<OrientationData>(128);

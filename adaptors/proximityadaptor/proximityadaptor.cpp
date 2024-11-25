@@ -95,9 +95,9 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << id() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
+            qCDebug(lcSensorFw) << id() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
         } else {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
 
@@ -110,9 +110,9 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << id() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
+            qCDebug(lcSensorFw) << id() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
         } else {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
 
@@ -125,16 +125,16 @@ void ProximityAdaptor::processSample(int pathId, int fd)
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = read(fd, &buffer, sizeof(buffer));
         if (bytesRead <= 0) {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
         sscanf(buffer, "%d", &rawdata);
         if ((signed)rawdata > threshold_) {
             ret = 1;
         }
-        sensordLogT() << id() << "Proximity value: " << rawdata;
+        qCDebug(lcSensorFw) << id() << "Proximity value: " << rawdata;
     } else {
-        sensordLogW() << id() << "Not known device type: " << deviceType_;
+        qCWarning(lcSensorFw) << id() << "Not known device type: " << deviceType_;
         return;
     }
 

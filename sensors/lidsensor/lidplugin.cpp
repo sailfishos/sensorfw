@@ -30,7 +30,7 @@
 
 void LidPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering lidsensor";
+    qCInfo(lcSensorFw) << "registering lidsensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<LidSensorChannel>("lidsensor");
 }

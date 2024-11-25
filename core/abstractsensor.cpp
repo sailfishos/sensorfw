@@ -43,7 +43,7 @@ AbstractSensorChannel::AbstractSensorChannel(const QString& id) :
 
 void AbstractSensorChannel::setError(SensorError errorCode, const QString& errorString)
 {
-    sensordLogC() << id() << "SensorError: " <<  errorString;
+    qCCritical(lcSensorFw) << id() << "SensorError: " <<  errorString;
 
     errorCode_   = errorCode;
     errorString_ = errorString;
@@ -88,7 +88,7 @@ bool AbstractSensorChannel::stop()
 bool AbstractSensorChannel::writeToSession(int sessionId, const void* source, int size)
 {
     if (!(SensorManager::instance().write(sessionId, source, size))) {
-        sensordLogD() << id() << "AbstractSensor failed to write to session " << sessionId;
+        qCInfo(lcSensorFw) << id() << "AbstractSensor failed to write to session " << sessionId;
         return false;
     }
     return true;
@@ -225,7 +225,7 @@ bool AbstractSensorChannel::downsampleAndPropagate(const CalibratedMagneticField
 void AbstractSensorChannel::setDownsamplingEnabled(int sessionId, bool value)
 {
     if (downsamplingSupported()) {
-        sensordLogT() << id() << "Downsampling state for session " << sessionId << ": " << value;
+        qCDebug(lcSensorFw) << id() << "Downsampling state for session " << sessionId << ": " << value;
         downsampling_[sessionId] = value;
     }
 }
@@ -282,6 +282,6 @@ void AbstractSensorChannel::signalPropertyChanged(const QString& name)
 
 RingBufferBase* AbstractSensorChannel::findBuffer(const QString&) const
 {
-    sensordLogW() << id() << "Tried to locate buffer from SensorChannel!";
+    qCWarning(lcSensorFw) << id() << "Tried to locate buffer from SensorChannel!";
     return nullptr;
 }

@@ -55,7 +55,7 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
     if (scaleCoefficient_ != 1) {
         scaleFilter_ = sm.instantiateFilter("magnetometerscalefilter");
         if (scaleFilter_ == nullptr) {
-            sensordLogW() << NodeBase::id() << "Failed to initialise scaling filter for magnetometer.";
+            qCWarning(lcSensorFw) << NodeBase::id() << "Failed to initialise scaling filter for magnetometer.";
         }
     }
 
@@ -127,7 +127,7 @@ MagnetometerSensorChannel::~MagnetometerSensorChannel()
 
 bool MagnetometerSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting MagnetometerSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -139,7 +139,7 @@ bool MagnetometerSensorChannel::start()
 
 bool MagnetometerSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping MagnetometerSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         magChain_->stop();

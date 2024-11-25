@@ -51,7 +51,7 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
     if (compassChain_ && compassChain_->isValid()) {
         compassReader_ = new BufferReader<CompassData>(1);
     } else {
-        sensordLogW() << NodeBase::id() << "Unable to use compass for z-axis rotation.";
+        qCWarning(lcSensorFw) << NodeBase::id() << "Unable to use compass for z-axis rotation.";
     }
 
     rotationFilter_ = sm.instantiateFilter("rotationfilter");
@@ -135,7 +135,7 @@ RotationSensorChannel::~RotationSensorChannel()
 
 bool RotationSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting RotationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting RotationSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -151,7 +151,7 @@ bool RotationSensorChannel::start()
 
 bool RotationSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping RotationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping RotationSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         accelerometerChain_->stop();

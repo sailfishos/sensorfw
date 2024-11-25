@@ -80,7 +80,7 @@ void ProximityAdaptorEvdev::commitOutput(struct input_event *ev)
     static ProximityState oldState = ProximityStateUnknown;
 
     if (currentState_ != oldState) {
-        sensordLogD() << id() << "Proximity state change detected: " << currentState_;
+        qCInfo(lcSensorFw) << id() << "Proximity state change detected: " << currentState_;
 
         ProximityData *proximityData = proximityBuffer_->nextSlot();
 

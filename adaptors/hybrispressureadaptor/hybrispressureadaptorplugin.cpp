@@ -25,7 +25,7 @@
 
 void HybrisPressureAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrispressureadaptor";
+    qCInfo(lcSensorFw) << "registering hybrispressureadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisPressureAdaptor>("pressureadaptor");
 }

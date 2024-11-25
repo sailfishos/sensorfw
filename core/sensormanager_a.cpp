@@ -72,13 +72,13 @@ QStringList SensorManagerAdaptor::availableSensorPlugins() const
 int SensorManagerAdaptor::requestSensor(const QString &id, qint64 pid)
 {
     int session = sensorManager()->requestSensor(id);
-    sensordLogD() << "Sensor '" << id << "' requested. Created session: " << session << ". Client PID: " << pid;
+    qCInfo(lcSensorFw) << "Sensor '" << id << "' requested. Created session: " << session << ". Client PID: " << pid;
     return session;
 }
 
 bool SensorManagerAdaptor::releaseSensor(const QString &id, int sessionId, qint64 pid)
 {
-    sensordLogD() << "Sensor '" << id << "' release requested for session " << sessionId << ". Client PID: " << pid;
+    qCInfo(lcSensorFw) << "Sensor '" << id << "' release requested for session " << sessionId << ". Client PID: " << pid;
     return sensorManager()->releaseSensor(id, sessionId);
 }
 

@@ -36,52 +36,52 @@ SensorHandler::SensorHandler(const QString& sensorName, QObject *parent) :
 void SensorHandler::receivedData(const MagneticField& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x() << " " << data.y() << " " <<   data.z();
 }
 
 void SensorHandler::receivedData(const XYZ& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x() << " " << data.y() << " " <<   data.z();
 }
 
 void SensorHandler::receivedData(const Compass& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.degrees() << " " << data.level();
 }
 
 void SensorHandler::receivedData(const Unsigned& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.x();
 }
 
 void SensorHandler::receivedData(const Tap& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.direction() << " " << data.type();
 }
 
 void SensorHandler::receivedData(const Proximity& data)
 {
     ++m_dataCount;
-    sensordLogT() << m_sensorName << " sample " << m_dataCount << ": "
+    qCDebug(lcSensorFw) << m_sensorName << " sample " << m_dataCount << ": "
                   << data.UnsignedData().value_ << " " << data.proximityData().value_;
 }
 
 void SensorHandler::receivedFrame(const QVector<MagneticField>& frame)
 {
     ++m_frameCount;
-    sensordLogT() << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
+    qCDebug(lcSensorFw) << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
     foreach (const MagneticField& data, frame)
     {
-        sensordLogT() << data.x() << " " << data.y() << " " << data.z();
+        qCDebug(lcSensorFw) << data.x() << " " << data.y() << " " << data.z();
         ++m_dataCount;
     }
 }
@@ -89,10 +89,10 @@ void SensorHandler::receivedFrame(const QVector<MagneticField>& frame)
 void SensorHandler::receivedFrame(const QVector<XYZ>& frame)
 {
     ++m_frameCount;
-    sensordLogT() << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
+    qCDebug(lcSensorFw) << m_sensorName << " frame " << m_frameCount << " size " << frame.size();
     foreach (const XYZ& data, frame)
     {
-        sensordLogT() << data.x() << " " << data.y() << " " << data.z();
+        qCDebug(lcSensorFw) << data.x() << " " << data.y() << " " << data.z();
         ++m_dataCount;
     }
 }
@@ -102,12 +102,12 @@ bool SensorHandler::startClient()
     createSensorInterface();
     if (m_sensorChannelInterface == 0)
     {
-         sensordLogD() << "Creating sensor client interface fails.";
+         qCInfo(lcSensorFw) << "Creating sensor client interface fails.";
          return false;
     }
-    sensordLogD() << "Created sensor: " << m_sensorChannelInterface->description();
-    sensordLogD() << "Support intervals: " << toString(m_sensorChannelInterface->getAvailableIntervals());
-    sensordLogD() << "Support dataranges: " << toString(m_sensorChannelInterface->getAvailableDataRanges());
+    qCInfo(lcSensorFw) << "Created sensor: " << m_sensorChannelInterface->description();
+    qCInfo(lcSensorFw) << "Support intervals: " << toString(m_sensorChannelInterface->getAvailableIntervals());
+    qCInfo(lcSensorFw) << "Support dataranges: " << toString(m_sensorChannelInterface->getAvailableDataRanges());
     m_sensorChannelInterface->setInterval(m_interval_ms);
     m_sensorChannelInterface->setBufferInterval(m_bufferinterval_ms);
     m_sensorChannelInterface->setBufferSize(m_buffersize);
@@ -134,7 +134,7 @@ bool SensorHandler::init(const QStringList& sensors)
     SensorManagerInterface& remoteSensorManager = SensorManagerInterface::instance();
     if(!remoteSensorManager.isValid())
     {
-        sensordLogC() << "Failed to create SensorManagerInterface";
+        qCCritical(lcSensorFw) << "Failed to create SensorManagerInterface";
         return false;
     }
     foreach (const QString& sensorName, sensors)
@@ -142,7 +142,7 @@ bool SensorHandler::init(const QStringList& sensors)
         QDBusReply<bool> reply(remoteSensorManager.loadPlugin(sensorName));
         if(!reply.isValid() || !reply.value())
         {
-            sensordLogW() << "Failed to load plugin";
+            qCWarning(lcSensorFw) << "Failed to load plugin";
             return false;
         }
 

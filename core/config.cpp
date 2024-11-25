@@ -78,14 +78,14 @@ bool SensorFrameworkConfig::loadConfigFile(const QString &configFileName)
     /* Success means the file was loaded and processed without hiccups */
     bool loaded = false;
     if (!QFile::exists(configFileName)) {
-        sensordLogW() << "File does not exists \"" << configFileName <<  "\"";
+        qCWarning(lcSensorFw) << "File does not exists \"" << configFileName <<  "\"";
     } else {
         QSettings merge(configFileName, QSettings::IniFormat);
         QSettings::Status status(merge.status());
         if (status == QSettings::FormatError ) {
-            sensordLogW() << "Configuration file \"" << configFileName <<  "\" is in wrong format";
+            qCWarning(lcSensorFw) << "Configuration file \"" << configFileName <<  "\" is in wrong format";
         } else if (status != QSettings::NoError) {
-            sensordLogW() << "Unable to open \"" << configFileName <<  "\" configuration file";
+            qCWarning(lcSensorFw) << "Unable to open \"" << configFileName <<  "\" configuration file";
         } else {
             foreach (const QString &key, merge.allKeys()) {
                 m_settings.setValue(key, merge.value(key));
@@ -100,7 +100,7 @@ QVariant SensorFrameworkConfig::value(const QString &key) const
 {
     QVariant var = m_settings.value(key, QVariant());
     if (var.isValid()) {
-        sensordLogT() << "Value for key" << key << ":" << var.toString();
+        qCDebug(lcSensorFw) << "Value for key" << key << ":" << var.toString();
     }
     return var;
 }
@@ -114,7 +114,7 @@ QStringList SensorFrameworkConfig::groups() const
 SensorFrameworkConfig *SensorFrameworkConfig::configuration()
 {
     if (!static_configuration) {
-        sensordLogW() << "Configuration has not been loaded";
+        qCWarning(lcSensorFw) << "Configuration has not been loaded";
     }
     return static_configuration;
 }

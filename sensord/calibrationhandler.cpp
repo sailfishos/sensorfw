@@ -57,14 +57,14 @@ CalibrationHandler::~CalibrationHandler()
 bool CalibrationHandler::initiateSession()
 {
     SensorManager& sm = SensorManager::instance();
-    sensordLogD() << "Loading MagnetometerSensorPlugin";
+    qCInfo(lcSensorFw) << "Loading MagnetometerSensorPlugin";
     if (!sm.loadPlugin(SENSOR_NAME)) {
-        sensordLogW() << "Failed to load magnetometer plug-in";
+        qCWarning(lcSensorFw) << "Failed to load magnetometer plug-in";
         return false;
     }
     m_sessionId = sm.requestSensor(SENSOR_NAME);
     if (m_sessionId <= 0) {
-        sensordLogW() << "Failed to get session for magnetometersensor.";
+        qCWarning(lcSensorFw) << "Failed to get session for magnetometersensor.";
     } else {
         m_sensor = reinterpret_cast<MagnetometerSensorChannel*>(sm.getSensorInstance(SENSOR_NAME)->sensor_);
     }
@@ -92,14 +92,14 @@ void CalibrationHandler::stopCalibration()
         m_sensor->stop();
         disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)),
                    this, SLOT(sampleReceived(const MagneticField&)));
-        sensordLogD() << "Stopping magnetometer background calibration due to PSM on";
+        qCInfo(lcSensorFw) << "Stopping magnetometer background calibration due to PSM on";
     }
 }
 
 void CalibrationHandler::calibrationTimeout()
 {
     if (m_sensor) {
-        sensordLogD() << "Stopping magnetometer background calibration due to timeout.";
+        qCInfo(lcSensorFw) << "Stopping magnetometer background calibration due to timeout.";
         m_sensor->setStandbyOverrideRequest(m_sessionId, false);
         m_sensor->stop();
         disconnect(m_sensor, SIGNAL(internalData(const MagneticField&)),
@@ -109,7 +109,7 @@ void CalibrationHandler::calibrationTimeout()
 
 void CalibrationHandler::resumeCalibration()
 {
-    sensordLogD() << "Resuming magnetometer background calibration";
+    qCInfo(lcSensorFw) << "Resuming magnetometer background calibration";
     if (m_sensor && !m_timer.isActive()) {
         m_sensor->start();
         m_sensor->setIntervalRequest(m_sessionId, m_calibRate);

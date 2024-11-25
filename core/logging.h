@@ -27,12 +27,7 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
-// QUARANTINE #include <QDebug>
-#include <QtDebug>
+#include <QLoggingCategory>
+Q_DECLARE_LOGGING_CATEGORY(lcSensorFw)
 
-#define sensordLogT(ARGS_...) (qDebug(ARGS_))
-#define sensordLogD(ARGS_...) (qInfo(ARGS_))
-#define sensordLogW(ARGS_...) (qWarning(ARGS_))
-#define sensordLogC(ARGS_...) (qCritical(ARGS_))
-
-#endif //LOGGING_H
+#endif

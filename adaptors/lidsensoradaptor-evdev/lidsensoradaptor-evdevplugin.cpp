@@ -30,7 +30,7 @@
 
 void LidsensorAdaptorEvdevPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering lidsensoradaptor-evdev";
+    qCInfo(lcSensorFw) << "registering lidsensoradaptor-evdev";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<LidSensorAdaptorEvdev>("lidsensoradaptor");
 }

@@ -132,7 +132,7 @@ bool DeviceAdaptor::setStandbyOverride(bool override)
             standby();
         }
     }
-    sensordLogD() << "standbyOverride changed: id = " << id() << ", value = " <<  standbyOverride_;
+    qCInfo(lcSensorFw) << "standbyOverride changed: id = " << id() << ", value = " <<  standbyOverride_;
     return true;
 }
 

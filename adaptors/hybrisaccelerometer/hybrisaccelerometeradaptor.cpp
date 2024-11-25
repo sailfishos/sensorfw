@@ -45,7 +45,7 @@ bool HybrisAccelerometerAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "Hybris AccelAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris AccelAdaptor start";
     return true;
 }
 
@@ -54,7 +54,7 @@ void HybrisAccelerometerAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "Hybris AccelAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris AccelAdaptor stop";
 }
 
 void HybrisAccelerometerAdaptor::processSample(const sensors_event_t& data)

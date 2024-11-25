@@ -37,7 +37,7 @@ SinkBase* Consumer::sink(const QString& name) const
 {
     QHash<QString, SinkBase*>::const_iterator it = sinks_.find(name);
     if (it == sinks_.end()) {
-        sensordLogW() << "Failed to locate sink: " << name;
+        qCWarning(lcSensorFw) << "Failed to locate sink: " << name;
         return nullptr;
     }
     return it.value();

@@ -25,7 +25,7 @@
 
 void MagCalibrationChainPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering magcalibrationchain";
+    qCInfo(lcSensorFw) << "registering magcalibrationchain";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<CalibrationFilter>("calibrationfilter");
     sm.registerChain<MagCalibrationChain>("magcalibrationchain");

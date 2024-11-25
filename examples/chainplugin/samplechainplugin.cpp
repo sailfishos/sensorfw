@@ -30,7 +30,7 @@
 
 void SampleChainPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering samplechain";
+    qCInfo(lcSensorFw) << "registering samplechain";
     SensorManager& sm = SensorManager::instance();
     sm.registerChain<SampleChain>("samplechain");
 }

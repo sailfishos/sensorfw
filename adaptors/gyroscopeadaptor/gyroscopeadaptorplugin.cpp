@@ -30,7 +30,7 @@
 
 void GyroscopeAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering gyroscopeadaptor";
+    qCInfo(lcSensorFw) << "registering gyroscopeadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<GyroscopeAdaptor>("gyroscopeadaptor");
 }

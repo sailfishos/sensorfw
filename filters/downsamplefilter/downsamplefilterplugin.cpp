@@ -30,7 +30,7 @@
 
 void DownsampleFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering downsamplefilter";
+    qCInfo(lcSensorFw) << "registering downsamplefilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<DownsampleFilter>("downsamplefilter");
 }

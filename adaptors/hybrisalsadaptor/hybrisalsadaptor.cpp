@@ -37,7 +37,7 @@ HybrisAlsAdaptor::HybrisAlsAdaptor(const QString& id) :
     setDescription("Hybris als");
     powerStatePath = SensorFrameworkConfig::configuration()->value("als/powerstate_path").toByteArray();
     if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath)) {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
 }
@@ -53,7 +53,7 @@ bool HybrisAlsAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "Hybris HybrisAlsAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris HybrisAlsAdaptor start";
     return true;
 }
 
@@ -79,7 +79,7 @@ void HybrisAlsAdaptor::sendInitialData()
         }
 
         if (inputDev.isEmpty()) {
-            sensordLogD() << id() << "No sysfs als device found";
+            qCInfo(lcSensorFw) << id() << "No sysfs als device found";
             return;
         }
 
@@ -119,7 +119,7 @@ void HybrisAlsAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "Hybris HybrisAlsAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris HybrisAlsAdaptor stop";
 }
 
 void HybrisAlsAdaptor::processSample(const sensors_event_t& data)

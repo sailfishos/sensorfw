@@ -24,7 +24,7 @@
 
 void HybrisMagnetometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrismagnetometeradaptor";
+    qCInfo(lcSensorFw) << "registering hybrismagnetometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisMagnetometerAdaptor>("magnetometeradaptor");
 }

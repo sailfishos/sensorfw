@@ -15,7 +15,7 @@ OaktrailAccelAdaptor::OaktrailAccelAdaptor (const QString& id) :
 
     devPath = SensorFrameworkConfig::configuration ()->value ("oaktrail_acc_sys_path").toString ();
     if ( lstat (devPath.toLatin1().constData(), &st) < 0 ) {
-        sensordLogW () << devPath << "no found";
+        qCWarning(lcSensorFw) << devPath << "no found";
         return;
     }
 
@@ -43,13 +43,13 @@ bool OaktrailAccelAdaptor::startSensor () {
     if ( !(SysfsAdaptor::startSensor ()) )
         return false;
 
-    sensordLogD() << id() << "Oaktrail AccelAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Oaktrail AccelAdaptor start";
     return true;
 }
 
 void OaktrailAccelAdaptor::stopSensor () {
     SysfsAdaptor::stopSensor();
-    sensordLogD() << id() << "Oaktrail AccelAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Oaktrail AccelAdaptor stop";
 }
 
 void OaktrailAccelAdaptor::processSample (int pathId, int fd) {
@@ -57,18 +57,18 @@ void OaktrailAccelAdaptor::processSample (int pathId, int fd) {
     int x, y, z;
 
     if ( pathId != devId ) {
-        sensordLogW () << "Wrong pathId" << pathId;
+        qCWarning(lcSensorFw) << "Wrong pathId" << pathId;
         return;
     }
 
     lseek (fd, 0, SEEK_SET);
     if ( read (fd, buf, sizeof(buf)) < 0 ) {
-        sensordLogW () << "Read failed";
+        qCWarning(lcSensorFw) << "Read failed";
         return;
     }
 
     if ( sscanf (buf, "(%d,%d,%d)", &x, &y, &z) == 0 ) {
-        sensordLogW () << "Wrong data format";
+        qCWarning(lcSensorFw) << "Wrong data format";
         return;
     }
 

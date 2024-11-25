@@ -30,7 +30,7 @@
 
 void RotationPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering rotationsensor";
+    qCInfo(lcSensorFw) << "registering rotationsensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<RotationSensorChannel>("rotationsensor");
 }

@@ -30,7 +30,7 @@
 
 void TemperatureAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering temperatureadaptor";
+    qCInfo(lcSensorFw) << "registering temperatureadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<TemperatureAdaptor>("temperatureadaptor");
 }

@@ -55,7 +55,7 @@ AccelerometerChain::AccelerometerChain(const QString& id) :
     QString aconvString = SensorFrameworkConfig::configuration()->value<QString>("accelerometer/transformation_matrix", "");
     if (aconvString.size() > 0) {
         if (!setMatrixFromString(aconvString)) {
-            sensordLogW() << NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
+            qCWarning(lcSensorFw) << NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
         }
     }
 
@@ -106,12 +106,12 @@ AccelerometerChain::~AccelerometerChain()
 bool AccelerometerChain::start()
 {
     if (!accelerometerAdaptor_) {
-        sensordLogD() << id() << "No accelerometer adaptor to start.";
+        qCInfo(lcSensorFw) << id() << "No accelerometer adaptor to start.";
         return false;
     }
 
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << id() << "Starting AccelerometerChain";
+        qCInfo(lcSensorFw) << id() << "Starting AccelerometerChain";
         filterBin_->start();
         accelerometerAdaptor_->startSensor();
     }
@@ -121,12 +121,12 @@ bool AccelerometerChain::start()
 bool AccelerometerChain::stop()
 {
     if (!accelerometerAdaptor_) {
-        sensordLogD() << id() << "No accelerometer adaptor to stop.";
+        qCInfo(lcSensorFw) << id() << "No accelerometer adaptor to stop.";
         return false;
     }
 
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << id() << "Stopping AccelerometerChain";
+        qCInfo(lcSensorFw) << id() << "Stopping AccelerometerChain";
         accelerometerAdaptor_->stopSensor();
         filterBin_->stop();
     }
@@ -137,7 +137,7 @@ bool AccelerometerChain::setMatrixFromString(const QString& str)
 {
     QStringList strList = str.split(',');
     if (strList.size() != 9) {
-        sensordLogW() << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
+        qCWarning(lcSensorFw) << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
         return false;
     }
 

@@ -92,7 +92,7 @@ quint16 CompassSensorChannel::declinationValue() const
 
 bool CompassSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting CompassSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting CompassSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -105,7 +105,7 @@ bool CompassSensorChannel::start()
 
 bool CompassSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping CompassSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping CompassSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         compassChain_->stop();

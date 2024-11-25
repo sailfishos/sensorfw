@@ -564,7 +564,7 @@ void SensorManager::registerSensor(const QString& sensorName)
 {
     qDebug() << Q_FUNC_INFO << sensorName;
     if (sensorInstanceMap_.contains(sensorName)) {
-        sensordLogW() << QString("<%1> Sensor is already present!").arg(sensorName);
+        qCWarning(lcSensorFw) << QString("<%1> Sensor is already present!").arg(sensorName);
         return;
     }
 
@@ -576,7 +576,7 @@ void SensorManager::registerSensor(const QString& sensorName)
     }
 
     if (sensorFactoryMap_[typeName] != SENSOR_TYPE::factoryMethod) {
-        sensordLogW() << "Sensor type doesn't match!";
+        qCWarning(lcSensorFw) << "Sensor type doesn't match!";
         return;
     }
 }
@@ -585,7 +585,7 @@ template<class CHAIN_TYPE>
 void SensorManager::registerChain(const QString& chainName)
 {
     if (chainInstanceMap_.contains(chainName)) {
-        sensordLogW() << QString("<%1> Chain is already present!").arg(chainName);
+        qCWarning(lcSensorFw) << QString("<%1> Chain is already present!").arg(chainName);
         return;
     }
 
@@ -597,7 +597,7 @@ void SensorManager::registerChain(const QString& chainName)
     }
 
     if (chainFactoryMap_[typeName] != CHAIN_TYPE::factoryMethod) {
-        sensordLogW() << "Chain type doesn't match!";
+        qCWarning(lcSensorFw) << "Chain type doesn't match!";
         return;
     }
 }
@@ -608,7 +608,7 @@ void SensorManager::registerDeviceAdaptor(const QString& adaptorName)
     QString cleanAdaptorName = getCleanId(adaptorName);
 
     if (deviceAdaptorInstanceMap_.contains(cleanAdaptorName)) {
-        sensordLogW() << QString("<%1> Adaptor is already present!").arg(cleanAdaptorName);
+        qCWarning(lcSensorFw) << QString("<%1> Adaptor is already present!").arg(cleanAdaptorName);
         return;
     }
 
@@ -620,7 +620,7 @@ void SensorManager::registerDeviceAdaptor(const QString& adaptorName)
     }
 
     if (deviceAdaptorFactoryMap_[typeName] != DEVICE_ADAPTOR_TYPE::factoryMethod) {
-        sensordLogW() << "Device adaptor type doesn't match!";
+        qCWarning(lcSensorFw) << "Device adaptor type doesn't match!";
         return;
     }
 }
@@ -629,7 +629,7 @@ template<class FILTER_TYPE>
 void SensorManager::registerFilter(const QString& filterName)
 {
     if (filterFactoryMap_.contains(filterName)) {
-        sensordLogW() << QString("<%1> Filter is already present!").arg(filterName);
+        qCWarning(lcSensorFw) << QString("<%1> Filter is already present!").arg(filterName);
         return;
     }
 

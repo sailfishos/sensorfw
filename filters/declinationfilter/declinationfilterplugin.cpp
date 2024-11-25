@@ -30,7 +30,7 @@
 
 void DeclinationFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering declinationfilter";
+    qCInfo(lcSensorFw) << "registering declinationfilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<DeclinationFilter>("declinationfilter");
 }

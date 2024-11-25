@@ -75,7 +75,7 @@ void NodeBase::setDescription(const QString& str)
 void NodeBase::introduceAvailableDataRange(const DataRange& range)
 {
     if (!m_dataRangeList.contains(range)) {
-        sensordLogD() << "Introduced new data range for '" << id() << "':" << range.min << "-" << range.max
+        qCInfo(lcSensorFw) << "Introduced new data range for '" << id() << "':" << range.min << "-" << range.max
                       << "," << range.resolution;
         m_dataRangeList.append(range);
     }
@@ -151,7 +151,7 @@ void NodeBase::requestDataRange(int sessionId, const DataRange& range)
         if (rangeChanged) {
             DataRangeRequest currentRequest = getCurrentDataRange();
             if (!setDataRange(currentRequest.range, currentRequest.id)) {
-                sensordLogW() << id() << "Failed to set DataRange.";
+                qCWarning(lcSensorFw) << id() << "Failed to set DataRange.";
             }
             emit propertyChanged("datarange");
         }
@@ -171,7 +171,7 @@ void NodeBase::removeDataRangeRequest(int sessionId)
         }
 
         if (index < 0) {
-            sensordLogD() << id() << "No data range request for sessionId " << sessionId;
+            qCInfo(lcSensorFw) << id() << "No data range request for sessionId " << sessionId;
             return;
         }
 
@@ -189,7 +189,7 @@ void NodeBase::removeDataRangeRequest(int sessionId)
         if (rangeChanged) {
             DataRangeRequest currentRequest = getCurrentDataRange();
             if (!setDataRange(currentRequest.range, currentRequest.id)) {
-                sensordLogW() << id() << "Failed to set DataRange.";
+                qCWarning(lcSensorFw) << id() << "Failed to set DataRange.";
             }
             emit propertyChanged("datarange");
         }
@@ -253,7 +253,7 @@ const QList<DataRange>& NodeBase::getAvailableIntervals() const
 void NodeBase::introduceAvailableInterval(const DataRange& interval)
 {
     if (!m_intervalList.contains(interval)) {
-        sensordLogD() << "Introduced new interval for '" << id() << "':" << interval.min << "-" << interval.max;
+        qCInfo(lcSensorFw) << "Introduced new interval for '" << id() << "':" << interval.min << "-" << interval.max;
         m_intervalList.append(interval);
     }
 }
@@ -309,7 +309,7 @@ bool NodeBase::setIntervalRequest(const int sessionId, const unsigned int interv
     unsigned int winningRequest = evaluateIntervalRequests(winningSessionId);
 
     if (winningSessionId >= 0) {
-        sensordLogD() << "Setting new interval for node: " << id() << ". Evaluation won by session '"
+        qCInfo(lcSensorFw) << "Setting new interval for node: " << id() << ". Evaluation won by session '"
                       << winningSessionId << "' with request: " << winningRequest;
         setInterval(winningSessionId, winningRequest);
     }
@@ -343,7 +343,7 @@ bool NodeBase::standbyOverride() const
 
 bool NodeBase::setStandbyOverrideRequest(const int sessionId, const bool override)
 {
-    sensordLogD() << sessionId << "requested standbyoverride for '" << id() << "' :" << override;
+    qCInfo(lcSensorFw) << sessionId << "requested standbyoverride for '" << id() << "' :" << override;
     // Only store true requests, id is enough, no need for value
     if (override == false) {
         m_standbyRequestList.removeAll(sessionId);
@@ -420,9 +420,9 @@ bool NodeBase::setDefaultInterval(const unsigned int interval_us)
         // a) zero interval was requested -> useless
         // b) no interval ranges were defined -> logic error
         if (interval_us == 0)
-            sensordLogW() << id() << "Attempting to set invalid default data rate:" << interval_us;
+            qCWarning(lcSensorFw) << id() << "Attempting to set invalid default data rate:" << interval_us;
         else
-            sensordLogW() << id() << "Attempting to set default data rate:" << interval_us
+            qCWarning(lcSensorFw) << id() << "Attempting to set default data rate:" << interval_us
                           << "without defining possible data rates";
         return false;
     }
@@ -479,7 +479,7 @@ bool NodeBase::connectToSource(NodeBase* source, const QString& bufferName, Ring
     RingBufferBase* rb = source->findBuffer(bufferName);
     if (rb == nullptr) {
         // This is critical as long as connections are statically defined.
-        sensordLogC() << "Buffer '" << bufferName << "' not found while building connections for node: " << id();
+        qCCritical(lcSensorFw) << "Buffer '" << bufferName << "' not found while building connections for node: " << id();
         return false;
     }
 
@@ -500,7 +500,7 @@ bool NodeBase::disconnectFromSource(NodeBase* source, const QString& bufferName,
 
     RingBufferBase* rb = source->findBuffer(bufferName);
     if (rb == nullptr) {
-        sensordLogW() << "Buffer '" << bufferName << "' not found while erasing connections for node: " << id();
+        qCWarning(lcSensorFw) << "Buffer '" << bufferName << "' not found while erasing connections for node: " << id();
         return false;
     }
 
@@ -509,7 +509,7 @@ bool NodeBase::disconnectFromSource(NodeBase* source, const QString& bufferName,
     if (success) {
         // Remove the source reference from storage
         if (!m_sourceList.removeOne(source)) {
-            sensordLogW() << "Buffer '" << bufferName << "' not disconnected properly for node: " << id();
+            qCWarning(lcSensorFw) << "Buffer '" << bufferName << "' not disconnected properly for node: " << id();
         }
     }
 
@@ -682,7 +682,7 @@ void NodeBase::setValid(bool valid)
 {
     m_isValid = valid;
     if (!m_isValid) {
-        sensordLogW() << "Node '" << id() << "' state changed to invalid";
+        qCWarning(lcSensorFw) << "Node '" << id() << "' state changed to invalid";
     }
 }
 
@@ -690,20 +690,20 @@ bool NodeBase::setDataRange(const DataRange& range, int sessionId)
 {
     Q_UNUSED(range);
     Q_UNUSED(sessionId);
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return false;
 }
 
 bool NodeBase::setStandbyOverride(bool override)
 {
     Q_UNUSED(override);
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return false;
 }
 
 unsigned int NodeBase::interval() const
 {
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return 0;
 }
 
@@ -711,20 +711,20 @@ bool NodeBase::setInterval(int sessionId, unsigned int interval_us)
 {
     Q_UNUSED(interval_us);
     Q_UNUSED(sessionId);
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return false;
 }
 
 bool NodeBase::setBufferSize(unsigned int value)
 {
     Q_UNUSED(value);
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return false;
 }
 
 bool NodeBase::setBufferInterval(unsigned int interval_us)
 {
     Q_UNUSED(interval_us);
-    sensordLogD() << id() << __func__ << "not implemented in some node using it.";
+    qCInfo(lcSensorFw) << id() << __func__ << "not implemented in some node using it.";
     return false;
 }

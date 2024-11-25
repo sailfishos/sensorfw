@@ -31,7 +31,7 @@
 
 void ALSAdaptorSysfsPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering alsadaptor-sysfs";
+    qCInfo(lcSensorFw) << "registering alsadaptor-sysfs";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<ALSAdaptorSysfs>("alsadaptor");
 }

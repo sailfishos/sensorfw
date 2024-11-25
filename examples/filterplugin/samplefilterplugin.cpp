@@ -30,7 +30,7 @@
 
 void SampleFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering samplefilter";
+    qCInfo(lcSensorFw) << "registering samplefilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<SampleFilter>("samplefilter");
 }

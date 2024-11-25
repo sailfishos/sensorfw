@@ -98,7 +98,7 @@ int InputDevAdaptor::getInputDevices(const QString& typeName)
     qDebug() << id() << Q_FUNC_INFO << m_usedDevicePollFilePath;
 
     if (m_deviceCount == 0) {
-        sensordLogW() << id() << "Cannot find any device for: " << typeName;
+        qCWarning(lcSensorFw) << id() << "Cannot find any device for: " << typeName;
         setValid(false);
     } else {
         QByteArray byteArray = readFromFile(m_usedDevicePollFilePath.toLatin1());
@@ -113,11 +113,11 @@ int InputDevAdaptor::getEvents(int fd)
 {
     int bytes = read(fd, m_evlist, sizeof(struct input_event)*64);
     if (bytes == -1) {
-        sensordLogW() << id() << "Error occured: " << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "Error occured: " << strerror(errno);
         return 0;
     }
     if (bytes % sizeof(struct input_event)) {
-        sensordLogW() << id() << "Short read or stray bytes.";
+        qCWarning(lcSensorFw) << id() << "Short read or stray bytes.";
         return 0;
     }
     return bytes/sizeof(struct input_event);
@@ -154,11 +154,11 @@ bool InputDevAdaptor::checkInputDevice(const QString& path, const QString& match
         qDebug() << id() << Q_FUNC_INFO << "open result:" << result << deviceName;
 
         if (result == -1) {
-           sensordLogW() << id() << "Could not read devicename for " << path;
+           qCWarning(lcSensorFw) << id() << "Could not read devicename for " << path;
            check = false;
         } else {
             if (QString(deviceName).contains(matchString, Qt::CaseInsensitive)) {
-                sensordLogT() << id() << "\"" << matchString << "\"" << " matched in device name: " << deviceName;
+                qCDebug(lcSensorFw) << id() << "\"" << matchString << "\"" << " matched in device name: " << deviceName;
                 check = true;
             } else {
                 check = false;
@@ -182,7 +182,7 @@ bool InputDevAdaptor::setInterval(const int sessionId, const unsigned int interv
 
     // XXX: is this supposed to be sampling frequency or sample time?
     int interval_ms = (interval_us + 999) / 1000;
-    sensordLogD() << id() << "Setting poll interval for " << m_deviceString << " to " << interval_ms << "ms";
+    qCInfo(lcSensorFw) << id() << "Setting poll interval for " << m_deviceString << " to " << interval_ms << "ms";
     QByteArray frequencyString(QString("%1\n").arg(interval_ms).toLocal8Bit());
     if (writeToFile(m_usedDevicePollFilePath.toLocal8Bit(), frequencyString)) {
         m_cachedInterval_us = interval_ms * 1000;
@@ -195,7 +195,7 @@ void InputDevAdaptor::init()
 {
     qDebug() << id() << Q_FUNC_INFO << name();
     if (!getInputDevices(SensorFrameworkConfig::configuration()->value<QString>(name() + "/input_match", name()))) {
-        sensordLogW() << id() << "Input device not found.";
+        qCWarning(lcSensorFw) << id() << "Input device not found.";
         SysfsAdaptor::init();
     }
 }

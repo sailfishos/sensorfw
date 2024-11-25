@@ -57,7 +57,7 @@ void DeclinationFilter::correct(unsigned, const CompassData* data)
     if (m_declinationCorrection.loadAcquire() != 0) {
         newOrientation.correctedDegrees_ += m_declinationCorrection.loadAcquire();
         newOrientation.correctedDegrees_ %= 360;
-//        sensordLogT() << "DeclinationFilter corrected degree " << newOrientation.degrees_ << " => " << newOrientation.correctedDegrees_ << ". Level: " << newOrientation.level_;
+//        qCDebug(lcSensorFw) << "DeclinationFilter corrected degree " << newOrientation.degrees_ << " => " << newOrientation.correctedDegrees_ << ". Level: " << newOrientation.level_;
     }
     m_orientation = newOrientation;
     source_.propagate(1, &m_orientation);
@@ -71,7 +71,7 @@ void DeclinationFilter::loadSettings()
     if (declination != 0) {
         m_declinationCorrection = declination;
     }
-    sensordLogD() << "Fetched declination correction from GConf: " << m_declinationCorrection.loadAcquire();
+    qCInfo(lcSensorFw) << "Fetched declination correction from GConf: " << m_declinationCorrection.loadAcquire();
 }
 
 int DeclinationFilter::declinationCorrection()

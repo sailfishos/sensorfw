@@ -31,7 +31,7 @@
 
 void ProximityAdaptorEvdevPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering proximityadaptor-evdev";
+    qCInfo(lcSensorFw) << "registering proximityadaptor-evdev";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<ProximityAdaptorEvdev>("proximityadaptor");
 }

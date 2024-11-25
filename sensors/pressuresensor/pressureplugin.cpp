@@ -30,7 +30,7 @@
 
 void PressurePlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering pressuresensor";
+    qCInfo(lcSensorFw) << "registering pressuresensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<PressureSensorChannel>("pressuresensor");
 }

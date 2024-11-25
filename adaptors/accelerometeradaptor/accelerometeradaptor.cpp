@@ -107,7 +107,7 @@ void AccelerometerAdaptor::commitOutput(struct input_event *ev)
     d->y_ = orientationValue_.y_;
     d->z_ = orientationValue_.z_;
 
-//    sensordLogT() << id() << "Accelerometer reading: " << d->x_ << ", " << d->y_ << ", " << d->z_;
+//    qCDebug(lcSensorFw) << id() << "Accelerometer reading: " << d->x_ << ", " << d->y_ << ", " << d->z_;
 
     accelerometerBuffer_->commit();
     accelerometerBuffer_->wakeUpReaders();

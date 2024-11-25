@@ -87,7 +87,7 @@ SampleSensorChannel::~SampleSensorChannel()
 // Start bins and sources
 bool SampleSensorChannel::start()
 {
-    sensordLogD() << "Starting SampleSensorChannel";
+    qCInfo(lcSensorFw) << "Starting SampleSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -100,7 +100,7 @@ bool SampleSensorChannel::start()
 // Stopping is start() in reverse.
 bool SampleSensorChannel::stop()
 {
-    sensordLogD() << "Stopping SampleSensorChannel";
+    qCInfo(lcSensorFw) << "Stopping SampleSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         sampleChain_->stop();

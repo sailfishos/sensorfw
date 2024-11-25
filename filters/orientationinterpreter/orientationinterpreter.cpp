@@ -76,8 +76,8 @@ OrientationInterpreter::OrientationInterpreter()
     minLimitSquared = squaredLimit(minLimit);
     maxLimitSquared = squaredLimit(maxLimit);
 
-    sensordLogW() << "minLimit:" << minLimit << minLimitSquared;
-    sensordLogW() << "maxLimit:" << maxLimit << maxLimitSquared;
+    qCWarning(lcSensorFw) << "minLimit:" << minLimit << minLimitSquared;
+    qCWarning(lcSensorFw) << "maxLimit:" << maxLimit << maxLimitSquared;
 
     angleThresholdPortrait = SensorFrameworkConfig::configuration()->value("orientation/threshold_portrait",
                                                                            QVariant(THRESHOLD_PORTRAIT)).toInt();
@@ -100,7 +100,7 @@ void OrientationInterpreter::accDataAvailable(unsigned, const AccelerationData* 
 
     // Check overflow
     if (overFlowCheck()) {
-        sensordLogD() << "Acc value" << data.x_ << data.y_ << data.z_ << "discarded due to over/underflow";
+        qCInfo(lcSensorFw) << "Acc value" << data.x_ << data.y_ << data.z_ << "discarded due to over/underflow";
         return;
     }
 
@@ -227,7 +227,7 @@ void OrientationInterpreter::processTopEdge()
         }
 
         topEdge.orientation_ = newTopEdge.orientation_;
-        sensordLogT() << "new TopEdge value: " << topEdge.orientation_;
+        qCDebug(lcSensorFw) << "new TopEdge value: " << topEdge.orientation_;
         topEdge.timestamp_ = data.timestamp_;
         topEdgeSource.propagate(1, &topEdge);
     }
@@ -269,7 +269,7 @@ void OrientationInterpreter::processOrientation()
 
     if (newPose.orientation_ != orientationData.orientation_) {
         orientationData.orientation_ = newPose.orientation_;
-        sensordLogT() << "New orientation value: " << orientationData.orientation_;
+        qCDebug(lcSensorFw) << "New orientation value: " << orientationData.orientation_;
         orientationData.timestamp_ = data.timestamp_;
         orientationSource.propagate(1, &orientationData);
     }

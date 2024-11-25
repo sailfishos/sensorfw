@@ -30,7 +30,7 @@
 
 void MagCoordinateAlignFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering magcoordinatealignfilter";
+    qCInfo(lcSensorFw) << "registering magcoordinatealignfilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<MagCoordinateAlignFilter>("magcoordinatealignfilter");
 }

@@ -34,7 +34,7 @@ HybrisPressureAdaptor::HybrisPressureAdaptor(const QString& id) :
     setDescription("Hybris pressure");
     powerStatePath = SensorFrameworkConfig::configuration()->value("pressure/powerstate_path").toByteArray();
     if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath)) {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << powerStatePath;
         powerStatePath.clear();
     }
 }
@@ -50,7 +50,7 @@ bool HybrisPressureAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "Hybris HybrisPressureAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris HybrisPressureAdaptor start";
     return true;
 }
 
@@ -59,7 +59,7 @@ void HybrisPressureAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "Hybris HybrisPressureAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris HybrisPressureAdaptor stop";
 }
 
 void HybrisPressureAdaptor::processSample(const sensors_event_t& data)
