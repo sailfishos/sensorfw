@@ -48,6 +48,10 @@ public:
     TMagMatrix(double m[][DIM]) {
         setMatrix(m);
     }
+    TMagMatrix &operator=(const TMagMatrix &other) {
+        setMatrix(other.data_);
+        return *this;
+    }
 
     double get(int i, int j) const {
         if (i >= DIM || j >= DIM || i < 0 || j < 0) {
