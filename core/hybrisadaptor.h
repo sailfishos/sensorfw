@@ -215,6 +215,7 @@ private:
     int                           m_eventPipeReadFd;
     int                           m_eventPipeWriteFd;
     QSocketNotifier              *m_eventPipeNotifier;
+    QSet<int>                     m_doubleStopReaderQuirkSensorTypes;
 
 #ifdef USE_BINDER
     static GBinderLocalReply *sensorCallbackHandler(

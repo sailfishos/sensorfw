@@ -71,8 +71,8 @@ private:
     AccelerationData data;
     QList<AccelerationData> dataBuffer;
 
-    int minLimit;
-    int maxLimit;
+    int minLimitSquared;
+    int maxLimitSquared;
     int angleThresholdPortrait;
     int angleThresholdLandscape;
     unsigned long discardTime;

@@ -35,7 +35,9 @@
 
 static SensorFrameworkConfig *static_configuration = 0;
 
-SensorFrameworkConfig::SensorFrameworkConfig() {
+SensorFrameworkConfig::SensorFrameworkConfig()
+    : m_settings(QString(), QSettings::IniFormat)
+{
 }
 
 SensorFrameworkConfig::~SensorFrameworkConfig() {
