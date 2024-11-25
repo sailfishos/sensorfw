@@ -77,11 +77,9 @@ static void signalUSR2(int param)
 {
     Q_UNUSED(param);
 
-    QStringList output;
-
-    output.append("Flushing sensord state");
-    output.append(QString("  Logging level: %1").arg(logLevel));
-    SensorManager::instance().printStatus(output);
+    qCWarning(lcSensorFw) << "Flushing sensord state";
+    qCWarning(lcSensorFw) << QString("  Logging level: %1").arg(logLevel);
+    QStringList output = SensorManager::instance().printStatus();
 
     foreach (const QString& line, output) {
         qCWarning(lcSensorFw) << line.toLocal8Bit().data();

@@ -187,11 +187,9 @@ class SensorManager : public QObject, protected QDBusContext
 
 public:
     /**
-     * Append current status into given StringList.
-     *
-     * @param output StringList to append status.
+     * Returns output lines for current status
      */
-    void printStatus(QStringList& output) const;
+    QStringList printStatus() const;
 
     /**
      * Get last occured error code.

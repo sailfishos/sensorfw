@@ -785,8 +785,9 @@ void SensorManager::devicePSMStateChanged(bool psmState)
     }
 }
 
-void SensorManager::printStatus(QStringList& output) const
+QStringList SensorManager::printStatus() const
 {
+    QStringList output;
     output.append("  Adaptors:");
     for (QMap<QString, DeviceAdaptorInstanceEntry>::const_iterator it = deviceAdaptorInstanceMap_.constBegin();
          it != deviceAdaptorInstanceMap_.constEnd(); ++it) {
@@ -817,6 +818,8 @@ void SensorManager::printStatus(QStringList& output) const
         str.append(QString(". %1").arg((it.value().sensor_ && it.value().sensor_->running()) ? "Running" : "Stopped"));
         output.append(str);
     }
+
+    return output;
 }
 
 QString SensorManager::socketToPid(int id) const
