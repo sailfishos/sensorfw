@@ -31,7 +31,7 @@
 
 void RotationFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering rotationfilter";
+    qCInfo(lcSensorFw) << "registering rotationfilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<RotationFilter>("rotationfilter");
 }

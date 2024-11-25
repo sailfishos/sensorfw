@@ -62,11 +62,11 @@ void ALSAdaptorSysfs::processSample(int pathId, int fd)
     idata = atoi(asciidata);
 
     if (bytesRead <= 0) {
-        sensordLogW() << id() << "read(): " << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
         return;
     }
 
-    sensordLogT() << id() << "Ambient light value: " << idata;
+    qCDebug(lcSensorFw) << id() << "Ambient light value: " << idata;
 
     TimedUnsigned* lux = alsBuffer_->nextSlot();
     lux->value_ = idata;

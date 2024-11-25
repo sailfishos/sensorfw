@@ -33,7 +33,8 @@
 /**
  * TMagMatrix holds a transformation matrix.
  */
-class TMagMatrix {
+class TMagMatrix
+{
 private:
     static const int DIM = 3;
 
@@ -46,6 +47,10 @@ public:
     }
     TMagMatrix(double m[][DIM]) {
         setMatrix(m);
+    }
+    TMagMatrix &operator=(const TMagMatrix &other) {
+        setMatrix(other.data_);
+        return *this;
     }
 
     double get(int i, int j) const {

@@ -24,7 +24,7 @@
 
 void HybrisProximityAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrisproximityadaptor";
+    qCInfo(lcSensorFw) << "registering hybrisproximityadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisProximityAdaptor>("proximityadaptor");
 }

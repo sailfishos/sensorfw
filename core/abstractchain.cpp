@@ -25,29 +25,22 @@
 
 #include "abstractchain.h"
 
-AbstractChain::AbstractChain(const QString& id, bool deleteBuffers) :
-    AbstractSensorChannel(id),
-    deleteBuffers_(deleteBuffers)
+AbstractChain::AbstractChain(const QString& id, bool deleteBuffers)
+    : AbstractSensorChannel(id)
+    , deleteBuffers_(deleteBuffers)
 {
 }
 
 AbstractChain::~AbstractChain()
 {
-    if(deleteBuffers_)
-    {
-        foreach(RingBufferBase* buffer, outputBufferMap_.values())
-        {
-            delete buffer;
-        }
+    if (deleteBuffers_) {
+        qDeleteAll(outputBufferMap_.values());
     }
 }
 
 RingBufferBase* AbstractChain::findBuffer(const QString& name) const
 {
-    QMap<QString, RingBufferBase*>::const_iterator it = outputBufferMap_.find(name);
-    if (it == outputBufferMap_.end())
-        return NULL;
-    return it.value();
+    return outputBufferMap_.value(name, nullptr);
 }
 
 void AbstractChain::nameOutputBuffer(const QString& name, RingBufferBase* buffer)

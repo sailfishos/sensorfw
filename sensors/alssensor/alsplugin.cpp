@@ -31,7 +31,7 @@
 
 void ALSPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering alssensor";
+    qCInfo(lcSensorFw) << "registering alssensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<ALSSensorChannel>("alssensor");
 }

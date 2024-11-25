@@ -58,10 +58,10 @@ void MagnetometerAdaptorAscii::processSample(int, int fd)
 
     lseek(fd, 0, SEEK_SET);
     if (read(fd, buf, sizeof(buf)) <= 0) {
-        sensordLogW() << id() << "read(): " << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
         return;
     }
-    sensordLogT() << id() << "Magnetometer output value: " << buf;
+    qCDebug(lcSensorFw) << id() << "Magnetometer output value: " << buf;
 
     sscanf(buf, "%hx:%hx:%hx\n", &x, &y, &z);
 

@@ -47,9 +47,8 @@ HybrisOrientationAdaptor::HybrisOrientationAdaptor(const QString& id) :
 
     setDescription("Hybris orientation");
     powerStatePath = SensorFrameworkConfig::configuration()->value("orientation/powerstate_path").toByteArray();
-    if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
-    {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
+    if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath)) {
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
 //    unsigned int interval_us = 50 * 1000;
@@ -67,7 +66,7 @@ bool HybrisOrientationAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "Hybris OrientationAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris OrientationAdaptor start";
     return true;
 }
 
@@ -76,7 +75,7 @@ void HybrisOrientationAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "Hybris OrientationAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris OrientationAdaptor stop";
 }
 
 void HybrisOrientationAdaptor::processSample(const sensors_event_t& data)

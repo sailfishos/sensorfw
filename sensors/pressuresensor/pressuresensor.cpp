@@ -88,7 +88,7 @@ PressureSensorChannel::~PressureSensorChannel()
 
 bool PressureSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting PressureSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting PressureSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -100,7 +100,7 @@ bool PressureSensorChannel::start()
 
 bool PressureSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping PressureSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping PressureSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         pressureAdaptor_->stopSensor();

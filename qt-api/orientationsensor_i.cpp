@@ -34,8 +34,8 @@ AbstractSensorChannelInterface* OrientationSensorChannelInterface::factoryMethod
     return new OrientationSensorChannelInterface(OBJECT_PATH + "/" + id, sessionId);
 }
 
-OrientationSensorChannelInterface::OrientationSensorChannelInterface(const QString &path, int sessionId) :
-    AbstractSensorChannelInterface(path, OrientationSensorChannelInterface::staticInterfaceName, sessionId)
+OrientationSensorChannelInterface::OrientationSensorChannelInterface(const QString &path, int sessionId)
+    : AbstractSensorChannelInterface(path, OrientationSensorChannelInterface::staticInterfaceName, sessionId)
 {
 }
 
@@ -52,9 +52,8 @@ OrientationSensorChannelInterface* OrientationSensorChannelInterface::controlInt
 OrientationSensorChannelInterface* OrientationSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, OrientationSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, OrientationSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<OrientationSensorChannelInterface*>(sm.interface(id));
@@ -63,9 +62,9 @@ OrientationSensorChannelInterface* OrientationSensorChannelInterface::interface(
 bool OrientationSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedUnsigned> values;
-    if(!read<TimedUnsigned>(values))
+    if (!read<TimedUnsigned>(values))
         return false;
-    foreach(const TimedUnsigned& data, values)
+    foreach (const TimedUnsigned& data, values)
         emit orientationChanged(data);
     return true;
 }

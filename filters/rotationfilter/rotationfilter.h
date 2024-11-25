@@ -51,7 +51,6 @@ public:
     }
 
 private:
-
     /**
      * Default constructor.
      */

@@ -31,7 +31,7 @@
 
 void SamplePlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering samplesensor";
+    qCInfo(lcSensorFw) << "registering samplesensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<SampleSensorChannel>("samplesensor");
 }

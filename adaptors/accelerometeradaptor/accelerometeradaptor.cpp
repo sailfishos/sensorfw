@@ -56,7 +56,7 @@ AccelerometerAdaptor::~AccelerometerAdaptor()
 
 bool AccelerometerAdaptor::startSensor()
 {
-    if(!powerStatePath_.isEmpty()) {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "1");
     }
     return SysfsAdaptor::startSensor();
@@ -64,7 +64,7 @@ bool AccelerometerAdaptor::startSensor()
 
 void AccelerometerAdaptor::stopSensor()
 {
-    if(!powerStatePath_.isEmpty()) {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "0");
     }
     SysfsAdaptor::stopSensor();
@@ -107,7 +107,7 @@ void AccelerometerAdaptor::commitOutput(struct input_event *ev)
     d->y_ = orientationValue_.y_;
     d->z_ = orientationValue_.z_;
 
-//    sensordLogT() << id() << "Accelerometer reading: " << d->x_ << ", " << d->y_ << ", " << d->z_;
+//    qCDebug(lcSensorFw) << id() << "Accelerometer reading: " << d->x_ << ", " << d->y_ << ", " << d->z_;
 
     accelerometerBuffer_->commit();
     accelerometerBuffer_->wakeUpReaders();

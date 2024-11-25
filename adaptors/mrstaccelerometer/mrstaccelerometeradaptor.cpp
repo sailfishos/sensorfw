@@ -49,12 +49,12 @@ void MRSTAccelAdaptor::processSample (int, int fd) {
 
     lseek (fd, 0, SEEK_SET);
     if ( read (fd, buf, sizeof(buf)) < 0 ) {
-        sensordLogW () << "Read failed";
+        qCWarning(lcSensorFw) << "Read failed";
         return;
     }
 
     if ( sscanf (buf, "(%d,%d,%d)", &x, &y, &z) == 0 ) {
-        sensordLogW () << "Wrong data format";
+        qCWarning(lcSensorFw) << "Wrong data format";
         return;
     }
 

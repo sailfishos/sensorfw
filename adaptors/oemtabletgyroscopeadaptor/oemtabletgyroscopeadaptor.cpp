@@ -35,10 +35,10 @@ void OEMTabletGyroscopeAdaptor::processSample(int pathId, int fd)
     char buf[32];
 
     if (read(fd, buf, sizeof(buf)) <= 0) {
-        sensordLogW() << id() << "read():" << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "read():" << strerror(errno);
         return;
     }
-    sensordLogT() << id() << "gyroscope output value: " << buf;
+    qCDebug(lcSensorFw) << id() << "gyroscope output value: " << buf;
 
     sscanf(buf, "%hd %hd %hd\n", &x, &y, &z);
 

@@ -72,20 +72,20 @@ void StabilityBin::startRun()
     sessionId = SensorManager::instance().requestSensor("contextsensor");
     if (sessionId == INVALID_SESSION)
     {
-        sensordLogC() << id() << "Failed to get unique sessionId for stability detection.";
+        qCCritical(lcSensorFw) << id() << "Failed to get unique sessionId for stability detection.";
     }
 
     accelerometerAdaptor = SensorManager::instance().requestDeviceAdaptor("accelerometeradaptor");
     if (!accelerometerAdaptor)
     {
-        sensordLogC() << id() << "Unable to access Accelerometer for stability properties.";
+        qCCritical(lcSensorFw) << id() << "Unable to access Accelerometer for stability properties.";
         return;
     }
 
     RingBufferBase* rb = accelerometerAdaptor->findBuffer("accelerometer");
     if (!rb)
     {
-        sensordLogC() << id() << "Unable to connect to accelerometer.";
+        qCCritical(lcSensorFw) << id() << "Unable to connect to accelerometer.";
     } else {
         rb->join(&accelerometerReader);
     }

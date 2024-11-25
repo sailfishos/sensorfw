@@ -75,11 +75,11 @@ void MagnetometerAdaptorNCDK::processSample(int pathId, int fd)
             z = adjustPos(strList.at(2).toInt(), m_z_adj);
         }
     } else {
-        sensordLogW() << id() << "Reading magnetometer error: " << strerror(errno);
+        qCWarning(lcSensorFw) << id() << "Reading magnetometer error: " << strerror(errno);
         return;
     }
 
-    sensordLogT() << id() << "Magnetometer Reading: " << x << ", " << y << ", " << z;
+    qCDebug(lcSensorFw) << id() << "Magnetometer Reading: " << x << ", " << y << ", " << z;
 
     CalibratedMagneticFieldData *sample = m_magnetometerBuffer->nextSlot();
 
@@ -94,13 +94,13 @@ void MagnetometerAdaptorNCDK::processSample(int pathId, int fd)
 
 bool MagnetometerAdaptorNCDK::setPowerState(bool value) const
 {
-    sensordLogD() << id() << "Setting power state for compass driver" << " to " << value;
+    qCInfo(lcSensorFw) << id() << "Setting power state for compass driver" << " to " << value;
 
     QByteArray powerStateStr = QByteArray::number(value);
 
     if (!writeToFile(m_powerStateFilePath, powerStateStr))
     {
-        sensordLogW() << id() << "Unable to set power state for compass driver";
+        qCWarning(lcSensorFw) << id() << "Unable to set power state for compass driver";
         return false;
     }
     return true;
@@ -128,7 +128,7 @@ bool MagnetometerAdaptorNCDK::startSensor()
 {
     if (!setPowerState(true))
     {
-        sensordLogW() << id() << "Unable to set power on for compass driver";
+        qCWarning(lcSensorFw) << id() << "Unable to set power on for compass driver";
     }
     else
     {
@@ -142,7 +142,7 @@ void MagnetometerAdaptorNCDK::stopSensor()
 {
     if (!setPowerState(false))
     {
-        sensordLogW() << id() << "Unable to set power off for compass driver";
+        qCWarning(lcSensorFw) << id() << "Unable to set power off for compass driver";
     }
     else
     {
@@ -154,8 +154,7 @@ void MagnetometerAdaptorNCDK::stopSensor()
 
 bool MagnetometerAdaptorNCDK::setInterval(const int sessionId, const unsigned int interval_us)
 {
-    if(m_intervalCompensation_us)
-    {
+    if (m_intervalCompensation_us) {
         return SysfsAdaptor::setInterval(sessionId, (int)interval_us > m_intervalCompensation_us ? interval_us - m_intervalCompensation_us : 0);
     }
     return SysfsAdaptor::setInterval(sessionId, interval_us);

@@ -40,7 +40,7 @@ HybrisProximityAdaptor::HybrisProximityAdaptor(const QString& id) :
         powerStatePath = SensorFrameworkConfig::configuration()->value("proximity/powerstate_path").toByteArray();
 	if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
 	{
-	    sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
+	    qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << powerStatePath;
 	    powerStatePath.clear();
 	}
     }
@@ -59,7 +59,7 @@ bool HybrisProximityAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "HybrisProximityAdaptor start";
+    qCInfo(lcSensorFw) << id() << "HybrisProximityAdaptor start";
     return true;
 }
 
@@ -85,7 +85,7 @@ void HybrisProximityAdaptor::sendInitialData()
        }
 
        if (inputDev.isEmpty()) {
-           sensordLogD() << id() << "No sysfs proximity device found";
+           qCInfo(lcSensorFw) << id() << "No sysfs proximity device found";
            return;
        }
 
@@ -128,7 +128,7 @@ void HybrisProximityAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "HybrisProximityAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "HybrisProximityAdaptor stop";
 }
 
 void HybrisProximityAdaptor::processSample(const sensors_event_t& data)

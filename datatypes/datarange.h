@@ -147,8 +147,7 @@ inline const QDBusArgument &operator>>(const QDBusArgument &argument, DataRange 
 inline QDBusArgument &operator<<(QDBusArgument &argument, const DataRangeList &data)
 {
     argument.beginArray(qMetaTypeId<DataRange>());
-    foreach(const DataRange& range, data)
-    {
+    foreach (const DataRange& range, data) {
         argument << range;
     }
     argument.endArray();
@@ -166,10 +165,10 @@ inline const QDBusArgument &operator>>(const QDBusArgument &argument, DataRangeL
 {
     argument.beginArray();
     data.clear();
-    while ( !argument.atEnd() ) {
+    while (!argument.atEnd()) {
         DataRange element;
         argument >> element;
-        data.append( element );
+        data.append(element);
     }
     argument.endArray();
     return argument;
@@ -215,8 +214,7 @@ inline const QDBusArgument &operator>>(const QDBusArgument &argument, IntegerRan
 inline QDBusArgument &operator<<(QDBusArgument &argument, const IntegerRangeList &data)
 {
     argument.beginArray(qMetaTypeId<IntegerRange>());
-    foreach(const IntegerRange& range, data)
-    {
+    foreach (const IntegerRange& range, data) {
         argument << range;
     }
     argument.endArray();
@@ -234,10 +232,10 @@ inline const QDBusArgument &operator>>(const QDBusArgument &argument, IntegerRan
 {
     argument.beginArray();
     data.clear();
-    while ( !argument.atEnd() ) {
+    while (!argument.atEnd()) {
         IntegerRange element;
         argument >> element;
-        data.append( element );
+        data.append(element);
     }
     argument.endArray();
     return argument;
@@ -323,9 +321,8 @@ public:
 template<typename T, typename U>
 inline bool isInRange(T ref, const U& container)
 {
-    foreach(const typename U::value_type& value, container)
-    {
-        if(ref >= value.first && ref <= value.second)
+    foreach (const typename U::value_type& value, container) {
+        if (ref >= value.first && ref <= value.second)
             return true;
     }
     return false;

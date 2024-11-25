@@ -54,9 +54,8 @@ ALSSensorChannelInterface* ALSSensorChannelInterface::controlInterface(const QSt
 ALSSensorChannelInterface* ALSSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, ALSSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName( id, ALSSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<ALSSensorChannelInterface*>(sm.interface(id));
@@ -65,9 +64,9 @@ ALSSensorChannelInterface* ALSSensorChannelInterface::interface(const QString& i
 bool ALSSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedUnsigned> values;
-    if(!read<TimedUnsigned>(values))
+    if (!read<TimedUnsigned>(values))
         return false;
-    foreach(const TimedUnsigned& data, values)
+    foreach (const TimedUnsigned& data, values)
         emit ALSChanged(data);
     return true;
 }

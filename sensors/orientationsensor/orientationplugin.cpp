@@ -31,7 +31,7 @@
 
 void OrientationPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering orientationsensor";
+    qCInfo(lcSensorFw) << "registering orientationsensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<OrientationSensorChannel>("orientationsensor");
 }

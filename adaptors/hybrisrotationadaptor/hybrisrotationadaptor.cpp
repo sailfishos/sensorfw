@@ -45,7 +45,7 @@ HybrisRotationAdaptor::HybrisRotationAdaptor(const QString& id) :
     setDescription("Hybris rotation");
     m_powerStatePath = SensorFrameworkConfig::configuration()->value("rotation/powerstate_path").toByteArray();
     if (!m_powerStatePath.isEmpty() && !QFile::exists(m_powerStatePath)) {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << m_powerStatePath;
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << m_powerStatePath;
         m_powerStatePath.clear();
     }
 }
@@ -61,7 +61,7 @@ bool HybrisRotationAdaptor::startSensor()
         return false;
     if (isRunning() && !m_powerStatePath.isEmpty())
         writeToFile(m_powerStatePath, "1");
-    sensordLogD() << id() << "Hybris RotationAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris RotationAdaptor start";
     return true;
 }
 
@@ -70,7 +70,7 @@ void HybrisRotationAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !m_powerStatePath.isEmpty())
         writeToFile(m_powerStatePath, "0");
-    sensordLogD() << id() << "Hybris RotationAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris RotationAdaptor stop";
 }
 
 void HybrisRotationAdaptor::processSample(const sensors_event_t& data)

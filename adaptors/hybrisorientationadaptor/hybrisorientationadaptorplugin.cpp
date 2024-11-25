@@ -24,7 +24,7 @@
 
 void HybrisOrientationAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrisorientationadaptor";
+    qCInfo(lcSensorFw) << "registering hybrisorientationadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisOrientationAdaptor>("orientationadaptor");
 }

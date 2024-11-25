@@ -90,7 +90,7 @@ LidSensorChannel::~LidSensorChannel()
 
 bool LidSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting LidSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting LidSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -102,7 +102,7 @@ bool LidSensorChannel::start()
 
 bool LidSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping LidSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping LidSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         lidAdaptor_->stopSensor();

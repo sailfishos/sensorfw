@@ -24,7 +24,7 @@
 
 void HybrisAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrisaccelerometeradaptor";
+    qCInfo(lcSensorFw) << "registering hybrisaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisAccelerometerAdaptor>("accelerometeradaptor");
 }

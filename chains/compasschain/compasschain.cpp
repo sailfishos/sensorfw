@@ -211,7 +211,7 @@ CompassChain::~CompassChain()
 bool CompassChain::start()
 {
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << id() << "Starting compassChain" << hasOrientationAdaptor;
+        qCInfo(lcSensorFw) << id() << "Starting compassChain" << hasOrientationAdaptor;
         filterBin->start();
         if (hasOrientationAdaptor) {
             orientAdaptor->startSensor();

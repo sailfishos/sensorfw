@@ -35,7 +35,7 @@
 
 void ALSAdaptorAsciiPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering alsadaptor-ascii";
+    qCInfo(lcSensorFw) << "registering alsadaptor-ascii";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<ALSAdaptorAscii>("alsadaptor");
 }

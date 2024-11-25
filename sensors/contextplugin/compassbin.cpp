@@ -58,20 +58,20 @@ void CompassBin::startRun()
     sessionId = SensorManager::instance().requestSensor("contextsensor");
     if (sessionId == INVALID_SESSION)
     {
-        sensordLogC() << id() << "Failed to get unique sessionId for compass info via context.";
+        qCCritical(lcSensorFw) << id() << "Failed to get unique sessionId for compass info via context.";
     }
 
     compassChain = SensorManager::instance().requestChain("compasschain");
     if (!compassChain)
     {
-        sensordLogC() << id() << "Unable to access Compass for heading property.";
+        qCCritical(lcSensorFw) << id() << "Unable to access Compass for heading property.";
         return;
     }
 
     RingBufferBase* rb = compassChain->findBuffer("truenorth");
     if (!rb)
     {
-        sensordLogC() << id() << "Unable to connect to compass direction buffer.";
+        qCCritical(lcSensorFw) << id() << "Unable to connect to compass direction buffer.";
     }
     else
     {

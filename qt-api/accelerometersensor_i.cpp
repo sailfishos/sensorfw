@@ -53,9 +53,8 @@ AccelerometerSensorChannelInterface* AccelerometerSensorChannelInterface::contro
 AccelerometerSensorChannelInterface* AccelerometerSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, AccelerometerSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName( id, AccelerometerSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
     return dynamic_cast<AccelerometerSensorChannelInterface*>(sm.interface(id));
 }
@@ -63,18 +62,15 @@ AccelerometerSensorChannelInterface* AccelerometerSensorChannelInterface::interf
 bool AccelerometerSensorChannelInterface::dataReceivedImpl()
 {
     QVector<AccelerationData> values;
-    if(!read<AccelerationData>(values))
+    if (!read<AccelerationData>(values))
         return false;
-    if(!frameAvailableConnected || values.size() == 1)
-    {
-        foreach(const AccelerationData& data, values)
+    if (!frameAvailableConnected || values.size() == 1) {
+        foreach (const AccelerationData& data, values)
             emit dataAvailable(XYZ(data));
-    }
-    else
-    {
+    } else {
         QVector<XYZ> realValues;
         realValues.reserve(values.size());
-        foreach(const AccelerationData& data, values)
+        foreach (const AccelerationData& data, values)
             realValues.push_back(XYZ(data));
         emit frameAvailable(realValues);
     }
@@ -89,7 +85,7 @@ XYZ AccelerometerSensorChannelInterface::get()
 void AccelerometerSensorChannelInterface::connectNotify(const QMetaMethod &signal)
 {
     static const QMetaMethod frameAvailableSignal = QMetaMethod::fromSignal(&AccelerometerSensorChannelInterface::frameAvailable);
-    if(signal == frameAvailableSignal)
+    if (signal == frameAvailableSignal)
         frameAvailableConnected = true;
     dbusConnectNotify(signal);
 }

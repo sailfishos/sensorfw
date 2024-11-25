@@ -80,32 +80,32 @@ bool Loader::loadPluginFile(const QString &name, QString &errorString, QStringLi
     qpl.setLoadHints(QLibrary::ExportExternalSymbolsHint);
     QObject *object = 0;
     PluginBase *plugin = 0;
-    sensordLogD() << "Loader loading plugin:" << resolvedName << "as:" << name << "from:" << qpl.fileName();
+    qCInfo(lcSensorFw) << "Loader loading plugin:" << resolvedName << "as:" << name << "from:" << qpl.fileName();
     bool loaded = false;
     bool cyclic = stack.contains(resolvedName);
     stack.prepend(resolvedName);
     if (cyclic) {
         errorString = "cyclic plugin dependency";
-        sensordLogC() << "Plugin has cyclic dependency:" << resolvedName;
+        qCCritical(lcSensorFw) << "Plugin has cyclic dependency:" << resolvedName;
     } else if (loadedPluginNames_.contains(resolvedName)) {
-        sensordLogD() << "Plugin is already loaded:" << resolvedName;
+        qCInfo(lcSensorFw) << "Plugin is already loaded:" << resolvedName;
         loaded = true;
     } else if (!pluginAvailable(resolvedName)) {
         errorString = "plugin not available";
-        sensordLogW() << "Plugin not available:" << resolvedName;
+        qCWarning(lcSensorFw) << "Plugin not available:" << resolvedName;
     } else if (!qpl.load()) {
         errorString = qpl.errorString();
-        sensordLogC() << "Plugin loading error:" << resolvedName << "-" << errorString;
+        qCCritical(lcSensorFw) << "Plugin loading error:" << resolvedName << "-" << errorString;
     } else if (!(object = qpl.instance())) {
         errorString = "not able to instanciate";
-        sensordLogC() << "Plugin loading error: " << resolvedName << "-" << errorString;
+        qCCritical(lcSensorFw) << "Plugin loading error: " << resolvedName << "-" << errorString;
     } else if (!(plugin = qobject_cast<PluginBase*>(object))) {
         errorString = "not a Plugin type";
-        sensordLogC() << "Plugin loading error: " << resolvedName << "-" << errorString;
+        qCCritical(lcSensorFw) << "Plugin loading error: " << resolvedName << "-" << errorString;
     } else {
         loaded = true;
         QStringList dependencies(plugin->Dependencies());
-        sensordLogD() << resolvedName << "requires:" << dependencies;
+        qCInfo(lcSensorFw) << resolvedName << "requires:" << dependencies;
         foreach (const QString &dependency, dependencies) {
             if (!(loaded = loadPluginFile(dependency, errorString, stack))) {
                 break;
@@ -147,32 +147,32 @@ static bool evaluateAvailabilityValue(const QString &name, const QString &val)
         const QStringList features(val.split("|"));
         bool allow = false;
         bool deny  = false;
-        foreach(const QString &feature, features) {
+        foreach (const QString &feature, features) {
             hw_feature_t id = ssusysinfo_hw_feature_from_name(feature.toUtf8().constData());
             if (id == Feature_Invalid ) {
-                sensordLogW() << "unknown hw feature:" << feature;
+                qCWarning(lcSensorFw) << "unknown hw feature:" << feature;
                 continue;
             }
-            if( ssusysinfo_has_hw_feature(ssusysinfo, id) ) {
+            if (ssusysinfo_has_hw_feature(ssusysinfo, id)) {
                 allow = true;
                 break;
             }
             deny = true;
         }
-        if( deny && !allow ) {
-            sensordLogD() << "plugin disabled in hw-config: " << name << "value" << val;
+        if (deny && !allow) {
+            qCInfo(lcSensorFw) << "plugin disabled in hw-config: " << name << "value" << val;
             available = false;
         }
 #else
         // When compiled without ssu-support, these are enabled by design
-        sensordLogD() << "sensor plugin enabled implicitly: " << name << "value" << val;
+        qCInfo(lcSensorFw) << "sensor plugin enabled implicitly: " << name << "value" << val;
 #endif
     } else if (val == "False") {
-        sensordLogD() << "plugin disabled sensorfwd config: " << name << "value" << val;
+        qCInfo(lcSensorFw) << "plugin disabled sensorfwd config: " << name << "value" << val;
         available = false;
     } else if (name.endsWith(SENSOR_SUFFIX) && val != "True") {
         // Warn about implicitly enabled sensor plugins
-        sensordLogW() << "sensor plugin enabled implicitly: " << name << "value" << val;
+        qCWarning(lcSensorFw) << "sensor plugin enabled implicitly: " << name << "value" << val;
     }
     return available;
 }
@@ -196,7 +196,7 @@ void Loader::scanAvailablePlugins()
             const QString name(file.mid(beg, end-beg));
             QString key = QString("available/%1").arg(name);
             QString val = SensorFrameworkConfig::configuration()->value(key).toString();
-            if( evaluateAvailabilityValue(name, val) ) {
+            if (evaluateAvailabilityValue(name, val)) {
                 res.append(name);
             }
         }
@@ -215,7 +215,7 @@ QStringList Loader::availablePlugins() const
 QStringList Loader::availableSensorPlugins() const
 {
     QStringList res;
-    foreach(const QString &name, availablePluginNames_) {
+    foreach (const QString &name, availablePluginNames_) {
         if (name.endsWith(SENSOR_SUFFIX)) {
             res.append(name);
         }
@@ -231,7 +231,7 @@ bool Loader::pluginAvailable(const QString &name) const
 void Loader::invalidatePlugin(const QString &name)
 {
     if (availablePluginNames_.removeAll(name) > 0) {
-        sensordLogW() << "plugin marked invalid: " << name;
+        qCWarning(lcSensorFw) << "plugin marked invalid: " << name;
     }
 }
 
@@ -240,7 +240,7 @@ QString Loader::resolveRealPluginName(const QString& pluginName) const
     QString key = QString("plugins/%1").arg(pluginName);
     QString nameFromConfig = SensorFrameworkConfig::configuration()->value(key).toString();
     if (nameFromConfig.isEmpty()) {
-        sensordLogT() << "Plugin setting for " << pluginName << " not found from configuration. Using key as value.";
+        qCDebug(lcSensorFw) << "Plugin setting for " << pluginName << " not found from configuration. Using key as value.";
         return pluginName;
     }
     return nameFromConfig;

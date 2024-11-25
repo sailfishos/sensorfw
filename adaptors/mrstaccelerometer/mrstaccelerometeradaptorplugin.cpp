@@ -29,7 +29,7 @@
 
 void MRSTAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << id() << "registering mrstaccelerometeradaptor";
+    qCInfo(lcSensorFw) << id() << "registering mrstaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<MRSTAccelAdaptor>("accelerometeradaptor");
 }

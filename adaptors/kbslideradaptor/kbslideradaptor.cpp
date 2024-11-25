@@ -88,7 +88,7 @@ void KeyboardSliderAdaptor::interpretSync(int src, struct input_event *ev)
 
 void KeyboardSliderAdaptor::commitOutput()
 {
-    sensordLogD() << id() << "KB Slider state change detected: " << currentState_;
+    qCInfo(lcSensorFw) << id() << "KB Slider state change detected: " << currentState_;
 
     KeyboardSliderState *state = kbstateBuffer_->nextSlot();
 

@@ -67,7 +67,7 @@ IioAdaptor::IioAdaptor(const QString &id) :
         SysfsAdaptor(id, SysfsAdaptor::IntervalMode, true),
         deviceId(id)
 {
-    sensordLogD() << "Creating IioAdaptor with id:" << NodeBase::id();
+    qCInfo(lcSensorFw) << "Creating IioAdaptor with id:" << NodeBase::id();
     setup();
 }
 
@@ -175,7 +175,7 @@ void IioAdaptor::setup()
     bool ok;
     double scale_override = SensorFrameworkConfig::configuration()->value(iioDevice.name + "/scale").toDouble(&ok);
     if (ok) {
-        sensordLogD() << id() << "Overriding scale to" << scale_override;
+        qCInfo(lcSensorFw) << id() << "Overriding scale to" << scale_override;
         iioDevice.scale = scale_override;
     }
 
@@ -323,7 +323,7 @@ bool IioAdaptor::sysfsWriteInt(QString filename, int val)
 {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        sensordLogW() << id() << "Failed to open " << filename;
+        qCWarning(lcSensorFw) << id() << "Failed to open " << filename;
         return false;
     }
 
@@ -339,7 +339,7 @@ QString IioAdaptor::sysfsReadString(QString filename)
 {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        sensordLogW() << id() << "Failed to open " << filename;
+        qCWarning(lcSensorFw) << id() << "Failed to open " << filename;
         return QString();
     }
 
@@ -362,7 +362,7 @@ int IioAdaptor::sysfsReadInt(QString filename)
     int value = string.toInt(&ok);
 
     if (!ok) {
-        sensordLogW() << id() << "Failed to parse '" << string << "' to int from file " << filename;
+        qCWarning(lcSensorFw) << id() << "Failed to parse '" << string << "' to int from file " << filename;
     }
 
 	return value;
@@ -377,7 +377,7 @@ int IioAdaptor::scanElementsEnable(int device, int enable)
 
     QDir dir(elementsPath);
     if (!dir.exists()) {
-        sensordLogW() << id() << "Directory " << elementsPath << " doesn't exist";
+        qCWarning(lcSensorFw) << id() << "Directory " << elementsPath << " doesn't exist";
         return 0;
     }
 
@@ -418,7 +418,7 @@ int IioAdaptor::deviceChannelParseBytes(QString filename)
     } else if (type.compare("le:s64/64>>0") == 0) {
         return 8;
     } else {
-        sensordLogW() << id() << "ERROR: invalid type from file " << filename << ": " << type;
+        qCWarning(lcSensorFw) << id() << "ERROR: invalid type from file " << filename << ": " << type;
     }
 
     return 0;
@@ -436,7 +436,7 @@ void IioAdaptor::processSample(int fileId, int fd)
         readBytes = read(fd, buf, sizeof(buf));
 
         if (readBytes <= 0) {
-            sensordLogW() << id() << "read():" << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read():" << strerror(errno);
             return;
         }
 
@@ -445,7 +445,7 @@ void IioAdaptor::processSample(int fileId, int fd)
         
         // If any conversion error occurs, abort
         if (errno != 0) {
-            sensordLogW() << id() << "strtol(): Unable to convert string to long";
+            qCWarning(lcSensorFw) << id() << "strtol(): Unable to convert string to long";
             return;
         }
 
@@ -538,13 +538,13 @@ void IioAdaptor::processSample(int fileId, int fd)
                 uData->timestamp_ = Utils::getTimeStamp();
                 alsBuffer_->commit();
                 alsBuffer_->wakeUpReaders();
-                sensordLogT() << id() << "ALS offset=" << iioDevice.offset << "scale=" << iioDevice.scale << "value=" << uData->value_ << "timestamp=" << uData->timestamp_;
+                qCDebug(lcSensorFw) << id() << "ALS offset=" << iioDevice.offset << "scale=" << iioDevice.scale << "value=" << uData->value_ << "timestamp=" << uData->timestamp_;
                 break;
             case IioAdaptor::IIO_PROXIMITY:
                 proximityData->timestamp_ = Utils::getTimeStamp();
                 proximityBuffer_->commit();
                 proximityBuffer_->wakeUpReaders();
-                sensordLogT() << id() << "Proximity offset=" << iioDevice.offset << "scale=" << iioDevice.scale << "value=" << proximityData->value_ << "within proximity=" << proximityData->withinProximity_ << "timestamp=" << proximityData->timestamp_;
+                qCDebug(lcSensorFw) << id() << "Proximity offset=" << iioDevice.offset << "scale=" << iioDevice.scale << "value=" << proximityData->value_ << "within proximity=" << proximityData->withinProximity_ << "timestamp=" << proximityData->timestamp_;
                 break;
             default:
                 break;
@@ -558,7 +558,7 @@ bool IioAdaptor::setInterval(const int sessionId, const unsigned int interval_us
     if (mode() == SysfsAdaptor::IntervalMode)
         return SysfsAdaptor::setInterval(sessionId, interval_us);
 
-    sensordLogD() << id() << "Ignoring setInterval for " << interval_us;
+    qCInfo(lcSensorFw) << id() << "Ignoring setInterval for " << interval_us;
 
     return true;
 }
@@ -566,7 +566,7 @@ bool IioAdaptor::setInterval(const int sessionId, const unsigned int interval_us
 //unsigned int IioAdaptor::interval() const
 //{
 //    int interval_us = 100 * 1000;
-//    sensordLogD() << id() << "Returning dummy value in interval(): " << interval_us;
+//    qCInfo(lcSensorFw) << id() << "Returning dummy value in interval(): " << interval_us;
 //    return interval_us;
 //}
 

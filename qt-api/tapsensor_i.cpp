@@ -57,9 +57,8 @@ TapSensorChannelInterface* TapSensorChannelInterface::controlInterface(const QSt
 TapSensorChannelInterface* TapSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, TapSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, TapSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
     return dynamic_cast<TapSensorChannelInterface*>(sm.interface(id));
 }
@@ -67,13 +66,13 @@ TapSensorChannelInterface* TapSensorChannelInterface::interface(const QString& i
 bool TapSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TapData> values;
-    if(!read<TapData>(values))
+    if (!read<TapData>(values))
         return false;
-    foreach(TapData value, values) {
+    foreach (TapData value, values) {
         if (type_ == Single) {
             emit dataAvailable(Tap(value));
         } else if (timer_->isActive()) {
-            if ((!tapValues_.isEmpty()) && (tapValues_.first().direction_ == value.direction_)) {
+            if (!tapValues_.isEmpty() && (tapValues_.first().direction_ == value.direction_)) {
                 timer_->stop();
                 tapValues_.removeFirst();
                 value.type_ = TapData::DoubleTap;
@@ -105,10 +104,8 @@ TapSensorChannelInterface::TapSelection TapSensorChannelInterface::getTapType()
 
 void TapSensorChannelInterface::output()
 {
-    if (type_ == Double)
-    {
-        if ((tapValues_.last().type_ == TapData::SingleTap) && (tapValues_.size() == 1))
-        {
+    if (type_ == Double) {
+        if ((tapValues_.last().type_ == TapData::SingleTap) && (tapValues_.size() == 1)) {
            tapValues_.removeLast();
            return;
         }

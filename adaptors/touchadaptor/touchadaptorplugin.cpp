@@ -30,7 +30,7 @@
 
 void TouchAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering touchadaptor";
+    qCInfo(lcSensorFw) << "registering touchadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<TouchAdaptor>("touchadaptor");
 }

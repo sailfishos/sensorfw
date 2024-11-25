@@ -31,7 +31,7 @@
 
 void CompassPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering compasssensor";
+    qCInfo(lcSensorFw) << "registering compasssensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<CompassSensorChannel>("compasssensor");
 }

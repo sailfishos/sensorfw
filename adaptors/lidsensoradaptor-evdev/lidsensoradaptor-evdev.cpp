@@ -80,7 +80,7 @@ void LidSensorAdaptorEvdev::init()
     qDebug() << id() << strList;
     foreach (const QString str, strList) {
         if (!getInputDevices(str)) {
-            sensordLogW() << id() << "Input device not found.";
+            qCWarning(lcSensorFw) << id() << "Input device not found.";
             SysfsAdaptor::init();
         }
     }
@@ -128,7 +128,7 @@ void LidSensorAdaptorEvdev::commitOutput(struct input_event *ev)
         lidData->timestamp_ = Utils::getTimeStamp(ev);
         lidData->value_ = currentValue_;
         lidData->type_ = currentType_;
-        sensordLogD() << id() << "Lid state change detected: "
+        qCInfo(lcSensorFw) << id() << "Lid state change detected: "
                       << (currentType_ == 0 ? "front" : "back")
                       << (currentValue_ == 0 ? "OPEN": "CLOSED");
 

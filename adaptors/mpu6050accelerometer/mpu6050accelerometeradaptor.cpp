@@ -42,21 +42,21 @@ Mpu6050AccelAdaptor::Mpu6050AccelAdaptor (const QString& id) :
 
     QString xAxisPath = SensorFrameworkConfig::configuration()->value("accelerometer/x_axis_path").toString ();
     if ( lstat (xAxisPath.toLatin1().constData(), &st) < 0 ) {
-        sensordLogW () << "x_axis_path: " << xAxisPath << " not found";
+        qCWarning(lcSensorFw) << "x_axis_path: " << xAxisPath << " not found";
         return;
     }
     addPath(xAxisPath, X_AXIS);
 
     QString yAxisPath = SensorFrameworkConfig::configuration()->value("accelerometer/y_axis_path").toString ();
     if ( lstat (yAxisPath.toLatin1().constData(), &st) < 0 ) {
-        sensordLogW () << "y_axis_path: " << yAxisPath << " not found";
+        qCWarning(lcSensorFw) << "y_axis_path: " << yAxisPath << " not found";
         return;
     }
     addPath(yAxisPath, Y_AXIS);
 
     QString zAxisPath = SensorFrameworkConfig::configuration()->value("accelerometer/z_axis_path").toString ();
     if ( lstat (zAxisPath.toLatin1().constData(), &st) < 0 ) {
-        sensordLogW () << "z_axis_path: " << zAxisPath << " not found";
+        qCWarning(lcSensorFw) << "z_axis_path: " << zAxisPath << " not found";
         return;
     }
     addPath(zAxisPath, Z_AXIS);
@@ -81,13 +81,13 @@ bool Mpu6050AccelAdaptor::startSensor () {
     if ( !(SysfsAdaptor::startSensor ()) )
         return false;
 
-    sensordLogD() << id() << "MPU6050 AccelAdaptor start";
+    qCInfo(lcSensorFw) << id() << "MPU6050 AccelAdaptor start";
     return true;
 }
 
 void Mpu6050AccelAdaptor::stopSensor () {
     SysfsAdaptor::stopSensor();
-    sensordLogD() << id() << "MPU6050 AccelAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "MPU6050 AccelAdaptor stop";
 }
 
 void Mpu6050AccelAdaptor::processSample (int pathId, int fd) {
@@ -95,18 +95,18 @@ void Mpu6050AccelAdaptor::processSample (int pathId, int fd) {
     int val;
 
     if ( pathId < X_AXIS || pathId > Z_AXIS ) {
-        sensordLogW() << id() << "Wrong pathId: " << pathId;
+        qCWarning(lcSensorFw) << id() << "Wrong pathId: " << pathId;
         return;
     }
 
     lseek (fd, 0, SEEK_SET);
     if (read (fd, buf, sizeof(buf)) < 0) {
-        sensordLogW() << id() << "Read failed";
+        qCWarning(lcSensorFw) << id() << "Read failed";
         return;
     }
 
     if (sscanf (buf, "%d", &val) == 0 ) {
-        sensordLogW() << id() << "Wrong data format: " << buf;
+        qCWarning(lcSensorFw) << id() << "Wrong data format: " << buf;
         return;
     }
 
@@ -125,7 +125,7 @@ void Mpu6050AccelAdaptor::processSample (int pathId, int fd) {
             buffer->wakeUpReaders();
             break;
         default:
-            sensordLogW() << id() << "Invalid pathId: " << pathId;
+            qCWarning(lcSensorFw) << id() << "Invalid pathId: " << pathId;
             break;
     }
 }

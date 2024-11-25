@@ -30,7 +30,7 @@ range
 */
     QByteArray rangePath = SensorFrameworkConfig::configuration()->value("accelerometer/range_path").toByteArray();
     range = SensorFrameworkConfig::configuration()->value("accelerometer/range_mode").toByteArray();
-    if(!rangePath.isEmpty()) {
+    if (!rangePath.isEmpty()) {
         writeToFile(rangePath, range);
     }
 
@@ -59,7 +59,7 @@ SteAccelAdaptor::~SteAccelAdaptor()
 
 bool SteAccelAdaptor::startSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, range);
     }
 
@@ -71,7 +71,7 @@ bool SteAccelAdaptor::startSensor()
 
 void SteAccelAdaptor::stopSensor()
 {
-    if(!powerStatePath.isEmpty()) {
+    if (!powerStatePath.isEmpty()) {
         writeToFile(powerStatePath, "0");
     }
     SysfsAdaptor::stopSensor();
@@ -84,13 +84,13 @@ void SteAccelAdaptor::processSample(int pathId, int fd)
     int x, y, z;
 
 //    if (pathId != devId) {
-//        sensordLogW () << "Wrong pathId" << pathId;
+//        qCWarning(lcSensorFw) << "Wrong pathId" << pathId;
 //        return;
 //    }
 
     lseek(fd, 0, SEEK_SET);
     if (read(fd, buf, sizeof(buf)) < 0 ) {
-        sensordLogW() << id() << "Read failed";
+        qCWarning(lcSensorFw) << id() << "Read failed";
         stopSensor();
         return;
     }

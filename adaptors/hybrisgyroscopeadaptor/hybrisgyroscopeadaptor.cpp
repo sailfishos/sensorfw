@@ -31,9 +31,8 @@ HybrisGyroscopeAdaptor::HybrisGyroscopeAdaptor(const QString& id) :
 
     setDescription("Hybris gyroscope");
     powerStatePath = SensorFrameworkConfig::configuration()->value("gyroscope/powerstate_path").toByteArray();
-    if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath))
-    {
-        sensordLogW() << NodeBase::id() << "Path does not exists: " << powerStatePath;
+    if (!powerStatePath.isEmpty() && !QFile::exists(powerStatePath)) {
+        qCWarning(lcSensorFw) << NodeBase::id() << "Path does not exists: " << powerStatePath;
     	powerStatePath.clear();
     }
     unsigned int interval_us = 50 * 1000;
@@ -51,7 +50,7 @@ bool HybrisGyroscopeAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "HybrisGyroscopeAdaptor start";
+    qCInfo(lcSensorFw) << id() << "HybrisGyroscopeAdaptor start";
     return true;
 }
 
@@ -60,7 +59,7 @@ void HybrisGyroscopeAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() &&!powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "HybrisGyroscopeAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "HybrisGyroscopeAdaptor stop";
 }
 
 

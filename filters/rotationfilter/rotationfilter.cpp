@@ -27,10 +27,10 @@
 #include "rotationfilter.h"
 #include <math.h>
 
-RotationFilter::RotationFilter() :
-        accelerometerDataSink_(this, &RotationFilter::interpret),
-        compassDataSink_(this, &RotationFilter::updateZvalue),
-        rotation_(0,0,0,0)
+RotationFilter::RotationFilter()
+    : accelerometerDataSink_(this, &RotationFilter::interpret)
+    , compassDataSink_(this, &RotationFilter::updateZvalue)
+    , rotation_(0,0,0,0)
 {
     addSink(&accelerometerDataSink_, "accelerometersink");
     addSink(&compassDataSink_, "compasssink");

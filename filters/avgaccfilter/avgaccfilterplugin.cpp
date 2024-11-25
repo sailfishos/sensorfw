@@ -25,7 +25,7 @@
 
 void AvgAccFilterPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering avgaccfilter";
+    qCInfo(lcSensorFw) << "registering avgaccfilter";
     SensorManager& sm = SensorManager::instance();
     sm.registerFilter<AvgAccFilter>("avgaccfilter");
 }

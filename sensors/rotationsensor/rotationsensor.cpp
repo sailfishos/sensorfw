@@ -51,7 +51,7 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
     if (compassChain_ && compassChain_->isValid()) {
         compassReader_ = new BufferReader<CompassData>(1);
     } else {
-        sensordLogW() << NodeBase::id() << "Unable to use compass for z-axis rotation.";
+        qCWarning(lcSensorFw) << NodeBase::id() << "Unable to use compass for z-axis rotation.";
     }
 
     rotationFilter_ = sm.instantiateFilter("rotationfilter");
@@ -70,8 +70,7 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
     filterBin_->add(rotationFilter_, "rotationfilter");
     filterBin_->add(outputBuffer_, "buffer");
 
-    if (hasZ())
-    {
+    if (hasZ()) {
         filterBin_->add(compassReader_, "compass");
         filterBin_->join("compass", "source", "rotationfilter", "compasssink");
     }
@@ -81,8 +80,7 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
 
     connectToSource(accelerometerChain_, "accelerometer", accelerometerReader_);
 
-    if (hasZ())
-    {
+    if (hasZ()) {
         connectToSource(compassChain_, "truenorth", compassReader_);
         addStandbyOverrideSource(compassChain_);
     }
@@ -97,12 +95,10 @@ RotationSensorChannel::RotationSensorChannel(const QString& id) :
     addStandbyOverrideSource(accelerometerChain_);
 
     // Provide interval value from acc, but range depends on sane compass
-    if (hasZ())
-    {
+    if (hasZ()) {
         // No less than 5hz allowed for compass
         int ranges_ms[] = {10, 20, 25, 40, 50, 100, 200};
-        for(size_t i = 0; i < sizeof(ranges_ms) / sizeof(int); ++i)
-        {
+        for (size_t i = 0; i < sizeof(ranges_ms) / sizeof(int); ++i) {
             int range_us = ranges_ms[i] * 1000;
             introduceAvailableInterval(DataRange(range_us, range_us, 0));
         }
@@ -123,8 +119,7 @@ RotationSensorChannel::~RotationSensorChannel()
         disconnectFromSource(accelerometerChain_, "accelerometer", accelerometerReader_);
         sm.releaseChain("accelerometerchain");
 
-        if (hasZ())
-        {
+        if (hasZ()) {
             disconnectFromSource(compassChain_, "truenorth", compassReader_);
             sm.releaseChain("compasschain");
             delete compassReader_;
@@ -140,14 +135,13 @@ RotationSensorChannel::~RotationSensorChannel()
 
 bool RotationSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting RotationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting RotationSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
         filterBin_->start();
         accelerometerChain_->start();
-        if (hasZ())
-        {
+        if (hasZ()) {
             compassChain_->setProperty("compassEnabled", true);
             compassChain_->start();
         }
@@ -157,13 +151,12 @@ bool RotationSensorChannel::start()
 
 bool RotationSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping RotationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping RotationSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         accelerometerChain_->stop();
         filterBin_->stop();
-        if (hasZ())
-        {
+        if (hasZ()) {
             compassChain_->stop();
             compassChain_->setProperty("compassEnabled", false);
         }
@@ -189,8 +182,7 @@ unsigned int RotationSensorChannel::interval() const
 bool RotationSensorChannel::setInterval(int sessionId, unsigned int interval_us)
 {
     bool success = accelerometerChain_->setIntervalRequest(sessionId, interval_us);
-    if (hasZ())
-    {
+    if (hasZ()) {
         success = compassChain_->setIntervalRequest(sessionId, interval_us) && success;
     }
 

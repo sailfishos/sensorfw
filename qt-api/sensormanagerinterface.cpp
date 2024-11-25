@@ -39,11 +39,9 @@ SensorManagerInterface::SensorManagerInterface()
 
 SensorManagerInterface& SensorManagerInterface::instance()
 {
-    if ( !ifc_ )
-    {
+    if (!ifc_) {
         ifc_ = new SensorManagerInterface();
-        if ( !ifc_->isValid() )
-        {
+        if (!ifc_->isValid()) {
             qDebug() << "Failed to get sensor manager interface: " << ifc_->lastError().message();
         }
     }
@@ -54,27 +52,24 @@ SensorManagerInterface& SensorManagerInterface::instance()
 bool SensorManagerInterface::registeredAndCorrectClassName(const QString& id, const QString& className ) const
 {
     QString cleanId = getCleanId(id);
-    return ( sensorInterfaceMap_.contains(cleanId) ) && ( sensorInterfaceMap_[cleanId].type == className );
+    return sensorInterfaceMap_.contains(cleanId) && (sensorInterfaceMap_[cleanId].type == className);
 }
 
 AbstractSensorChannelInterface* SensorManagerInterface::interface(const QString& id)
 {
-    if ( !sensorInterfaceMap_.contains(id) )
-    {
+    if (!sensorInterfaceMap_.contains(id)) {
         qDebug() << "Requested sensor id '" << id << "' interface not known";
-        return 0;
+        return nullptr;
     }
 
     SensorManagerInterface& sm = SensorManagerInterface::instance();
     AbstractSensorChannelInterface* ifc = 0;
     int sessionId = sm.requestSensor(id);
-    if ( sessionId >= 0 ) // sensor is available
-    {
+    if (sessionId >= 0) {
+        // sensor is available
         QString cleanId = getCleanId(id);
         ifc = sensorInterfaceMap_[cleanId].sensorInterfaceFactory(cleanId, sessionId);
-    }
-    else
-    {
+    } else {
         qDebug() << "Requested sensor id '" << id << "' interface not granted";
     }
 
@@ -86,9 +81,9 @@ bool SensorManagerInterface::releaseInterface(const QString& id, int sessionId)
     QString cleanId = getCleanId(id);
 
     QDBusReply<bool> reply = LocalSensorManagerInterface::releaseSensor(cleanId, sessionId);
-    if ( !reply.isValid() )
-    {
-        qDebug() << "Failed to release sensor '" << id << "' interface for session '" << sessionId << "'. Error: " << reply.error().message();
+    if (!reply.isValid()) {
+        qDebug() << "Failed to release sensor '" << id << "' interface for session '" << sessionId
+                 << "'. Error: " << reply.error().message();
         return false;
     }
     return reply.value();

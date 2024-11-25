@@ -46,7 +46,6 @@ class DownsampleFilter : public QObject, public Filter<TimedXyzData, DownsampleF
     Q_PROPERTY(int timeout READ timeout WRITE setTimeout)
 
 public:
-
     /**
      * Factory method.
      *

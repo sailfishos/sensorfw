@@ -93,7 +93,7 @@ OrientationChain::~OrientationChain()
 bool OrientationChain::start()
 {
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << id() << "Starting AccelerometerChain";
+        qCInfo(lcSensorFw) << id() << "Starting AccelerometerChain";
         filterBin_->start();
         accelerometerChain_->start();
     }
@@ -103,7 +103,7 @@ bool OrientationChain::start()
 bool OrientationChain::stop()
 {
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << id() << "Stopping AccelerometerChain";
+        qCInfo(lcSensorFw) << id() << "Stopping AccelerometerChain";
         accelerometerChain_->stop();
         filterBin_->stop();
     }

@@ -106,7 +106,8 @@ public:
      * @param path Path to the sysfs file device to monitor.
      * @param pathId Identifier for the path (used as parameter to processSample).
      */
-    SysfsAdaptor(const QString& id, PollMode mode = SelectMode, bool seek = true, const QString& path = "", const int pathId = 0);
+    SysfsAdaptor(const QString& id, PollMode mode = SelectMode, bool seek = true,
+                 const QString& path = QString(), const int pathId = 0);
 
     /**
      * Destructor.

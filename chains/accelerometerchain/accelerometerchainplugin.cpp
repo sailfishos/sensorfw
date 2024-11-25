@@ -31,7 +31,7 @@
 
 void AccelerometerChainPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering accelerometerchain";
+    qCInfo(lcSensorFw) << "registering accelerometerchain";
     SensorManager& sm = SensorManager::instance();
     sm.registerChain<AccelerometerChain>("accelerometerchain");
 }

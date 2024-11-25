@@ -34,9 +34,9 @@ AbstractSensorChannelInterface* RotationSensorChannelInterface::factoryMethod(co
     return new RotationSensorChannelInterface(OBJECT_PATH + "/" + id, sessionId);
 }
 
-RotationSensorChannelInterface::RotationSensorChannelInterface(const QString &path, int sessionId) :
-    AbstractSensorChannelInterface(path, RotationSensorChannelInterface::staticInterfaceName, sessionId),
-    frameAvailableConnected(false)
+RotationSensorChannelInterface::RotationSensorChannelInterface(const QString &path, int sessionId)
+    : AbstractSensorChannelInterface(path, RotationSensorChannelInterface::staticInterfaceName, sessionId)
+    , frameAvailableConnected(false)
 {
 }
 
@@ -53,9 +53,8 @@ RotationSensorChannelInterface* RotationSensorChannelInterface::controlInterface
 RotationSensorChannelInterface* RotationSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, RotationSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, RotationSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<RotationSensorChannelInterface*>(sm.interface(id));
@@ -64,18 +63,15 @@ RotationSensorChannelInterface* RotationSensorChannelInterface::interface(const 
 bool RotationSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedXyzData> values;
-    if(!read<TimedXyzData>(values))
+    if (!read<TimedXyzData>(values))
         return false;
-    if(!frameAvailableConnected || values.size() == 1)
-    {
-        foreach(const TimedXyzData& data, values)
+    if (!frameAvailableConnected || values.size() == 1) {
+        foreach (const TimedXyzData& data, values)
             emit dataAvailable(XYZ(data));
-    }
-    else
-    {
+    } else {
         QVector<XYZ> realValues;
         realValues.reserve(values.size());
-        foreach(const TimedXyzData& data, values)
+        foreach (const TimedXyzData& data, values)
             realValues.push_back(XYZ(data));
         emit frameAvailable(realValues);
     }
@@ -95,7 +91,7 @@ bool RotationSensorChannelInterface::hasZ()
 void RotationSensorChannelInterface::connectNotify(const QMetaMethod &signal)
 {
     static const QMetaMethod frameAvailableSignal = QMetaMethod::fromSignal(&RotationSensorChannelInterface::frameAvailable);
-    if(signal == frameAvailableSignal)
+    if (signal == frameAvailableSignal)
         frameAvailableConnected = true;
     dbusConnectNotify(signal);
 }

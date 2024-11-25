@@ -33,7 +33,7 @@
 
 void PressureAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering pressureadaptor";
+    qCInfo(lcSensorFw) << "registering pressureadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<PressureAdaptor>("pressureadaptor");
 }

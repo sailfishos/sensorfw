@@ -92,7 +92,7 @@ bool Bin::join(const QString& producerName,
             joined = true;
 
         } else {
-            sensordLogT() << " source "
+            qCDebug(lcSensorFw) << " source "
                           << producerName << "/" << sourceName
                           << " and sink "
                           << consumerName << "/" << sinkName
@@ -100,12 +100,12 @@ bool Bin::join(const QString& producerName,
         }
     } else {
         if (!src) {
-            sensordLogT() << "source "
+            qCDebug(lcSensorFw) << "source "
                      << producerName << "/" << sourceName
                      << " not found";
         }
         if (!snk) {
-            sensordLogT() << "sink "
+            qCDebug(lcSensorFw) << "sink "
                      << consumerName << "/" << sinkName
                      << " not found";
         }
@@ -130,16 +130,16 @@ bool Bin::unjoin(const QString& producerName,
             unjoined = true;
 
         } else {
-            sensordLogT() << "Cannot unjoin sink & source. Possibly, they are not connected.";
+            qCDebug(lcSensorFw) << "Cannot unjoin sink & source. Possibly, they are not connected.";
         }
     } else {
         if (!src) {
-            sensordLogT() << "source "
+            qCDebug(lcSensorFw) << "source "
                      << producerName << "/" << sourceName
                      << " not found";
         }
         if (!snk) {
-            sensordLogT() << "sink "
+            qCDebug(lcSensorFw) << "sink "
                      << consumerName << "/" << sinkName
                      << " not found";
         }

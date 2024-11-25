@@ -30,7 +30,7 @@
 
 void TapAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering tapadaptor";
+    qCInfo(lcSensorFw) << "registering tapadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<TapAdaptor>("tapadaptor");
 }

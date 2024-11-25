@@ -49,14 +49,13 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
 
     magnetometerReader_ = new BufferReader<CalibratedMagneticFieldData>(1);
 
-    scaleCoefficient_ = SensorFrameworkConfig::configuration()->value("magnetometer/scale_coefficient", QVariant(300)).toInt();
+    scaleCoefficient_ = SensorFrameworkConfig::configuration()->value("magnetometer/scale_coefficient",
+                                                                      QVariant(300)).toInt();
 
-    if (scaleCoefficient_ != 1)
-    {
+    if (scaleCoefficient_ != 1) {
         scaleFilter_ = sm.instantiateFilter("magnetometerscalefilter");
-        if (scaleFilter_ == NULL)
-        {
-            sensordLogW() << NodeBase::id() << "Failed to initialise scaling filter for magnetometer.";
+        if (scaleFilter_ == nullptr) {
+            qCWarning(lcSensorFw) << NodeBase::id() << "Failed to initialise scaling filter for magnetometer.";
         }
     }
 
@@ -68,8 +67,7 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
     filterBin_->add(magnetometerReader_, "magnetometer");
     filterBin_->add(outputBuffer_, "buffer");
 
-    if (scaleFilter_)
-    {
+    if (scaleFilter_) {
         filterBin_->add(scaleFilter_, "scaleFilter");
 
         if (!filterBin_->join("magnetometer", "source", "scaleFilter", "sink"))
@@ -78,8 +76,7 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
         if (!filterBin_->join("filter", "source", "buffer", "sink"))
             qDebug() << NodeBase::id() << Q_FUNC_INFO << "source/buffer join failed";
 
-    } else
-    {
+    } else {
         if (!filterBin_->join("magnetometer", "source", "buffer", "sink"))
             qDebug() << NodeBase::id() << Q_FUNC_INFO << "magnetometer/buffer join failed";
     }
@@ -93,13 +90,13 @@ MagnetometerSensorChannel::MagnetometerSensorChannel(const QString& id) :
     outputBuffer_->join(this);
 
     // AK897X requires scaling, which affects available ranges
-    if (scaleFilter_)
-    {
+    if (scaleFilter_) {
         // Get available ranges and introduce modified ones
         QList<DataRange> rangeList = magChain_->getAvailableDataRanges();
-        foreach(const DataRange& range, rangeList)
-        {
-            introduceAvailableDataRange(DataRange(scaleCoefficient_*range.min, scaleCoefficient_*range.max, scaleCoefficient_*range.resolution));
+        foreach (const DataRange& range, rangeList) {
+            introduceAvailableDataRange(DataRange(scaleCoefficient_*range.min,
+                                                  scaleCoefficient_*range.max,
+                                                  scaleCoefficient_*range.resolution));
         }
     } else {
         // Use the ranges directly from source
@@ -130,7 +127,7 @@ MagnetometerSensorChannel::~MagnetometerSensorChannel()
 
 bool MagnetometerSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting MagnetometerSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -142,7 +139,7 @@ bool MagnetometerSensorChannel::start()
 
 bool MagnetometerSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping MagnetometerSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping MagnetometerSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         magChain_->stop();

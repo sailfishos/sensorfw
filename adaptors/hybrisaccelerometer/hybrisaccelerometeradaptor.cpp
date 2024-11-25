@@ -22,8 +22,8 @@
 #include "datatypes/utils.h"
 #include "config.h"
 
-HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id) :
-    HybrisAdaptor(id,SENSOR_TYPE_ACCELEROMETER)
+HybrisAccelerometerAdaptor::HybrisAccelerometerAdaptor(const QString& id)
+    : HybrisAdaptor(id, SENSOR_TYPE_ACCELEROMETER)
 {
     buffer = new DeviceAdaptorRingBuffer<AccelerationData>(1);
     setAdaptedSensor("accelerometer", "Internal accelerometer coordinates", buffer);
@@ -45,7 +45,7 @@ bool HybrisAccelerometerAdaptor::startSensor()
         return false;
     if (isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "1");
-    sensordLogD() << id() << "Hybris AccelAdaptor start";
+    qCInfo(lcSensorFw) << id() << "Hybris AccelAdaptor start";
     return true;
 }
 
@@ -54,7 +54,7 @@ void HybrisAccelerometerAdaptor::stopSensor()
     HybrisAdaptor::stopSensor();
     if (!isRunning() && !powerStatePath.isEmpty())
         writeToFile(powerStatePath, "0");
-    sensordLogD() << id() << "Hybris AccelAdaptor stop";
+    qCInfo(lcSensorFw) << id() << "Hybris AccelAdaptor stop";
 }
 
 void HybrisAccelerometerAdaptor::processSample(const sensors_event_t& data)

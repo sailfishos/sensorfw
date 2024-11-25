@@ -89,7 +89,7 @@ OrientationSensorChannel::~OrientationSensorChannel()
 
 bool OrientationSensorChannel::start()
 {
-    sensordLogD() << id() << "Starting OrientationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Starting OrientationSensorChannel";
 
     if (AbstractSensorChannel::start()) {
         marshallingBin_->start();
@@ -101,7 +101,7 @@ bool OrientationSensorChannel::start()
 
 bool OrientationSensorChannel::stop()
 {
-    sensordLogD() << id() << "Stopping OrientationSensorChannel";
+    qCInfo(lcSensorFw) << id() << "Stopping OrientationSensorChannel";
 
     if (AbstractSensorChannel::stop()) {
         orientationChain_->stop();

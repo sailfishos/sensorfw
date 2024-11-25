@@ -58,7 +58,7 @@ MagCalibrationChain::MagCalibrationChain(const QString& id) :
     QString aconvString = SensorFrameworkConfig::configuration()->value<QString>("magnetometer/transformation_matrix", "");
     if (aconvString.size() > 0) {
         if (!setMatrixFromString(aconvString)) {
-            sensordLogW()<< NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
+            qCWarning(lcSensorFw)<< NodeBase::id() << "Failed to parse 'transformation_matrix' configuration key. Coordinate alignment may be invalid";
         }
     }
 
@@ -137,12 +137,12 @@ MagCalibrationChain::~MagCalibrationChain()
 bool MagCalibrationChain::start()
 {
     if (!magAdaptor) {
-        sensordLogD() << id() << "No magnetometer adaptor to start.";
+        qCInfo(lcSensorFw) << id() << "No magnetometer adaptor to start.";
         return false;
     }
 
     if (AbstractSensorChannel::start()) {
-        sensordLogD() << id() << "Starting MagCalibrationChain";
+        qCInfo(lcSensorFw) << id() << "Starting MagCalibrationChain";
         filterBin->start();
         magAdaptor->startSensor();
     }
@@ -152,12 +152,12 @@ bool MagCalibrationChain::start()
 bool MagCalibrationChain::stop()
 {
     if (!magAdaptor) {
-        sensordLogD() << id() << "No magnetometer adaptor to stop.";
+        qCInfo(lcSensorFw) << id() << "No magnetometer adaptor to stop.";
         return false;
     }
 
     if (AbstractSensorChannel::stop()) {
-        sensordLogD() << id() << "Stopping MagCalibrationChain";
+        qCInfo(lcSensorFw) << id() << "Stopping MagCalibrationChain";
         magAdaptor->stopSensor();
         filterBin->stop();
     }
@@ -169,7 +169,7 @@ void MagCalibrationChain::resetCalibration()
    if (needsCalibration) {
        CalibrationFilter *filter = static_cast<CalibrationFilter *>(magCalFilter);
        if (!filter) {
-           sensordLogD() << id() << "Can not reset calibration without filter.";
+           qCInfo(lcSensorFw) << id() << "Can not reset calibration without filter.";
            return;
        }
        filter->dropCalibration();
@@ -180,7 +180,7 @@ bool MagCalibrationChain::setMatrixFromString(const QString& str)
 {
     QStringList strList = str.split(',');
     if (strList.size() != 9) {
-        sensordLogW() << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
+        qCWarning(lcSensorFw) << id() << "Invalid cell count from matrix. Expected 9, got" << strList.size();
         return false;
     }
 

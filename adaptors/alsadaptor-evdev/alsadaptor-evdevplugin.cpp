@@ -33,7 +33,7 @@
 
 void ALSAdaptorEvdevPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering alsadaptor-evdev";
+    qCInfo(lcSensorFw) << "registering alsadaptor-evdev";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<ALSAdaptorEvdev>("alsadaptor");
 }

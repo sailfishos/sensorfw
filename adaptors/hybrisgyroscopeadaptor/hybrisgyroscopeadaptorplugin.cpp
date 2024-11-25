@@ -24,7 +24,7 @@
 
 void HybrisGyroscopeAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering hybrisgyroscopeadaptor";
+    qCInfo(lcSensorFw) << "registering hybrisgyroscopeadaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<HybrisGyroscopeAdaptor>("gyroscopeadaptor");
 }

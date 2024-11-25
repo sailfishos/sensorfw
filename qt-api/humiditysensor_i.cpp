@@ -53,8 +53,8 @@ HumiditySensorChannelInterface* HumiditySensorChannelInterface::controlInterface
 HumiditySensorChannelInterface* HumiditySensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, HumiditySensorChannelInterface::staticMetaObject.className())) {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, HumiditySensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<HumiditySensorChannelInterface*>(sm.interface(id));
@@ -63,9 +63,9 @@ HumiditySensorChannelInterface* HumiditySensorChannelInterface::interface(const 
 bool HumiditySensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedUnsigned> values;
-    if(!read<TimedUnsigned>(values))
+    if (!read<TimedUnsigned>(values))
         return false;
-    foreach(const TimedUnsigned& data, values)
+    foreach (const TimedUnsigned& data, values)
         emit relativeHumidityChanged(data);
     return true;
 }

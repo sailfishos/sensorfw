@@ -84,7 +84,7 @@ void SampleAdaptor::processSample(int pathId, int fd)
 
     // It's a good thing to provide read values to log for testing
     // level.
-    sensordLogT() << "Sample value: "; // << values read from fd
+    qCDebug(lcSensorFw) << "Sample value: "; // << values read from fd
 
     // Get a pointer to the output buffer
     TimedUnsigned* slot = outputBuffer_->nextSlot();

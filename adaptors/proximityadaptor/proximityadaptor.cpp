@@ -69,8 +69,7 @@ ProximityAdaptor::~ProximityAdaptor()
 
 bool ProximityAdaptor::startSensor()
 {
-    if(!powerStatePath_.isEmpty())
-    {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "1");
     }
     return SysfsAdaptor::startSensor();
@@ -78,8 +77,7 @@ bool ProximityAdaptor::startSensor()
 
 void ProximityAdaptor::stopSensor()
 {
-    if(!powerStatePath_.isEmpty())
-    {
+    if (!powerStatePath_.isEmpty()) {
         writeToFile(powerStatePath_, "0");
     }
     SysfsAdaptor::stopSensor();
@@ -92,15 +90,14 @@ void ProximityAdaptor::processSample(int pathId, int fd)
     int ret = 0;
     unsigned rawdata = 0;
 
-    if (deviceType_ == RM680)
-    {
+    if (deviceType_ == RM680) {
         bh1770glc_ps ps_data;
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << id() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
+            qCDebug(lcSensorFw) << id() << "Proximity Values: " << ps_data.led1 << ", " << ps_data.led2 << ", " <<  ps_data.led3;
         } else {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
 
@@ -108,42 +105,36 @@ void ProximityAdaptor::processSample(int pathId, int fd)
             ret = 1;
         }
         rawdata = ps_data.led1;
-    }
-    else if(deviceType_ == RM696)
-    {
+    } else if (deviceType_ == RM696) {
         apds990x_data ps_data;
         int bytesRead = read(fd, &ps_data, sizeof(ps_data));
 
         if (bytesRead > 0) {
-            sensordLogT() << id() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
+            qCDebug(lcSensorFw) << id() << "Proximity Values: " << ps_data.ps << ", " << ps_data.ps_raw << ", " << ps_data.status;
         } else {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
 
-        if ( ps_data.ps > threshold_ ) {
+        if (ps_data.ps > threshold_) {
             ret = 1;
         }
         rawdata = ps_data.ps;
-    }
-    else if(deviceType_ == NCDK)
-    {
+    } else if (deviceType_ == NCDK) {
         char buffer[100];
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = read(fd, &buffer, sizeof(buffer));
         if (bytesRead <= 0) {
-            sensordLogW() << id() << "read(): " << strerror(errno);
+            qCWarning(lcSensorFw) << id() << "read(): " << strerror(errno);
             return;
         }
         sscanf(buffer, "%d", &rawdata);
-        if ( (signed)rawdata > threshold_ ) {
+        if ((signed)rawdata > threshold_) {
             ret = 1;
         }
-        sensordLogT() << id() << "Proximity value: " << rawdata;
-    }
-    else
-    {
-        sensordLogW() << id() << "Not known device type: " << deviceType_;
+        qCDebug(lcSensorFw) << id() << "Proximity value: " << rawdata;
+    } else {
+        qCWarning(lcSensorFw) << id() << "Not known device type: " << deviceType_;
         return;
     }
 

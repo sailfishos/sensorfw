@@ -131,11 +131,6 @@ private:
      */
     bool loadConfigFile(const QString &configFileName);
 
-    /**
-     * Clear configuration.
-     */
-    void clearConfig();
-
     QSettings m_settings; /**< parsed QSettings */
 };
 
@@ -143,7 +138,7 @@ template<typename T>
 T SensorFrameworkConfig::value(const QString &key, const T &def) const
 {
     QVariant val(value(key));
-    if(!val.isValid())
+    if (!val.isValid())
         return def;
     return val.value<T>();
 }

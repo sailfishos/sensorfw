@@ -30,12 +30,12 @@
 #include "deviceadaptor.h"
 #include "sensormanager.h"
 
-AdaptedSensorEntry::AdaptedSensorEntry(const QString& name, const QString& description, RingBufferBase* buffer) :
-    name_(name),
-    description_(description),
-    running_(false),
-    count_(0),
-    buffer_(buffer)
+AdaptedSensorEntry::AdaptedSensorEntry(const QString& name, const QString& description, RingBufferBase* buffer)
+    : name_(name)
+    , description_(description)
+    , running_(false)
+    , count_(0)
+    , buffer_(buffer)
 {
 }
 
@@ -77,16 +77,16 @@ RingBufferBase* AdaptedSensorEntry::buffer() const
 }
 
 // TODO: correct initialization of screenBlanked most probably has effect for testcase functionalities.
-DeviceAdaptor::DeviceAdaptor(const QString& id) :
-    NodeBase(id),
-    standbyOverride_(false),
+DeviceAdaptor::DeviceAdaptor(const QString& id)
+    : NodeBase(id)
+    , standbyOverride_(false)
 #ifdef SENSORFW_MCE_WATCHER
-    screenBlanked_(!SensorManager::instance().MCEWatcher()->displayEnabled())
+    , screenBlanked_(!SensorManager::instance().MCEWatcher()->displayEnabled())
 #else
     #ifdef SENSORFW_LUNA_SERVICE_CLIENT
-        screenBlanked_(!SensorManager::instance().LSClient_instance()->displayEnabled())
+    , screenBlanked_(!SensorManager::instance().LSClient_instance()->displayEnabled())
     #else
-        screenBlanked_(false)
+    , screenBlanked_(false)
     #endif
 #endif
 {
@@ -117,8 +117,8 @@ RingBufferBase* DeviceAdaptor::findBuffer(const QString& name) const
 {
     Q_UNUSED(name)
     AdaptedSensorEntry* entry = getAdaptedSensor();
-    if ( !entry )
-        return NULL;
+    if (!entry)
+        return nullptr;
     return entry->buffer();
 }
 
@@ -132,7 +132,7 @@ bool DeviceAdaptor::setStandbyOverride(bool override)
             standby();
         }
     }
-    sensordLogD() << "standbyOverride changed: id = " << id() << ", value = " <<  standbyOverride_;
+    qCInfo(lcSensorFw) << "standbyOverride changed: id = " << id() << ", value = " <<  standbyOverride_;
     return true;
 }
 

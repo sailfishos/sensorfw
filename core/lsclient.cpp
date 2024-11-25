@@ -115,8 +115,7 @@ bool LSClient::chargerCallback(LSHandle *sh, LSMessage *message, void *ctx)
 
     newState = !json_object_get_boolean(label);
 
-    if (lsclient->powerSave != newState)
-    {
+    if (lsclient->powerSave != newState) {
         lsclient->powerSave = newState;
         emit lsclient->devicePSMStateChanged(newState);
     }
@@ -176,8 +175,7 @@ bool LSClient::displayCallback(LSHandle *sh, LSMessage *message, void *ctx)
         if (0 == strcmp (value, "off"))
             newState = false;
 
-    if (lsclient->displayState != newState)
-    {
+    if (lsclient->displayState != newState) {
         lsclient->displayState = newState;
         emit lsclient->displayStateChanged(newState);
     }

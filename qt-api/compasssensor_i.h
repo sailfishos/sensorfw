@@ -127,7 +127,6 @@ protected:
     virtual bool dataReceivedImpl();
 
 Q_SIGNALS:
-
     /**
      * Sent when compass direction or calibration level has changed.
      *
@@ -136,7 +135,6 @@ Q_SIGNALS:
     void dataAvailable(const Compass& value);
 
 private:
-
     bool useDeclination_;
 };
 

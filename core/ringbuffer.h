@@ -242,11 +242,11 @@ protected:
      */
     virtual bool joinTypeChecked(RingBufferReaderBase* reader)
     {
-        sensordLogT() << "joining reader to ringbuffer.";
+        qCInfo(lcSensorFw) << "joining reader to ringbuffer.";
 
         RingBufferReader<TYPE>* r = dynamic_cast<RingBufferReader<TYPE>*>(reader);
         if (r == NULL) {
-            sensordLogW() << "Ringbuffer join failed!";
+            qCWarning(lcSensorFw) << "Ringbuffer join failed!";
             return false;
         }
 
@@ -266,7 +266,7 @@ protected:
     {
         RingBufferReader<TYPE>* r = dynamic_cast<RingBufferReader<TYPE>*>(reader);
         if (r == NULL) {
-            sensordLogW() << "Ringbuffer unjoin failed!";
+            qCWarning(lcSensorFw) << "Ringbuffer unjoin failed!";
             return false;
         }
 

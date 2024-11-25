@@ -30,7 +30,7 @@
 
 void MagnetometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering magnetometeradaptor";
+    qCInfo(lcSensorFw) << "registering magnetometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<MagnetometerAdaptor>("magnetometeradaptor");
 }

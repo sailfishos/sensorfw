@@ -30,7 +30,7 @@
 
 void TemperaturePlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering temperaturesensor";
+    qCInfo(lcSensorFw) << "registering temperaturesensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<TemperatureSensorChannel>("temperaturesensor");
 }

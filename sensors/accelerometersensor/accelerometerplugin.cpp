@@ -31,7 +31,7 @@
 
 void AccelerometerPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering accelerometersensor";
+    qCInfo(lcSensorFw) << "registering accelerometersensor";
     SensorManager& sm = SensorManager::instance();
     sm.registerSensor<AccelerometerSensorChannel>("accelerometersensor");
 }

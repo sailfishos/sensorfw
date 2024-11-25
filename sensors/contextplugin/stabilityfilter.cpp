@@ -70,7 +70,7 @@ void StabilityFilter::interpret(unsigned, const QPair<double, double>* data)
 
 void StabilityFilter::timeoutTriggered()
 {
-    sensordLogT() << id() << "Stationary timeout triggered.";
+    qCDebug(lcSensorFw) << id() << "Stationary timeout triggered.";
 
     stableProperty->setValue(true);
     timer.stop();

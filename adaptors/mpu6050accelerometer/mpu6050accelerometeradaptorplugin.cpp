@@ -25,7 +25,7 @@
 
 void Mpu6050AccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << id() << "registering mpu6050accelerometeradaptor";
+    qCInfo(lcSensorFw) << id() << "registering mpu6050accelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<Mpu6050AccelAdaptor>("accelerometeradaptor");
 }

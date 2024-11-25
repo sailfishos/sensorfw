@@ -31,7 +31,7 @@
 
 void OrientationChainPlugin::Register(class Loader&)
 {
-    sensordLogD() << "registering orientationchain";
+    qCInfo(lcSensorFw) << "registering orientationchain";
     SensorManager& sm = SensorManager::instance();
     sm.registerChain<OrientationChain>("orientationchain");
 }

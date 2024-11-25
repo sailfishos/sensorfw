@@ -107,24 +107,22 @@ private:
     bool joinTypeChecked(SinkBase* sink)
     {
         SinkTyped<TYPE>* type = dynamic_cast<SinkTyped<TYPE>*>(sink);
-        if(type)
-        {
+        if (type) {
             sinks_.insert(type);
             return true;
         }
-        sensordLogC() << "Failed to join type '" << typeid(type).name() << " to source!";
+        qCCritical(lcSensorFw) << "Failed to join type '" << typeid(type).name() << " to source!";
         return false;
     }
 
     bool unjoinTypeChecked(SinkBase* sink)
     {
         SinkTyped<TYPE>* type = dynamic_cast<SinkTyped<TYPE>*>(sink);
-        if(type)
-        {
+        if (type) {
             sinks_.remove(type);
             return true;
         }
-        sensordLogC() << "Failed to unjoin type '" << typeid(type).name() << " from source!";
+        qCCritical(lcSensorFw) << "Failed to unjoin type '" << typeid(type).name() << " from source!";
         return false;
     }
 

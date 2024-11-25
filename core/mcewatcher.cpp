@@ -28,14 +28,15 @@
 #include "mcewatcher.h"
 #include <QDBusReply>
 
-MceWatcher::MceWatcher(QObject* parent) : QObject(parent),
-                                          dbusIfc(new QDBusInterface(MCE_SERVICE,
-                                                                     MCE_SIGNAL_PATH,
-                                                                     MCE_SIGNAL_IF,
-                                                                     QDBusConnection::systemBus(),
-                                                                     parent)),
-                                          displayState(true),
-                                          powerSave(false)
+MceWatcher::MceWatcher(QObject* parent)
+    : QObject(parent),
+      dbusIfc(new QDBusInterface(MCE_SERVICE,
+                                 MCE_SIGNAL_PATH,
+                                 MCE_SIGNAL_IF,
+                                 QDBusConnection::systemBus(),
+                                 parent)),
+      displayState(true),
+      powerSave(false)
 {
     dbusIfc->connection().connect(dbusIfc->service(),
                                   dbusIfc->path(),
@@ -65,7 +66,7 @@ void MceWatcher::displayStateReplyFinished(QDBusPendingCallWatcher *watch)
     watch->deleteLater();
     QDBusPendingReply<QString> reply = *watch;
 
-    if(reply.isError()) {
+    if (reply.isError()) {
         qDebug() << reply.error().message();
     } else {
         if (reply.value() == MCE_DISPLAY_OFF_STRING) {
@@ -81,8 +82,7 @@ void MceWatcher::slotDisplayStateChanged(const QString& state)
         newState = false;
     }
 
-    if (displayState != newState)
-    {
+    if (displayState != newState) {
         displayState = newState;
         emit displayStateChanged(displayState);
     }
@@ -90,8 +90,7 @@ void MceWatcher::slotDisplayStateChanged(const QString& state)
 
 void MceWatcher::slotPSMStateChanged(bool mode)
 {
-    if (powerSave != mode)
-    {
+    if (powerSave != mode) {
         powerSave = mode;
         emit devicePSMStateChanged(powerSave);
     }

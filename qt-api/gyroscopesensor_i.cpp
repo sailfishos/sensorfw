@@ -56,30 +56,25 @@ GyroscopeSensorChannelInterface* GyroscopeSensorChannelInterface::controlInterfa
 GyroscopeSensorChannelInterface* GyroscopeSensorChannelInterface::interface(const QString& id)
 {
     SensorManagerInterface& sm = SensorManagerInterface::instance();
-    if ( !sm.registeredAndCorrectClassName( id, GyroscopeSensorChannelInterface::staticMetaObject.className() ) )
-    {
-        return 0;
+    if (!sm.registeredAndCorrectClassName(id, GyroscopeSensorChannelInterface::staticMetaObject.className())) {
+        return nullptr;
     }
 
     return dynamic_cast<GyroscopeSensorChannelInterface*>(sm.interface(id));
 }
 
-
 bool GyroscopeSensorChannelInterface::dataReceivedImpl()
 {
     QVector<TimedXyzData> values;
-    if(!read<TimedXyzData>(values))
+    if (!read<TimedXyzData>(values))
         return false;
-    if(!frameAvailableConnected || values.size() == 1)
-    {
-        foreach(const TimedXyzData& data, values)
+    if (!frameAvailableConnected || values.size() == 1) {
+        foreach (const TimedXyzData& data, values)
             emit dataAvailable(XYZ(data));
-    }
-    else
-    {
+    } else {
         QVector<XYZ> realValues;
         realValues.reserve(values.size());
-        foreach(const TimedXyzData& data, values)
+        foreach (const TimedXyzData& data, values)
             realValues.push_back(XYZ(data));
         emit frameAvailable(realValues);
     }
@@ -89,7 +84,7 @@ bool GyroscopeSensorChannelInterface::dataReceivedImpl()
 void GyroscopeSensorChannelInterface::connectNotify(const QMetaMethod &signal)
 {
     static const QMetaMethod frameAvailableSignal = QMetaMethod::fromSignal(&GyroscopeSensorChannelInterface::frameAvailable);
-    if(signal == frameAvailableSignal)
+    if (signal == frameAvailableSignal)
         frameAvailableConnected = true;
     dbusConnectNotify(signal);
 }

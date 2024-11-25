@@ -34,7 +34,6 @@ contains(CONFIG,configs) {
     }
 
     contains(CONFIG,legacy) {
-
         SENSORFWCONFIGFILES.files = config/sensord-rx_51.conf \
                config/sensord-oaktrail.conf \
                config/sensord-exopc.conf \
@@ -61,7 +60,7 @@ contains(CONFIG,configs) {
 contains(CONFIG,hybris) {
 
     SUBDIRS = core/hybris.pro \
-               adaptors
+              adaptors
 } else {
     config_hybris {
     # Reorder so that adaptors are built after hybris.
@@ -85,10 +84,7 @@ contains(CONFIG,hybris) {
     PKGCONFIGFILES.files = sensord-qt$${QT_MAJOR_VERSION}.pc
     PKGCONFIGFILES.commands = 'sed -i "s/Version:.*/Version: $$PC_VERSION/" $$_PRO_FILE_PWD_/sensord-qt$${QT_MAJOR_VERSION}.pc'
     QTCONFIGFILES.path = $$[QT_INSTALL_ARCHDATA]/mkspecs/features
-
 }
-
-
 
 # How to make this work in all cases?
 #PKGCONFIGFILES.commands = sed -i \"s/Version:.*$$/Version: `head -n1 debian/changelog | cut -f 2 -d\' \' | tr -d \'()\'`/\" sensord-qt$${QT_MAJOR_VERSION}.pc

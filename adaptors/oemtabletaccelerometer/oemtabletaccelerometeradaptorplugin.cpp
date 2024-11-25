@@ -5,7 +5,7 @@
 
 void OemtabletAccelerometerAdaptorPlugin::Register(class Loader&)
 {
-    sensordLogD() << id() << "registering oemtabletaccelerometeradaptor";
+    qCInfo(lcSensorFw) << id() << "registering oemtabletaccelerometeradaptor";
     SensorManager& sm = SensorManager::instance();
     sm.registerDeviceAdaptor<OemtabletAccelAdaptor>("accelerometeradaptor");
 }
