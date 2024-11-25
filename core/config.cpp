@@ -44,11 +44,6 @@ SensorFrameworkConfig::~SensorFrameworkConfig()
 {
 }
 
-void SensorFrameworkConfig::clearConfig()
-{
-    m_settings.clear();
-}
-
 bool SensorFrameworkConfig::loadConfig(const QString &defConfigPath, const QString &configDPath)
 {
     /* Not having config files is ok, failing to load one that exists is not */

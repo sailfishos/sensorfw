@@ -131,11 +131,6 @@ private:
      */
     bool loadConfigFile(const QString &configFileName);
 
-    /**
-     * Clear configuration.
-     */
-    void clearConfig();
-
     QSettings m_settings; /**< parsed QSettings */
 };
 
