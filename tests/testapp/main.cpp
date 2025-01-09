@@ -2,7 +2,8 @@
    @file main.cpp
    @brief test application to create sensor
    <p>
-   Copyright (C) 2010-2011 Nokia Corporation
+   Copyright (c) 2010 - 2011 Nokia Corporation
+   Copyright (c) 2025 Jollyboys Ltd.
 
    @author Shenghua Liu <ext-shenghua.1.liu@nokia.com>
    @author Lihan Guo <ext-lihan.4.guo@nokia.com>
@@ -72,8 +73,8 @@ void printUsage()
     qDebug() << " -l=N, --log-level=N              Use logging level N. Messages are logged for";
     qDebug() << "                                  the given and higher priority levels. Level";
     qDebug() << "                                  can also be notched up by sending SIGUSR1 to";
-    qDebug() << "                                  the process. Valid values for N are: 'test',";
-    qDebug() << "                                  'debug', 'warning', 'critical'.\n";
+    qDebug() << "                                  the process. Valid values for N are: 'debug',";
+    qDebug() << "                                  'info', 'warning', 'critical'.\n";
     qDebug() << " -c=P, --config-file=P            Load configuration from P. By default";
     qDebug() << "                                  /usr/share/sensorfw-tests/testapp.conf is used.\n";
     qDebug() << " -m=N  --model=N                  Start clients in single thread model or multithread mode. (1=single thread(default), 2=multithread)\n";

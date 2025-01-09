@@ -3,7 +3,8 @@
    @brief Sensord initiation point
 
    <p>
-   Copyright (C) 2009-2010 Nokia Corporation
+   Copyright (c) 2009 - 2010 Nokia Corporation
+   Copyright (c) 2025 Jollyboys Ltd.
 
    @author Lihan Guo <ext-lihan.guo@nokia.com>
 
@@ -57,6 +58,8 @@ void Parser::parsingCommandLine(QStringList arguments)
             if (logLevel == "test")
                 logLevel_ = QtDebugMsg;
             else if (logLevel == "debug")
+                logLevel_ = QtDebugMsg;
+            else if (logLevel == "info")
                 logLevel_ = QtInfoMsg;
             else if (logLevel == "warning")
                 logLevel_ = QtWarningMsg;
