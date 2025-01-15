@@ -3,7 +3,8 @@
    @brief SensorManager
 
    <p>
-   Copyright (C) 2009-2010 Nokia Corporation
+   Copyright (c) 2009 - 2010 Nokia Corporation
+   Copyright (c) 2025 Jollyboys Ltd.
 
    @author Semi Malinen <semi.malinen@nokia.com
    @author Joep van Gassel <joep.van.gassel@nokia.com>
@@ -796,7 +797,7 @@ QStringList SensorManager::printStatus() const
                                                 ? "Standby Overriden" : "No standby override"));
     }
 
-    output.append("  Chains:\n");
+    output.append("  Chains:");
     for (QMap<QString, ChainInstanceEntry>::const_iterator it = chainInstanceMap_.constBegin();
          it != chainInstanceMap_.constEnd(); ++it) {
         output.append(QString("    %1 [%2 listener(s)]. %3")

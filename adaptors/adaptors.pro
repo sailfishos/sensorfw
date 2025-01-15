@@ -7,6 +7,7 @@ HYBRIS_SUBDIRS = hybrisaccelerometer \
                  hybrisgyroscopeadaptor \
                  hybrismagnetometeradaptor \
                  hybrispressureadaptor \
+                 hybriswakeupadaptor \
                  hybrisproximityadaptor \
                  hybrisorientationadaptor \
                  hybrisrotationadaptor \

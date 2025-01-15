@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Jolla Ltd
+** Copyright (c) 2013 Jolla Ltd.
+** Copyright (c) 2025 Jollyboys Ltd.
 **
 **
 ** $QT_BEGIN_LICENSE:LGPL$
@@ -48,11 +49,8 @@
 #ifndef SENSOR_TYPE_ACCELEROMETER
 #define SENSOR_TYPE_ACCELEROMETER                    (1)
 #endif
-#ifndef SENSOR_TYPE_GEOMAGNETIC_FIELD
-#define SENSOR_TYPE_GEOMAGNETIC_FIELD                (2) // alias for SENSOR_TYPE_MAGNETIC_FIELD
-#endif
 #ifndef SENSOR_TYPE_MAGNETIC_FIELD
-#define SENSOR_TYPE_MAGNETIC_FIELD                   (2) // alias for SENSOR_TYPE_GEOMAGNETIC_FIELD
+#define SENSOR_TYPE_MAGNETIC_FIELD                   (2)
 #endif
 #ifndef SENSOR_TYPE_ORIENTATION
 #define SENSOR_TYPE_ORIENTATION                      (3)
@@ -125,6 +123,62 @@
 #endif
 #ifndef SENSOR_TYPE_WRIST_TILT_GESTURE
 #define SENSOR_TYPE_WRIST_TILT_GESTURE              (26)
+#endif
+#ifndef SENSOR_TYPE_DEVICE_ORIENTATION
+#define SENSOR_TYPE_DEVICE_ORIENTATION              (27)
+#endif
+#ifndef SENSOR_TYPE_POSE_6DOF
+#define SENSOR_TYPE_POSE_6DOF                       (28)
+#endif
+#ifndef SENSOR_TYPE_STATIONARY_DETECT
+#define SENSOR_TYPE_STATIONARY_DETECT               (29)
+#endif
+#ifndef SENSOR_TYPE_MOTION_DETECT
+#define SENSOR_TYPE_MOTION_DETECT                   (30)
+#endif
+#ifndef SENSOR_TYPE_HEART_BEAT
+#define SENSOR_TYPE_HEART_BEAT                      (31)
+#endif
+#ifndef SENSOR_TYPE_DYNAMIC_SENSOR_META
+#define SENSOR_TYPE_DYNAMIC_SENSOR_META             (32)
+#endif
+#ifndef SENSOR_TYPE_ADDITIONAL_INFO
+#define SENSOR_TYPE_ADDITIONAL_INFO                 (33)
+#endif
+#ifndef SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT
+#define SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT      (34)
+#endif
+#ifndef SENSOR_TYPE_ACCELEROMETER_UNCALIBRATED
+#define SENSOR_TYPE_ACCELEROMETER_UNCALIBRATED      (35)
+#endif
+#ifndef SENSOR_TYPE_HINGE_ANGLE
+#define SENSOR_TYPE_HINGE_ANGLE                     (36)
+#endif
+#ifndef SENSOR_TYPE_HEAD_TRACKER
+#define SENSOR_TYPE_HEAD_TRACKER                    (37)
+#endif
+#ifndef SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES
+#define SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES      (38)
+#endif
+#ifndef SENSOR_TYPE_GYROSCOPE_LIMITED_AXES
+#define SENSOR_TYPE_GYROSCOPE_LIMITED_AXES          (39)
+#endif
+#ifndef SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED
+#define SENSOR_TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED (40)
+#endif
+#ifndef SENSOR_TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED
+#define SENSOR_TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED (41)
+#endif
+#ifndef SENSOR_TYPE_HEADING
+#define SENSOR_TYPE_HEADING                         (42)
+#endif
+#ifndef SENSOR_TYPE_DEVICE_PRIVATE_BASE
+#define SENSOR_TYPE_DEVICE_PRIVATE_BASE             (65536)
+#endif
+
+/* Legacy aliases */
+#ifndef SENSOR_TYPE_GEOMAGNETIC_FIELD
+#define SENSOR_TYPE_GEOMAGNETIC_FIELD               SENSOR_TYPE_MAGNETIC_FIELD
 #endif
 
 #define GRAVITY_RECIPROCAL_THOUSANDS 101.971621298
@@ -233,8 +287,8 @@ private:
     static void pollEventsCallback(
         GBinderClient* /*client*/, GBinderRemoteReply* reply,
         int status, void* userData);
-    bool typeRequiresWakeup(int type);
 #endif
+    bool typeRequiresWakeup(int type);
 
     friend class HybrisAdaptorReader;
 

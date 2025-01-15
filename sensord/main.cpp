@@ -3,7 +3,8 @@
    @brief Sensord initiation point
 
    <p>
-   Copyright (C) 2009-2010 Nokia Corporation
+   Copyright (c) 2009 - 2010 Nokia Corporation
+   Copyright (c) 2025 Jollyboys Ltd.
 
    @author Semi Malinen <semi.malinen@nokia.com>
    @author Joep van Gassel <joep.van.gassel@nokia.com>
@@ -48,27 +49,76 @@
 #include "calibrationhandler.h"
 #include "parser.h"
 
-static QtMsgType logLevel = QtWarningMsg;
-
 static void printUsage();
+
+enum LogLevel {
+    LevelCritical,
+    LevelWarning,
+    LevelInfo,
+    LevelDebug,
+    LevelCount
+};
+
+static const char * const nameForLevel[LevelCount] = {
+    "Critical",
+    "Warning",
+    "Info",
+    "Debug",
+};
+
+static const QtMsgType typeForLevel[LevelCount] = {
+    QtCriticalMsg,
+    QtWarningMsg,
+    QtInfoMsg,
+    QtDebugMsg,
+};
+
+static LogLevel logLevel = LevelDebug;
+
+static LogLevel levelForType(QtMsgType type)
+{
+    /* Map QtMsgType enum values to something that hopefully
+     * makes sense in less-than / greater-than sense too. */
+    switch (type) {
+    case QtCriticalMsg:
+        return LevelCritical;
+    case QtWarningMsg:
+        return LevelWarning;
+    case QtInfoMsg:
+        return LevelInfo;
+    default:
+        return LevelDebug;
+    }
+}
+
+static void setLogLevel(LogLevel newLevel)
+{
+    logLevel = newLevel;
+
+    // A bit nasty but simple way to get around qt logging macros that define const access
+    QLoggingCategory &sensorfwdCategory = const_cast<QLoggingCategory &>(lcSensorFw());
+
+    // As there is some logging also with qDebug() and co, adjust also default category
+    QLoggingCategory *defaultCategory = QLoggingCategory::defaultCategory();
+
+    for (int level = 0; level < LevelCount; ++level) {
+        QtMsgType type = typeForLevel[level];
+        bool enable = level <= logLevel;
+        sensorfwdCategory.setEnabled(type, enable);
+        if (defaultCategory)
+            defaultCategory->setEnabled(type, enable);
+    }
+}
 
 static void signalUSR1(int param)
 {
     Q_UNUSED(param);
-    bool enablingDebug = logLevel != QtDebugMsg;
 
-    // a bit nasty but simple way to get around qt logging macros that define const access
-    QLoggingCategory &category = const_cast<QLoggingCategory&>(lcSensorFw());
-    category.setEnabled(QtDebugMsg, enablingDebug);
-    category.setEnabled(QtInfoMsg, enablingDebug);
-
-    category.setEnabled(QtWarningMsg, true);
-    category.setEnabled(QtCriticalMsg, true);
-    category.setEnabled(QtFatalMsg, true);
-
-    if (enablingDebug) {
+    if (logLevel <= LevelWarning) {
+        setLogLevel(LevelDebug);
         qCWarning(lcSensorFw) << "Debug logging enabled";
     } else {
+        setLogLevel(LevelWarning);
         qCWarning(lcSensorFw) << "Debug logging disabled";
     }
 }
@@ -78,7 +128,7 @@ static void signalUSR2(int param)
     Q_UNUSED(param);
 
     qCWarning(lcSensorFw) << "Flushing sensord state";
-    qCWarning(lcSensorFw) << QString("  Logging level: %1").arg(logLevel);
+    qCWarning(lcSensorFw).noquote() << QString("  Logging level: %1").arg(nameForLevel[logLevel]);
     QStringList output = SensorManager::instance().printStatus();
 
     foreach (const QString& line, output) {
@@ -185,7 +235,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    logLevel = parser.getLogLevel();
+    setLogLevel(levelForType(parser.getLogLevel()));
 
     const char* CONFIG_FILE_PATH = "/etc/sensorfw/sensord.conf";
     const char* CONFIG_DIR_PATH = "/etc/sensorfw/sensord.conf.d/";
@@ -283,8 +333,8 @@ void printUsage()
     qDebug() << " -l=N, --log-level=<level>        Use given logging level. Messages are logged for";
     qDebug() << "                                  the given and higher priority levels. Level";
     qDebug() << "                                  can also be notched up by sending SIGUSR1 to";
-    qDebug() << "                                  the process. Valid values for N are: 'test',";
-    qDebug() << "                                  'debug', 'warning', 'critical'.\n";
+    qDebug() << "                                  the process. Valid values for N are: 'debug',";
+    qDebug() << "                                  'info', 'warning', 'critical'.\n";
     qDebug() << " -c=P, --config-file=<path>       Load configuration from given path. By default";
     qDebug() << "                                  /etc/sensorfw/sensord.conf is used.\n";
     qDebug() << " --no-context-info                Do not provide context information for context";
