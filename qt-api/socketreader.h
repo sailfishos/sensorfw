@@ -30,6 +30,7 @@
 #include <QObject>
 #include <QLocalSocket>
 #include <QVector>
+#include <QDebug>
 
 /**
  * @brief Helper class for reading socket datachannel from sensord
