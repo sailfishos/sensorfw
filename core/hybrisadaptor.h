@@ -2,6 +2,7 @@
 **
 ** Copyright (c) 2013 Jolla Ltd.
 ** Copyright (c) 2025 Jollyboys Ltd.
+** Copyright (c) 2026 Jolla Mobile Ltd
 **
 **
 ** $QT_BEGIN_LICENSE:LGPL$
@@ -29,13 +30,9 @@
 
 #include "deviceadaptor.h"
 
-#ifdef USE_BINDER
-#include <gbinder.h>
-#include "hybrisbindertypes.h"
-#else
-#include <hardware/sensors.h>
+#include "hybrisbackend.h"
+
 #include <pthread.h>
-#endif
 
 /* Older devices probably have old android hal and thus do
  * not define sensor all sensor types that have been added
@@ -238,31 +235,15 @@ public:
     void registerAdaptor (HybrisAdaptor * adaptor);
     void processSample   (const sensors_event_t& data);
 
+    int queueEvents(const sensors_event_t *buffer, int numEvents);
+    bool typeRequiresWakeup(int type);
+
 private:
     // fields
-    bool                          m_initialized;
     QMultiMap <int, HybrisAdaptor *>   m_registeredAdaptors; // type -> obj
 
-#ifdef USE_BINDER
-    // Binder backend
-    GBinderClient                *m_client;
-    gulong                        m_deathId;
-    gulong                        m_pollTransactId;
-    GBinderRemoteObject          *m_remote;
-    GBinderServiceManager        *m_serviceManager;
-    SENSOR_INTERFACE              m_sensorInterfaceEnum;
-    GBinderLocalObject           *m_sensorCallback;
-    GBinderFmq                   *m_eventQueue;
-    GBinderFmq                   *m_wakeLockQueue;
-    struct sensor_t              *m_sensorArray;   // [m_sensorCount]
-#else
-    // HAL backend
-    struct sensors_module_t      *m_halModule;
-    sensors_poll_device_1_t      *m_halDevice;
-    const struct sensor_t        *m_sensorArray;   // [m_sensorCount]
-#endif
+    HybrisBackend                *m_backend;
     pthread_t                     m_eventReaderTid;
-    int                           m_sensorCount;
     HybrisSensorState            *m_sensorState;   // [m_sensorCount]
     QMap <int, int>               m_indexOfType;   // type   -> index
     QMap <int, int>               m_indexOfHandle; // handle -> index
@@ -270,25 +251,6 @@ private:
     int                           m_eventPipeWriteFd;
     QSocketNotifier              *m_eventPipeNotifier;
     QSet<int>                     m_doubleStopReaderQuirkSensorTypes;
-
-#ifdef USE_BINDER
-    static GBinderLocalReply *sensorCallbackHandler(
-        GBinderLocalObject* obj,
-        GBinderRemoteRequest* req,
-        guint code,
-        guint flags,
-        int* status,
-        void* user_data);
-    void getSensorList();
-    void startConnect();
-    void finishConnect();
-    static void binderDied(GBinderRemoteObject *, void *user_data);
-    void pollEvents();
-    static void pollEventsCallback(
-        GBinderClient* /*client*/, GBinderRemoteReply* reply,
-        int status, void* userData);
-#endif
-    bool typeRequiresWakeup(int type);
 
     friend class HybrisAdaptorReader;
 
@@ -298,7 +260,6 @@ private:
     void initEventPipe();
     void cleanupEventPipe();
     void eventPipeWakeup(int fd);
-    int queueEvents(const sensors_event_t *buffer, int numEvents);
     int processEvents(const sensors_event_t *buffer, int numEvents);
 };
 
