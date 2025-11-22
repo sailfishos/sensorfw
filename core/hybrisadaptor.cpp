@@ -2,6 +2,7 @@
 **
 ** Copyright (c) 2013 Jolla Ltd.
 ** Copyright (c) 2025 Jollyboys Ltd.
+** Copyright (c) 2026 Jolla Mobile Ltd
 **
 **
 ** $QT_BEGIN_LICENSE:LGPL$
@@ -19,6 +20,7 @@
 ****************************************************************************/
 
 #include "hybrisadaptor.h"
+#include "hybrisbackend.h"
 #include "deviceadaptor.h"
 #include "config.h"
 
@@ -26,59 +28,18 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-#ifndef USE_BINDER
-#include <hardware/hardware.h>
-#endif
-
-#include <sys/types.h>
-#include <sys/wait.h>
-
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
 #include <signal.h>
 
-#ifdef USE_BINDER
-#define SENSOR_BINDER_SERVICE_DEVICE "/dev/hwbinder"
-#define SENSOR_BINDER_SERVICE_IFACE_1_0 "android.hardware.sensors@1.0::ISensors"
-#define SENSOR_BINDER_SERVICE_NAME_1_0  SENSOR_BINDER_SERVICE_IFACE_1_0 "/default"
-#define SENSOR_BINDER_SERVICE_IFACE_2_0 "android.hardware.sensors@2.0::ISensors"
-#define SENSOR_BINDER_SERVICE_NAME_2_0  SENSOR_BINDER_SERVICE_IFACE_2_0 "/default"
-#define SENSOR_BINDER_SERVICE_CALLBACK_IFACE_2_0 "android.hardware.sensors@2.0::ISensorsCallback"
-#define SENSOR_BINDER_SERVICE_IFACE_2_1 "android.hardware.sensors@2.1::ISensors"
-#define SENSOR_BINDER_SERVICE_NAME_2_1  SENSOR_BINDER_SERVICE_IFACE_2_1 "/default"
-#define SENSOR_BINDER_SERVICE_CALLBACK_IFACE_2_1 "android.hardware.sensors@2.1::ISensorsCallback"
-#define MAX_RECEIVE_BUFFER_EVENT_COUNT 128
-
-static const GBinderClientIfaceInfo sensors_2_client_ifaces[] = {
-    {SENSOR_BINDER_SERVICE_IFACE_2_1, INJECT_SENSOR_DATA_2_1 },
-    {SENSOR_BINDER_SERVICE_IFACE_2_0, CONFIG_DIRECT_REPORT },
-};
-
-G_STATIC_ASSERT
-    (G_N_ELEMENTS(sensors_2_client_ifaces) == SENSOR_INTERFACE_2_1);
-
-const char* const sensors_2_callback_ifaces[] = {
-    SENSOR_BINDER_SERVICE_CALLBACK_IFACE_2_1,
-    SENSOR_BINDER_SERVICE_CALLBACK_IFACE_2_0,
-    NULL
-};
-
-#endif
-
-namespace {
-/* Maximum number of events to transmit over event pipe in one go.
- * Also defines maximum number of events to ask from android hal/service.
- */
-const size_t maxEvents = 64;
-}
+#include <unistd.h>
 
 /* ========================================================================= *
  * UTILITIES
  * ========================================================================= */
 
-static char const *
+char const *
 sensorTypeName(int type)
 {
     switch (type) {
@@ -234,24 +195,9 @@ Q_GLOBAL_STATIC(HybrisManager, hybrisManager)
 
 HybrisManager::HybrisManager(QObject *parent)
     : QObject(parent)
-    , m_initialized(false)
     , m_registeredAdaptors()
-#ifdef USE_BINDER
-    , m_client(NULL)
-    , m_deathId(0)
-    , m_pollTransactId(0)
-    , m_remote(NULL)
-    , m_serviceManager(NULL)
-    , m_sensorInterfaceEnum(SENSOR_INTERFACE_COUNT)
-    , m_sensorCallback(NULL)
-#else
-    , m_halModule(NULL)
-    , m_halDevice(NULL)
-#endif
-    , m_sensorArray(NULL)
     , m_eventReaderTid(0)
-    , m_sensorCount(0)
-    , m_sensorState(NULL)
+    , m_sensorState(nullptr)
     , m_indexOfType()
     , m_indexOfHandle()
     , m_eventPipeReadFd(-1)
@@ -263,81 +209,13 @@ HybrisManager::HybrisManager(QObject *parent)
     connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
             this, &HybrisManager::cleanup);
 
-#ifdef USE_BINDER
-    startConnect();
-#else
-    int err;
-
-    /* Open android sensor plugin */
-    for (int retries = 4; ;) {
-        // Try module loading in throwaway child process
-        // so that we can retry from clean slate if needed
-        fflush(nullptr);
-        pid_t child_pid = fork();
-
-        if (child_pid == 0) {
-            // Child process
-            const hw_module_t *dummyModule = nullptr;
-            err = hw_get_module(SENSORS_HARDWARE_MODULE_ID, &dummyModule);
-            _exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
-        }
-
-        if (child_pid == -1) {
-            qCWarning(lcSensorFw) << "w_get_module() probe, fork failed:" << strerror(errno);
-            QCoreApplication::exit(EXIT_FAILURE);
-            return;
-        }
-
-        int status = 0;
-        if (waitpid(child_pid, &status, 0) == -1) {
-            qCWarning(lcSensorFw) << "w_get_module() probe, waitpid failed:" << strerror(errno);
-            QCoreApplication::exit(EXIT_FAILURE);
-            return;
-        }
-
-        // If probe in child process was successful, do it for real
-        if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
-            err = hw_get_module(SENSORS_HARDWARE_MODULE_ID,
-                                (hw_module_t const **)&m_halModule);
-            if (err == 0)
-                break;
-
-            qCWarning(lcSensorFw) << "hw_get_module() failed:" << strerror(-err);
-            m_halModule = nullptr;
-            QCoreApplication::exit(EXIT_FAILURE);
-            return;
-        }
-
-        // Bailout or retry after brief delay
-        if (--retries < 0) {
-            qCWarning(lcSensorFw) << "hw_get_module() probe failed - giving up";
-            QCoreApplication::exit(EXIT_FAILURE);
-            return;
-        }
-
-        qCWarning(lcSensorFw) << "hw_get_module() probe failed";
-        QThread::msleep(2000);
-    }
-
-    /* Open android sensor device */
-    err = sensors_open_1(&m_halModule->common, &m_halDevice);
-    if (err != 0) {
-        m_halDevice = 0;
-        qCWarning(lcSensorFw) << "sensors_open() failed:" << strerror(-err);
+    m_backend = HybrisBackend::getBackend(this);
+    if (m_backend) {
+        // During initialize m_backend is used so can't be done in constructor
+        m_backend->initialize();
+    } else {
         QCoreApplication::exit(EXIT_FAILURE);
-        return;
     }
-
-    /* Get static sensor information */
-    m_sensorCount = m_halModule->get_sensors_list(m_halModule, &m_sensorArray);
-    if (m_sensorCount <= 0) {
-        qCWarning(lcSensorFw) << "no sensors found";
-        QCoreApplication::exit(EXIT_FAILURE);
-        return;
-    }
-
-    initManager();
-#endif
 }
 
 bool HybrisManager::typeRequiresWakeup(int type)
@@ -375,74 +253,39 @@ void HybrisManager::initManager()
     initEventPipe();
 
     /* Reserve space for sensor state data */
-    m_sensorState = new HybrisSensorState[m_sensorCount];
+    m_sensorState = new HybrisSensorState[m_backend->sensorCount()];
 
     /* Selected sensors to use */
-    for (int i = 0; i < m_sensorCount; ++i) {
-#ifdef USE_BINDER
-        const char *sensorName = m_sensorArray[i].name.data.str ?: "unknown";
-#else
-        const char *sensorName = m_sensorArray[i].name ?: "unknown";
-#endif
-
+    for (int i = 0; i < m_backend->sensorCount(); ++i) {
         /* Always add to handle -> index mapping */
-        m_indexOfHandle.insert(m_sensorArray[i].handle, i);
+        m_indexOfHandle.insert(m_backend->handle(i), i);
 
         // some devices have compass and compass raw,
         // ignore compass raw. compass has range 360
-        if (m_sensorArray[i].type == SENSOR_TYPE_ORIENTATION && m_sensorArray[i].maxRange != 360)
+        if (m_backend->type(i) == SENSOR_TYPE_ORIENTATION && m_backend->maxRange(i) != 360)
             continue;
 
         /* Update type -> index mapping if wake flag requirements are met or we have no candidate yet */
-        bool wantWakeup = typeRequiresWakeup(m_sensorArray[i].type);
-        bool haveWakeup = false;
-#if defined(USE_BINDER)
-        if (m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP)
-            haveWakeup = true;
-#elif defined(SENSORS_DEVICE_API_VERSION_1_3)
-        if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_3) {
-            if (m_sensorArray[i].flags & SENSOR_FLAG_WAKE_UP)
-                haveWakeup = true;
-        } else {
-            if (strstr(sensorName, "(WAKE_UP)"))
-                haveWakeup = true;
-        }
-#else
-        if (strstr(sensorName, "(WAKE_UP)"))
-            haveWakeup = true;
-#endif
-
-        if (haveWakeup == wantWakeup || !m_indexOfType.contains(m_sensorArray[i].type))
-            m_indexOfType.insert(m_sensorArray[i].type, i);
+        bool wantWakeup = typeRequiresWakeup(m_backend->type(i));
+        bool haveWakeup = m_backend->isWakeupSensor(i);
+        if (haveWakeup == wantWakeup || !m_indexOfType.contains(m_backend->type(i)))
+            m_indexOfType.insert(m_backend->type(i), i);
     }
 
     /* Initialize selected sensors */
-    for (int i = 0; i < m_sensorCount; ++i) {
-#ifdef USE_BINDER
-        const char *sensorName = m_sensorArray[i].name.data.str ?: "unknown";
-#else
-        const char *sensorName = m_sensorArray[i].name ?: "unknown";
-#endif
-        bool use = m_indexOfType.value(m_sensorArray[i].type) == i;
+    for (int i = 0; i < m_backend->sensorCount(); ++i) {
+        const char *sensorName = m_backend->sensorName(i);
+        bool use = m_indexOfType.value(m_backend->type(i)) == i;
 
         qCInfo(lcSensorFw) << Q_FUNC_INFO
             << (use ? "SELECT" : "IGNORE")
-            << "type:" << m_sensorArray[i].type << sensorTypeName(m_sensorArray[i].type)
+            << "type:" << m_backend->type(i) << sensorTypeName(m_backend->type(i))
             << "name:" << sensorName;
 
         if (use) {
             // min/max delay in hal is specified in [us]
-            int minDelay_us = m_sensorArray[i].minDelay;
-            int maxDelay_us = -1; // Assume: not defined by hal
-
-#ifdef USE_BINDER
-            maxDelay_us = m_sensorArray[i].maxDelay;
-#else
-#ifdef SENSORS_DEVICE_API_VERSION_1_3
-            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_3)
-                maxDelay_us = m_sensorArray[i].maxDelay;
-#endif
-#endif
+            int minDelay_us = m_backend->minDelay(i);
+            int maxDelay_us = m_backend->maxDelay(i); // Assume: not defined by hal
 
             /* If HAL does not define maximum delay, we need to invent
              * something that a) allows sensorfwd logic to see a range
@@ -477,73 +320,37 @@ void HybrisManager::initManager()
                 m_sensorState[i].m_minDelay_us = minDelay_us;
                 m_sensorState[i].m_maxDelay_us = maxDelay_us;
 
-                setDelay(m_sensorArray[i].handle, delay_us, true);
+                setDelay(m_backend->handle(i), delay_us, true);
 
                 qCInfo(lcSensorFw, "delay = %d [%d, %d]",
                        m_sensorState[i].m_delay_us,
                        m_sensorState[i].m_minDelay_us,
                        m_sensorState[i].m_maxDelay_us);
             }
-            m_indexOfType.insert(m_sensorArray[i].type, i);
+            m_indexOfType.insert(m_backend->type(i), i);
 
             /* Set sane fallback values for select sensors in case the
              * hal does not report initial values. */
 
             sensors_event_t *eve = &m_sensorState[i].m_fallbackEvent;
-#ifndef USE_BINDER
-            eve->version = sizeof *eve;
-#endif
-            eve->sensor  = m_sensorArray[i].handle;
-            eve->type    = m_sensorArray[i].type;
-            switch (m_sensorArray[i].type) {
-            case SENSOR_TYPE_LIGHT:
-                // Roughly indoor lightning
-#ifdef USE_BINDER
-                eve->u.scalar = 400;
-#else
-                eve->light = 400;
-#endif
-                break;
-
-            case SENSOR_TYPE_PROXIMITY:
-                // Not-covered
-#ifdef USE_BINDER
-                eve->u.scalar = m_sensorArray[i].maxRange;
-#else
-                eve->distance = m_sensorArray[i].maxRange;
-#endif
-                break;
-            default:
-                eve->sensor  = 0;
-                eve->type    = 0;
-                break;
-            }
+            m_backend->initFallbackEvent(i, eve);
         }
 
         /* Make sure all sensors are initially in stopped state */
-        setActive(m_sensorArray[i].handle, false);
+        setActive(m_backend->handle(i), false);
     }
 
-#ifdef USE_BINDER
-    if (m_sensorInterfaceEnum == SENSOR_INTERFACE_1_0) {
-        pollEvents();
-    } else {
-#endif
-    int err;
-    /* Start android sensor event reader */
-    err = pthread_create(&m_eventReaderTid, 0, eventReaderThread, this);
-    if (err) {
-        m_eventReaderTid = 0;
-        qCCritical(lcSensorFw) << "Failed to start event reader thread";
-        return;
+    if (m_backend->needsReaderThread()) {
+        int err;
+        /* Start android sensor event reader */
+        err = pthread_create(&m_eventReaderTid, 0, eventReaderThread, this);
+        if (err) {
+            m_eventReaderTid = 0;
+            qCCritical(lcSensorFw) << "Failed to start event reader thread";
+            return;
+        }
+        qCInfo(lcSensorFw) << "Event reader thread started";
     }
-    qCInfo(lcSensorFw) << "Event reader thread started";
-
-#ifdef USE_BINDER
-    }
-#else
-    m_initialized = true;
-#endif
 }
 
 HybrisManager::~HybrisManager()
@@ -564,39 +371,13 @@ void HybrisManager::cleanup()
         adaptor->stopSensor();
     }
 
-    /* Stop reacting to async events
-     */
-
-#ifdef USE_BINDER
-    gbinder_remote_object_remove_handler(m_remote, m_deathId);
-    m_deathId = 0;
-
-    if (m_pollTransactId) {
-        gbinder_client_cancel(m_client, m_pollTransactId);
-        m_pollTransactId = 0;
-
-        // The above code just marks down pending POLL transaction as
-        // to be cancelled later on when handler thread gets woken up.
-        //
-        // If we are exiting right after cleanup(), that is never going
-        // to happen and gbinder_ipc_exit() cleanup code blocks sensorfwd
-        // exit indefinitely.
-        //
-        // As a workaround: make a dummy POLL transaction, for which a
-        // reply is sent immediately, which then wakes up the handler
-        // thread, the cancellation gets processed and exit is unblocked.
-
-        GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
-        int32_t status = 0;
-        gbinder_local_request_append_int32(req, 0);
-        GBinderRemoteReply *reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
-        gbinder_remote_reply_unref(reply);
-        gbinder_local_request_unref(req);
+    if (m_backend) {
+        delete m_backend;
+        m_backend = nullptr;
     }
 
-    gbinder_local_object_unref(m_sensorCallback);
-    m_sensorCallback = NULL;
-#endif
+    /* Stop reacting to async events
+     */
 
     if (m_eventReaderTid) {
         qCInfo(lcSensorFw) << "Canceling event reader thread";
@@ -629,43 +410,8 @@ void HybrisManager::cleanup()
     /* Release remaining dynamic resources
      */
 
-#ifdef USE_BINDER
-    gbinder_fmq_unref(m_wakeLockQueue);
-    m_wakeLockQueue = NULL;
-
-    gbinder_fmq_unref(m_eventQueue);
-    m_eventQueue = NULL;
-
-    gbinder_client_unref(m_client);
-    m_client = NULL;
-
-    gbinder_servicemanager_unref(m_serviceManager);
-    m_serviceManager = NULL;
-    m_remote = NULL; // auto-release
-
-    for (int i = 0 ; i < m_sensorCount ; i++) {
-        g_free((void*)m_sensorArray[i].name.data.str);
-        g_free((void*)m_sensorArray[i].vendor.data.str);
-        g_free((void*)m_sensorArray[i].typeAsString.data.str);
-        g_free((void*)m_sensorArray[i].requiredPermission.data.str);
-    }
-    delete[] m_sensorArray;
-    m_sensorArray = NULL;
-#else
-    if (m_halDevice) {
-        qCInfo(lcSensorFw) << "close sensor device";
-        int errorCode = sensors_close_1(m_halDevice);
-        if (errorCode != 0) {
-            qCWarning(lcSensorFw) << "sensors_close() failed:" << strerror(-errorCode);
-        }
-        m_halDevice = NULL;
-    }
-#endif
-
     delete[] m_sensorState;
-    m_sensorState = NULL;
-    m_sensorCount = 0;
-    m_initialized = false;
+    m_sensorState = nullptr;
 
     /* Close sensor data transfer pipe */
     cleanupEventPipe();
@@ -677,249 +423,10 @@ HybrisManager *HybrisManager::instance()
     return priv;
 }
 
-#ifdef USE_BINDER
-
-GBinderLocalReply *HybrisManager::sensorCallbackHandler(
-    GBinderLocalObject* obj,
-    GBinderRemoteRequest* req,
-    guint code,
-    guint flags,
-    int* status,
-    void* user_data)
-{
-    (void)flags;
-    (void)obj;
-    (void)user_data;
-    qCInfo(lcSensorFw) << "sensorCallbackHandler";
-    const char *iface = gbinder_remote_request_interface(req);
-    if (iface && (!strcmp(iface, SENSOR_BINDER_SERVICE_IFACE_2_0) ||
-                  !strcmp(iface, SENSOR_BINDER_SERVICE_IFACE_2_1)
-                  )) {
-        switch (code) {
-        case DYNAMIC_SENSORS_CONNECTED_2_0:
-        case DYNAMIC_SENSORS_CONNECTED_2_1:
-            qCInfo(lcSensorFw) << "Dynamic sensor connected";
-            break;
-        case DYNAMIC_SENSORS_DISCONNECTED_2_0:
-            qCInfo(lcSensorFw) << "Dynamic sensor disconnected";
-            break;
-        default:
-            qCWarning(lcSensorFw) << "Unknown code (" << code << ")";
-            break;
-        }
-        *status = GBINDER_STATUS_OK;
-        qCInfo(lcSensorFw) << "sensorCallbackHandler valid sensor interface";
-    }
-    return NULL;
-}
-
-void HybrisManager::getSensorList()
-{
-    qCInfo(lcSensorFw) << "Get sensor list";
-    GBinderReader reader;
-    GBinderRemoteReply *reply;
-    int status;
-
-    if (m_sensorInterfaceEnum == SENSOR_INTERFACE_2_1) {
-        reply = gbinder_client_transact_sync_reply(m_client, GET_SENSORS_LIST_2_1, NULL, &status);
-    } else {
-        reply = gbinder_client_transact_sync_reply(m_client, GET_SENSORS_LIST, NULL, &status);
-    }
-
-    if (status != GBINDER_STATUS_OK) {
-        qCWarning(lcSensorFw) << "Unable to get sensor list: status " << status;
-        cleanup();
-        sleep(1);
-        startConnect();
-        return;
-    }
-
-    gbinder_remote_reply_init_reader(reply, &reader);
-    gbinder_reader_read_int32(&reader, &status);
-    gsize count = 0;
-    gsize vecSize = 0;
-    sensor_t *vec = (sensor_t *)gbinder_reader_read_hidl_vec(&reader, &count, &vecSize);
-
-    m_sensorCount = count;
-    m_sensorArray = new sensor_t[m_sensorCount];
-    for (int i = 0 ; i < m_sensorCount ; i++) {
-        memcpy(&m_sensorArray[i], &vec[i], sizeof(sensor_t));
-
-        // Read strings
-        GBinderBuffer *buffer = gbinder_reader_read_buffer(&reader);
-        m_sensorArray[i].name.data.str = g_strdup((const gchar *)buffer->data);
-        m_sensorArray[i].name.len = buffer->size;
-        m_sensorArray[i].name.owns_buffer = true;
-        gbinder_buffer_free(buffer);
-
-        buffer = gbinder_reader_read_buffer(&reader);
-        m_sensorArray[i].vendor.data.str = g_strdup((const gchar *)buffer->data);
-        m_sensorArray[i].vendor.len = buffer->size;
-        m_sensorArray[i].vendor.owns_buffer = true;
-        gbinder_buffer_free(buffer);
-
-        buffer = gbinder_reader_read_buffer(&reader);
-        m_sensorArray[i].typeAsString.data.str = g_strdup((const gchar *)buffer->data);
-        m_sensorArray[i].typeAsString.len = buffer->size;
-        m_sensorArray[i].typeAsString.owns_buffer = true;
-        gbinder_buffer_free(buffer);
-
-        buffer = gbinder_reader_read_buffer(&reader);
-        m_sensorArray[i].requiredPermission.data.str = g_strdup((const gchar *)buffer->data);
-        m_sensorArray[i].requiredPermission.len = buffer->size;
-        m_sensorArray[i].requiredPermission.owns_buffer = true;
-        gbinder_buffer_free(buffer);
-    }
-    gbinder_remote_reply_unref(reply);
-
-    initManager();
-
-    m_initialized = true;
-    qCWarning(lcSensorFw) << "Hybris sensor manager initialized";
-}
-
-void HybrisManager::binderDied(GBinderRemoteObject *, void *user_data)
-{
-    HybrisManager *conn =
-                    static_cast<HybrisManager *>(user_data);
-    qCWarning(lcSensorFw) << "Sensor service died! Trying to reconnect.";
-    conn->cleanup();
-    conn->startConnect();
-}
-
-void HybrisManager::startConnect()
-{
-    if (!m_serviceManager) {
-        m_serviceManager = gbinder_servicemanager_new(SENSOR_BINDER_SERVICE_DEVICE);
-    }
-
-    if (gbinder_servicemanager_wait(m_serviceManager, -1)) {
-        finishConnect();
-    } else {
-        qCWarning(lcSensorFw) << "Could not get service manager for sensor service";
-        cleanup();
-    }
-}
-
-void HybrisManager::finishConnect()
-{
-    int initializeCode;
-    m_remote = gbinder_servicemanager_get_service_sync(m_serviceManager,
-                                    SENSOR_BINDER_SERVICE_NAME_2_1, NULL);
-
-    if (m_remote) {
-        qCInfo(lcSensorFw) << "Connected to sensor 2.1 service";
-        m_sensorInterfaceEnum = SENSOR_INTERFACE_2_1;
-        initializeCode = INITIALIZE_2_1;
-    } else {
-        m_remote = gbinder_servicemanager_get_service_sync(m_serviceManager,
-                                    SENSOR_BINDER_SERVICE_NAME_2_0, NULL);
-        if (m_remote) {
-            qCInfo(lcSensorFw) << "Connected to sensor 2.0 service";
-            m_sensorInterfaceEnum = SENSOR_INTERFACE_2_0;
-            initializeCode = INITIALIZE_2_0;
-        }
-    }
-
-    if (m_remote) {
-        qCInfo(lcSensorFw) << "Initialize sensor service";
-        m_deathId = gbinder_remote_object_add_death_handler(m_remote, binderDied, this);
-        m_client = gbinder_client_new2(m_remote, sensors_2_client_ifaces, G_N_ELEMENTS(sensors_2_client_ifaces));
-        if (!m_client) {
-            qCInfo(lcSensorFw) << "Could not create client for sensor service. Trying to reconnect.";
-        } else {
-            GBinderRemoteReply *reply;
-            GBinderLocalRequest *req = gbinder_client_new_request2(m_client, initializeCode);
-            int32_t status;
-            GBinderWriter writer;
-
-            gbinder_local_request_init_writer(req, &writer);
-            m_sensorCallback = gbinder_servicemanager_new_local_object2(
-                m_serviceManager,
-                sensors_2_callback_ifaces,
-                sensorCallbackHandler,
-                this);
-
-            m_eventQueue = gbinder_fmq_new(sizeof(sensors_event_t), 128,
-                GBINDER_FMQ_TYPE_SYNC_READ_WRITE, GBINDER_FMQ_FLAG_CONFIGURE_EVENT_FLAG, -1, 0);
-            gbinder_writer_append_fmq_descriptor(&writer, m_eventQueue);
-
-            m_wakeLockQueue = gbinder_fmq_new(sizeof(guint32), 128,
-                GBINDER_FMQ_TYPE_SYNC_READ_WRITE, GBINDER_FMQ_FLAG_CONFIGURE_EVENT_FLAG, -1, 0);
-            gbinder_writer_append_fmq_descriptor(&writer, m_wakeLockQueue);
-
-            gbinder_writer_append_local_object(&writer, m_sensorCallback);
-
-            reply = gbinder_client_transact_sync_reply(m_client, initializeCode, req, &status);
-            gbinder_local_request_unref(req);
-
-            if (status != GBINDER_STATUS_OK) {
-                qCWarning(lcSensorFw) << "Initialize failed with status" << status << ". Trying to reconnect.";
-                gbinder_remote_reply_unref(reply);
-            } else {
-                int error;
-                GBinderReader reader;
-                gbinder_remote_reply_init_reader(reply, &reader);
-                gbinder_reader_read_int32(&reader, &status);
-                gbinder_reader_read_int32(&reader, &error);
-
-                gbinder_remote_reply_unref(reply);
-                if (!error) {
-                    getSensorList();
-                    return;
-                } else {
-                    qCWarning(lcSensorFw) << "Initialize failed with error" << error << ". Trying to reconnect.";
-                }
-            }
-        }
-    } else {
-        m_remote = gbinder_servicemanager_get_service_sync(m_serviceManager,
-                                    SENSOR_BINDER_SERVICE_NAME_1_0, NULL);
-        if (!m_remote) {
-            qCInfo(lcSensorFw) << "Could not find remote object for sensor service. Trying to reconnect";
-        } else {
-            m_sensorInterfaceEnum = SENSOR_INTERFACE_1_0;
-            qCInfo(lcSensorFw) << "Connected to sensor 1.0 service";
-            m_deathId = gbinder_remote_object_add_death_handler(m_remote, binderDied,
-                            this);
-            m_client = gbinder_client_new(m_remote, SENSOR_BINDER_SERVICE_IFACE_1_0);
-            if (!m_client) {
-                qCInfo(lcSensorFw) << "Could not create client for sensor service. Trying to reconnect.";
-            } else {
-                // Sometimes sensor service has lingering connetion from
-                // previous client which causes sensor service to restart
-                // and we need to test with poll if remote is really working.
-                GBinderRemoteReply *reply;
-                GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
-                int32_t status;
-
-                // Empty poll to test if remote is working
-                req = gbinder_local_request_append_int32(req, 0);
-
-                reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
-                gbinder_local_request_unref(req);
-                gbinder_remote_reply_unref(reply);
-
-                if (status != GBINDER_STATUS_OK) {
-                    qCWarning(lcSensorFw) << "Poll failed with status" << status << ". Trying to reconnect.";
-                } else {
-                    getSensorList();
-                    return;
-                }
-            }
-        }
-    }
-    // On failure cleanup and wait before reconnecting
-    cleanup();
-    sleep(1);
-    startConnect();
-}
-#endif //USE_BINDER
-
 int HybrisManager::handleForType(int sensorType) const
 {
     int index = indexForType(sensorType);
-    return (index < 0) ? -1 : m_sensorArray[index].handle;
+    return (index < 0) ? -1 : m_backend->handle(index);
 }
 
 sensors_event_t *HybrisManager::eventForHandle(int handle) const
@@ -1039,11 +546,9 @@ float HybrisManager::getMaxRange(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
-
-        range = scaleSensorValue(sensor->maxRange, sensor->type);
+        range = scaleSensorValue(m_backend->maxRange(index), m_backend->type(index));
         qCDebug(lcSensorFw, "HYBRIS CTL getMaxRange(%d=%s) -> %g",
-                sensor->handle, sensorTypeName(sensor->type), range);
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)), range);
     }
 
     return range;
@@ -1055,11 +560,9 @@ float HybrisManager::getResolution(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
-
-        resolution = scaleSensorValue(sensor->resolution, sensor->type);
+        resolution = scaleSensorValue(m_backend->resolution(index), m_backend->type(index));
         qCDebug(lcSensorFw, "HYBRIS CTL getResolution(%d=%s) -> %g",
-                sensor->handle, sensorTypeName(sensor->type), resolution);
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)), resolution);
     }
 
     return resolution;
@@ -1071,12 +574,11 @@ int HybrisManager::getMinDelay(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
         delay_us = state->m_minDelay_us;
         qCDebug(lcSensorFw, "HYBRIS CTL getMinDelay(%d=%s) -> %d",
-                sensor->handle, sensorTypeName(sensor->type), delay_us);
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)), delay_us);
     }
 
     return delay_us;
@@ -1088,12 +590,11 @@ int HybrisManager::getMaxDelay(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
         delay_us = state->m_maxDelay_us;
         qCDebug(lcSensorFw, "HYBRIS CTL getMaxDelay(%d=%s) -> %d",
-                sensor->handle, sensorTypeName(sensor->type), delay_us);
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)), delay_us);
     }
 
     return delay_us;
@@ -1105,12 +606,11 @@ int HybrisManager::getDelay(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
         delay_us = state->m_delay_us;
         qCDebug(lcSensorFw, "HYBRIS CTL getDelay(%d=%s) -> %d",
-                sensor->handle, sensorTypeName(sensor->type), delay_us);
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)), delay_us);
     }
 
     return delay_us;
@@ -1122,62 +622,24 @@ bool HybrisManager::setDelay(int handle, int delay_us, bool force)
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
+        int handle = m_backend->handle(index);
+        int type = m_backend->type(index);
 
         if (!force && state->m_delay_us == delay_us) {
             qCDebug(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> no-change",
-                    sensor->handle, sensorTypeName(sensor->type), delay_us);
+                    handle, sensorTypeName(type), delay_us);
             success = true;
         } else {
             int64_t delay_ns = delay_us * 1000LL;
-#ifdef USE_BINDER
-            int error;
-            GBinderLocalRequest *req = gbinder_client_new_request2(m_client, BATCH);
-            GBinderRemoteReply *reply;
-            GBinderReader reader;
-            GBinderWriter writer;
-            int32_t status;
-
-            gbinder_local_request_init_writer(req, &writer);
-
-            gbinder_writer_append_int32(&writer, sensor->handle);
-            gbinder_writer_append_int64(&writer, delay_ns);
-            gbinder_writer_append_int64(&writer, 0);
-
-            reply = gbinder_client_transact_sync_reply(m_client, BATCH, req, &status);
-            gbinder_local_request_unref(req);
-
-            if (status != GBINDER_STATUS_OK) {
-                qCWarning(lcSensorFw) << "Set delay failed status " << status;
-                return false;
-            }
-            gbinder_remote_reply_init_reader(reply, &reader);
-            gbinder_reader_read_int32(&reader, &status);
-            gbinder_reader_read_int32(&reader, &error);
-
-            gbinder_remote_reply_unref(reply);
-#else
-            int error = EBADSLT;
-            if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_0) {
-                if (m_halDevice->batch)
-                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
-                else if (m_halDevice->setDelay)
-                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
-            } else {
-                if (m_halDevice->setDelay)
-                    error = m_halDevice->setDelay(&m_halDevice->v0, sensor->handle, delay_ns);
-                else if (m_halDevice->batch) // Here be dragons
-                    error = m_halDevice->batch(m_halDevice, sensor->handle, 0, delay_ns, 0);
-            }
-#endif
+            int error = m_backend->setDelay(handle, delay_ns);
             if (error) {
                 qCWarning(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
-                          sensor->handle, sensorTypeName(sensor->type), delay_us,
+                          handle, sensorTypeName(type), delay_us,
                           error, strerror(error));
             } else {
                 qCInfo(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> success",
-                       sensor->handle, sensorTypeName(sensor->type), delay_us);
+                       handle, sensorTypeName(type), delay_us);
                 state->m_delay_us = delay_us;
                 success = true;
             }
@@ -1193,12 +655,11 @@ bool HybrisManager::getActive(int handle) const
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
 
         active = (state->m_active > 0);
         qCDebug(lcSensorFw, "HYBRIS CTL getActive(%d=%s) -> %s",
-                sensor->handle, sensorTypeName(sensor->type),
+                m_backend->handle(index), sensorTypeName(m_backend->type(index)),
                 active ? "true" : "false");
     }
     return active;
@@ -1210,126 +671,33 @@ bool HybrisManager::setActive(int handle, bool active)
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        const struct sensor_t *sensor = &m_sensorArray[index];
         HybrisSensorState     *state  = &m_sensorState[index];
+        int handle = m_backend->handle(index);
+        int type = m_backend->type(index);
 
         if (state->m_active == active) {
             qCDebug(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> no-change",
-                    sensor->handle, sensorTypeName(sensor->type), active ? "true" : "false");
+                    handle, sensorTypeName(type), active ? "true" : "false");
             success = true;
         } else {
-#ifdef USE_BINDER
-            if (active && state->m_delay_us != -1) {
-                qCInfo(lcSensorFw, "HYBRIS CTL FORCE PRE UPDATE %i, %s", sensor->handle,
-                       sensorTypeName(sensor->type));
-                int delay_us = state->m_delay_us;
-                state->m_delay_us = -1;
-                setDelay(handle, delay_us, true);
-            }
-            int error;
-            GBinderLocalRequest *req = gbinder_client_new_request2(m_client, ACTIVATE);
-            GBinderRemoteReply *reply;
-            GBinderReader reader;
-            GBinderWriter writer;
-            int32_t status;
-
-            gbinder_local_request_init_writer(req, &writer);
-
-            gbinder_writer_append_int32(&writer, sensor->handle);
-            gbinder_writer_append_int32(&writer, active);
-
-            reply = gbinder_client_transact_sync_reply(m_client, ACTIVATE, req, &status);
-            gbinder_local_request_unref(req);
-
-            if (status != GBINDER_STATUS_OK) {
-                qCWarning(lcSensorFw) << "Activate failed status " << status;
-                return false;
-            }
-            gbinder_remote_reply_init_reader(reply, &reader);
-            gbinder_reader_read_int32(&reader, &status);
-            gbinder_reader_read_int32(&reader, &error);
-
-            gbinder_remote_reply_unref(reply);
-#else
-            int error = m_halDevice->activate(&m_halDevice->v0, sensor->handle, active);
-#endif
+            int error = m_backend->setActive(handle, active);
             if (error) {
-                qCWarning(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> %d=%s", sensor->handle,
-                          sensorTypeName(sensor->type), active ? "true" : "false", error, strerror(error));
+                qCWarning(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> %d=%s", handle,
+                          sensorTypeName(type), active ? "true" : "false", error, strerror(error));
             } else {
-                qCInfo(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> success", sensor->handle,
-                       sensorTypeName(sensor->type), active ? "true" : "false");
+                qCInfo(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> success", handle,
+                       sensorTypeName(type), active ? "true" : "false");
                 state->m_active = active;
                 success = true;
             }
-#ifndef USE_BINDER
-            if (state->m_active == true && state->m_delay_us != -1) {
-                qCInfo(lcSensorFw, "HYBRIS CTL FORCE DELAY UPDATE");
-                int delay_us = state->m_delay_us;
-                state->m_delay_us = -1;
-                setDelay(handle, delay_us, false);
-            }
-#endif
         }
     }
     return success;
 }
 
-#ifdef USE_BINDER
-/**
- * pollEvents is only called during initialization and after that from pollEventsCallback
- * triggered by binder reply so there is only maximum of one active poll at all times
- */
-void HybrisManager::pollEvents()
-{
-    if (m_client) {
-        GBinderLocalRequest *req = gbinder_client_new_request2(m_client, POLL);
-
-        req = gbinder_local_request_append_int32(req, 16); // Same number as for HAL
-        m_pollTransactId = gbinder_client_transact(m_client, POLL, 0, req, pollEventsCallback, 0, this);
-        gbinder_local_request_unref(req);
-    }
-}
-
-void HybrisManager::pollEventsCallback(
-    GBinderClient* /*client*/,
-    GBinderRemoteReply* reply,
-    int status,
-    void* userData)
-{
-    HybrisManager *manager = static_cast<HybrisManager *>(userData);
-    GBinderReader reader;
-    int32_t readerStatus;
-    int32_t result;
-    sensors_event_t *buffer;
-
-    manager->m_pollTransactId = 0;
-
-    if (status != GBINDER_STATUS_OK) {
-        qCWarning(lcSensorFw) << "Poll failed status " << status;
-        // In case of binder failure sleep a little before attempting a new poll
-        struct timespec ts = { 0, 50 * 1000 * 1000 }; // 50 ms
-        do { } while (nanosleep(&ts, &ts) == -1 && errno == EINTR);
-    } else {
-        // Read sensor events from reply
-        gbinder_remote_reply_init_reader(reply, &reader);
-        gbinder_reader_read_int32(&reader, &readerStatus);
-        gbinder_reader_read_int32(&reader, &result);
-        gsize structSize = 0;
-        gsize eventCount = 0;
-
-        buffer = (sensors_event_t *)gbinder_reader_read_hidl_vec(&reader, &eventCount , &structSize);
-        manager->queueEvents(buffer, eventCount);
-    }
-    // Initiate new poll
-    manager->pollEvents();
-}
-#endif
-
 void *HybrisManager::eventReaderThread(void *aptr)
 {
     HybrisManager *manager = static_cast<HybrisManager *>(aptr);
-    sensors_event_t buffer[maxEvents];
 
     /* Async cancellation, but disabled */
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
@@ -1342,62 +710,7 @@ void *HybrisManager::eventReaderThread(void *aptr)
     pthread_sigmask(SIG_BLOCK, &ss, 0);
     /* Loop until explicitly canceled */
     for (;;) {
-#ifdef USE_BINDER
-        size_t availableEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
-
-        if (availableEvents <= 0) {
-            guint32 state = 0;
-            /* Async cancellation point */
-            pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
-            gint32 ret = gbinder_fmq_wait(manager->m_eventQueue,
-                EVENT_QUEUE_FLAG_READ_AND_PROCESS, &state);
-            pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
-
-            if (ret < 0) {
-                if (ret != -ETIMEDOUT && ret != -EAGAIN) {
-                    qCWarning(lcSensorFw) << "Waiting for events failed" << strerror(-ret);
-                }
-                continue;
-            }
-            availableEvents = gbinder_fmq_available_to_read(manager->m_eventQueue);
-        }
-        size_t numEvents = std::min(availableEvents, maxEvents);
-        if (numEvents == 0) {
-            continue;
-        }
-        if (gbinder_fmq_read(manager->m_eventQueue, buffer, numEvents)) {
-            gbinder_fmq_wake(manager->m_eventQueue, EVENT_QUEUE_FLAG_EVENTS_READ);
-        } else {
-            qCWarning(lcSensorFw) << "Reading events failed";
-            continue;
-        }
-
-        // Queue received events for processing in main thread
-        int wakeupEventCount = manager->queueEvents(buffer, numEvents);
-
-        // Acknowledge wakeup events
-        if (wakeupEventCount) {
-            if (gbinder_fmq_write(manager->m_wakeLockQueue, &wakeupEventCount, 1)) {
-                gbinder_fmq_wake(manager->m_wakeLockQueue, WAKE_LOCK_QUEUE_DATA_WRITTEN);
-            } else {
-                qCWarning(lcSensorFw) << "Write to wakelock queue failed";
-            }
-        }
-#else // HAL reader
-        /* Async cancellation point at android hal poll() */
-        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
-        int numEvents = manager->m_halDevice->poll(&manager->m_halDevice->v0, buffer, maxEvents);
-        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
-        /* Rate limit in poll() error situations */
-        if (numEvents < 0) {
-            qCWarning(lcSensorFw) << "android device->poll() failed" << strerror(-numEvents);
-            struct timespec ts = { 1, 0 }; // 1000 ms
-            do { } while (nanosleep(&ts, &ts) == -1 && errno == EINTR);
-            continue;
-        }
-        // Queue received events for processing in main thread
-        manager->queueEvents(buffer, numEvents);
-#endif
+        manager->m_backend->readEvents();
     }
     return 0;
 }
@@ -1465,21 +778,13 @@ int HybrisManager::queueEvents(const sensors_event_t *buffer, int numEvents)
     for (int i = 0; i < numEvents; i++) {
         const sensors_event_t &data = buffer[i];
         qCDebug(lcSensorFw, "QUEUE HYBRIS EVE %s", sensorTypeName(data.type));
-#ifdef USE_BINDER
-        int index = indexForHandle(data.sensor);
-        const struct sensor_t *sensor = &m_sensorArray[index];
-        if (sensor->flags & SENSOR_FLAG_WAKE_UP) {
-            ++wakeupEventCount;
-        }
-#else
-        if (data.version != sizeof(sensors_event_t)) {
-            qCWarning(lcSensorFw) << QString("incorrect event version (version=%1, expected=%2").arg(data.version).arg(sizeof(sensors_event_t));
+
+        if (!m_backend->isValid(&data)) {
             errorInInput = true;
         }
-        if (typeRequiresWakeup(data.type)) {
+
+        if (m_backend->needsWakeup(&data))
             ++wakeupEventCount;
-        }
-#endif
     }
 
     /* Suspend proof sensor data forwarding */
@@ -1508,17 +813,8 @@ int HybrisManager::processEvents(const sensors_event_t *buffer, int numEvents)
     int wakeupEventCount = 0;
     for (int i = 0; i < numEvents; i++) {
         const sensors_event_t& data = buffer[i];
-#ifdef USE_BINDER
-        int index = indexForHandle(data.sensor);
-        const struct sensor_t *sensor = &m_sensorArray[index];
-        if (sensor->flags & SENSOR_FLAG_WAKE_UP) {
+        if (m_backend->needsWakeup(&data))
             ++wakeupEventCount;
-        }
-#else
-        if (typeRequiresWakeup(data.type)) {
-            ++wakeupEventCount;
-        }
-#endif
     }
 
     /* Suspend proof sensor data processing */
@@ -1689,7 +985,7 @@ void HybrisAdaptor::evaluateSensor()
 {
     // Get listener object
     AdaptedSensorEntry *entry = getAdaptedSensor();
-    if (entry == NULL) {
+    if (entry == nullptr) {
         qCWarning(lcSensorFw) << id() << Q_FUNC_INFO << "Sensor not found: " << name();
         return;
     }
