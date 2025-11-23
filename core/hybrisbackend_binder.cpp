@@ -20,6 +20,7 @@
 ****************************************************************************/
 
 #include "hybrisbackend_binder.h"
+#include "hybrisbackend_binder_aidl.h"
 #include "hybrisbackend_binder_hidl.h"
 #include "hybrisadaptor.h"
 
@@ -41,7 +42,10 @@ HybrisBackend *HybrisBackend::getBackend(HybrisManager *manager)
 {
     HybrisBackend *backend = nullptr;
     for (int i = 0; i < 5; ++i) {
-        if (HybrisBackendBinderHidl::isSupported()) {
+        if (HybrisBackendBinderAidl::isSupported()) {
+            backend = new HybrisBackendBinderAidl(manager);
+            break;
+        } else if (HybrisBackendBinderHidl::isSupported()) {
             backend = new HybrisBackendBinderHidl(manager);
             break;
         }

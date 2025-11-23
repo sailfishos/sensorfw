@@ -23,8 +23,10 @@ CONFIG += link_pkgconfig
 
 contains(CONFIG,binder) {
     SOURCES += hybrisbackend_binder.cpp \
+               hybrisbackend_binder_aidl.cpp \
                hybrisbackend_binder_hidl.cpp
     HEADERS += hybrisbackend_binder.h \
+               hybrisbackend_binder_aidl.h \
                hybrisbackend_binder_hidl.h
 }
 
