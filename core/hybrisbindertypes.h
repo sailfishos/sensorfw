@@ -30,6 +30,7 @@ typedef enum sensor_interface {
     SENSOR_INTERFACE_1_0,
     SENSOR_INTERFACE_2_0,
     SENSOR_INTERFACE_2_1,
+    SENSOR_INTERFACE_AIDL,
     SENSOR_INTERFACE_COUNT
 } SENSOR_INTERFACE;
 
@@ -72,6 +73,25 @@ enum binder_callbacks_2 {
     DYNAMIC_SENSORS_CONNECTED_2_0 = GBINDER_FIRST_CALL_TRANSACTION,
     DYNAMIC_SENSORS_DISCONNECTED_2_0,
     DYNAMIC_SENSORS_CONNECTED_2_1
+};
+
+enum binder_calls_aidl {
+    // MUST be in the same order as the interfaces in ISensors.aidl
+    ACTIVATE_AIDL = GBINDER_FIRST_CALL_TRANSACTION,
+    BATCH_AIDL,
+    CONFIG_DIRECT_REPORT_AIDL,
+    FLUSH_AIDL,
+    GET_SENSORS_LIST_AIDL,
+    INITIALIZE_AIDL,
+    INJECT_SENSOR_DATA_AIDL,
+    REGISTER_DIRECT_CHANNEL_AIDL,
+    SET_OPERATION_MODE_AIDL,
+    UNREGISTER_DIRECT_CHANNEL_AIDL,
+};
+
+enum binder_callbacks_aidl {
+    DYNAMIC_SENSORS_CONNECTED_AIDL = GBINDER_FIRST_CALL_TRANSACTION,
+    DYNAMIC_SENSORS_DISCONNECTED_AIDL,
 };
 
 enum {
@@ -288,6 +308,102 @@ struct sensors_event_t {
 } ALIGNED(8);
 
 static_assert(sizeof(sensors_event_t) == 80, "wrong size");
+
+struct HeadTracker {
+    float rx ALIGNED(4);
+    float ry ALIGNED(4);
+    float rz ALIGNED(4);
+    float vx ALIGNED(4);
+    float vy ALIGNED(4);
+    float vz ALIGNED(4);
+    int discontinuityCount ALIGNED(4);
+} ALIGNED(4);
+
+static_assert(sizeof(HeadTracker) == 28, "wrong size");
+
+struct LimitedAxesImu {
+    float x ALIGNED(4);
+    float y ALIGNED(4);
+    float z ALIGNED(4);
+    float xSupported ALIGNED(4);
+    float ySupported ALIGNED(4);
+    float zSupported ALIGNED(4);
+} ALIGNED(4);
+
+static_assert(sizeof(LimitedAxesImu) == 24, "wrong size");
+
+struct LimitedAxesImuUncal {
+    float x ALIGNED(4);
+    float y ALIGNED(4);
+    float z ALIGNED(4);
+    float xBias ALIGNED(4);
+    float yBias ALIGNED(4);
+    float zBias ALIGNED(4);
+    float xSupported ALIGNED(4);
+    float ySupported ALIGNED(4);
+    float zSupported ALIGNED(4);
+} ALIGNED(4);
+
+static_assert(sizeof(LimitedAxesImuUncal) == 36, "wrong size");
+
+struct Heading {
+    float heading ALIGNED(4);
+    float accuracy ALIGNED(4);
+} ALIGNED(4);
+
+static_assert(sizeof(Heading) == 8, "wrong size");
+
+struct AdditionalInfoAidl {
+    union Payload {
+        int32_t data_int32[14] ALIGNED(4);
+        float data_float[14] ALIGNED(4);
+    } ALIGNED(4);
+
+    static_assert(sizeof(AdditionalInfo::Payload) == 56, "wrong size");
+
+    AdditionalInfoType type ALIGNED(4);
+    int32_t serial ALIGNED(4);
+    int32_t tag ALIGNED(4);
+    AdditionalInfo::Payload u ALIGNED(4);
+} ALIGNED(4);
+
+static_assert(sizeof(AdditionalInfoAidl) == 68, "wrong size");
+
+union SensorEventPayloadAidl {
+    Vec3 vec3 ALIGNED(4);
+    Vec4 vec4 ALIGNED(4);
+    Uncal uncal ALIGNED(4);
+    MetaData meta ALIGNED(4);
+    float scalar ALIGNED(4);
+    uint64_t stepCount ALIGNED(8);
+    HeartRate heartRate ALIGNED(4);
+    float pose6DOF[15] ALIGNED(4);
+    Dynamicsensor_t dynamic ALIGNED(4);
+    AdditionalInfoAidl additional ALIGNED(4);
+    float data[16] ALIGNED(4);
+    HeadTracker headTracker ALIGNED(4);
+    LimitedAxesImu limitedAxesImu ALIGNED(4);
+    LimitedAxesImuUncal limitedAxesImuUncal ALIGNED(4);
+    Heading heading ALIGNED(4);
+} ALIGNED(8);
+
+static_assert(sizeof(SensorEventPayloadAidl) == 72, "wrong size");
+
+struct SensorEventPayloadAidlWrapper {
+    int32_t type ALIGNED(8);
+    SensorEventPayloadAidl data ALIGNED(8);
+} ALIGNED(8);
+
+static_assert(sizeof(SensorEventPayloadAidlWrapper) == 80, "wrong size");
+
+struct sensors_event_t_aidl {
+    int64_t timestamp ALIGNED(8);
+    int32_t sensor ALIGNED(4);
+    int32_t type ALIGNED(4);
+    SensorEventPayloadAidlWrapper u ALIGNED(8);
+} ALIGNED(8);
+
+static_assert(sizeof(sensors_event_t_aidl) == 96, "wrong size");
 
 enum class RateLevel : int32_t {
     STOP = 0,

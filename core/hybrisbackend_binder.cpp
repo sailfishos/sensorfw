@@ -22,6 +22,7 @@
 #ifdef USE_BINDER
 
 #include "hybrisbackend_binder.h"
+#include "hybrisbackend_binder_aidl.h"
 #include "hybrisbackend_binder_hidl.h"
 #include "hybrisadaptor.h"
 
@@ -31,7 +32,10 @@ HybrisBackend *getBackend(HybrisManager *manager)
 {
     HybrisBackend *backend = NULL;
     for (int i = 0; i < 5; ++i) {
-        if (HybrisBackendBinderHidl::isSupported()) {
+        if (HybrisBackendBinderAidl::isSupported()) {
+            backend = qobject_cast<HybrisBackend *>(new HybrisBackendBinderAidl(manager));
+            break;
+        } else if (HybrisBackendBinderHidl::isSupported()) {
             backend = qobject_cast<HybrisBackend *>(new HybrisBackendBinderHidl(manager));
             break;
         }
