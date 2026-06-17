@@ -168,8 +168,8 @@ int HybrisBackendBinderHidl::setActive(int handle, bool active)
     reply = gbinder_client_transact_sync_reply(m_client, ACTIVATE, req, &status);
     gbinder_local_request_unref(req);
 
-    if (status != GBINDER_STATUS_OK) {
-        qCWarning(lcSensorFw) << "Activate failed status " << status;
+    if (!reply || status != GBINDER_STATUS_OK) {
+        qCWarning(lcSensorFw) << "Activate failed";
         return false;
     }
     gbinder_remote_reply_init_reader(reply, &reader);
@@ -199,8 +199,8 @@ int HybrisBackendBinderHidl::setDelay(int handle, int64_t delay_ns)
     reply = gbinder_client_transact_sync_reply(m_client, BATCH, req, &status);
     gbinder_local_request_unref(req);
 
-    if (status != GBINDER_STATUS_OK) {
-        qCWarning(lcSensorFw) << "Set delay failed status " << status;
+    if (!reply || status != GBINDER_STATUS_OK) {
+        qCWarning(lcSensorFw) << "Set delay failed";
         return false;
     }
     gbinder_remote_reply_init_reader(reply, &reader);
@@ -353,8 +353,8 @@ void HybrisBackendBinderHidl::getSensorList()
         reply = gbinder_client_transact_sync_reply(m_client, GET_SENSORS_LIST, nullptr, &status);
     }
 
-    if (status != GBINDER_STATUS_OK) {
-        qCWarning(lcSensorFw) << "Unable to get sensor list: status " << status;
+    if (!reply || status != GBINDER_STATUS_OK) {
+        qCWarning(lcSensorFw) << "Unable to get sensor list";
         cleanup();
         sleep(1);
         startConnect();
@@ -478,8 +478,8 @@ void HybrisBackendBinderHidl::finishConnect()
             reply = gbinder_client_transact_sync_reply(m_client, initializeCode, req, &status);
             gbinder_local_request_unref(req);
 
-            if (status != GBINDER_STATUS_OK) {
-                qCWarning(lcSensorFw) << "Initialize failed with status" << status << ". Trying to reconnect.";
+            if (!reply || status != GBINDER_STATUS_OK) {
+                qCWarning(lcSensorFw) << "Initialize failed. Trying to reconnect.";
                 gbinder_remote_reply_unref(reply);
             } else {
                 int error;
@@ -523,11 +523,12 @@ void HybrisBackendBinderHidl::finishConnect()
 
                 reply = gbinder_client_transact_sync_reply(m_client, POLL, req, &status);
                 gbinder_local_request_unref(req);
-                gbinder_remote_reply_unref(reply);
 
-                if (status != GBINDER_STATUS_OK) {
-                    qCWarning(lcSensorFw) << "Poll failed with status" << status << ". Trying to reconnect.";
+                if (!reply || status != GBINDER_STATUS_OK) {
+                    gbinder_remote_reply_unref(reply);
+                    qCWarning(lcSensorFw) << "Poll failed. Trying to reconnect.";
                 } else {
+                    gbinder_remote_reply_unref(reply);
                     getSensorList();
                     return;
                 }
