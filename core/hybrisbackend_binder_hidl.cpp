@@ -24,6 +24,8 @@
 #include "hybrisadaptor.h"
 #include "logging.h"
 
+#include <QCoreApplication>
+
 #include <unistd.h>
 
 #define SENSOR_BINDER_SERVICE_DEVICE "/dev/hwbinder"
@@ -403,13 +405,11 @@ void HybrisBackendBinderHidl::getSensorList()
     qCWarning(lcSensorFw) << "Hybris sensor manager initialized";
 }
 
-void HybrisBackendBinderHidl::binderDied(GBinderRemoteObject *, void *user_data)
+void HybrisBackendBinderHidl::binderDied(GBinderRemoteObject *, void *)
 {
-    HybrisBackendBinderHidl *conn =
-                    static_cast<HybrisBackendBinderHidl *>(user_data);
-    qCWarning(lcSensorFw) << "Sensor service died! Trying to reconnect.";
-    conn->cleanup();
-    conn->startConnect();
+    qCWarning(lcSensorFw) << "Sensor service died! Restart sensorfw.";
+    // Sensor connections don't recover correctly without restart at the moment
+    QCoreApplication::exit(EXIT_FAILURE);
 }
 
 void HybrisBackendBinderHidl::startConnect()
