@@ -1,3 +1,86 @@
+sensorfw-qt5 (0.15.2) unstable; urgency=medium
+
+  * [hybrisadaptor] Add support for AIDL binder interface. JB#61406
+  * [hybrisadaptor] Improve handling binder error cases. JB#61406
+  * [hybrisadaptor] Restart sensorfw if binder service dies. JB#61406
+  * [hybrisadaptor] Split hybris backends to separate classes. JB#61406
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Thu, Jun 18 2026 17:50:38 +0300
+
+sensorfw-qt5 (0.15.1) unstable; urgency=medium
+
+  * [sensorfwd] Explicitly include <QDebug> to avoid compiler errors
+
+ -- Pekka Vuorela <pekka.vuorela@jolla.com>  Tue, Apr 29 2025 09:50:58 +0300
+
+sensorfw-qt5 (0.15.0) unstable; urgency=medium
+
+  * [hybrisadaptor] Prefer wakeup sensor with wake flag. JB#62083
+  * [sensorfw] Add wakeup sensor with hybrisadaptor. JB#62083
+  * [sensorfwd] Fix --log-level verbosity control option handling
+  * [hybrisadaptor] Improve sensor type diagnostics
+  * [systemd] Use correct path to kill binary
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Wed, Jan 15 2025 13:38:59 +0200
+
+sensorfw-qt5 (0.14.12) unstable; urgency=medium
+
+  * [sensorfwd] Avoid compiler warnings for not defined assignment operator. JB#62859
+  * [sensorfwd] Replace custom logging macros with QLoggingCategory. JB#62859
+  * [sensorfwd] Clean up .specs. JB#62859
+
+ -- Pekka Vuorela <pekka.vuorela@jolla.com>  Mon, Nov 25 2024 14:56:47 +0300
+
+sensorfw-qt5 (0.14.11) unstable; urgency=medium
+
+  * [config] Stop QSettings from using backing file. Fixes JB#56894
+  * [orientation] Use milliG values for accelerometer limits. JB#62669
+  * [hybrisadapter] Implement doubleStopReader quirk. JB#62669
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Mon, Nov 25 2024 10:37:26 +0300
+
+sensorfw-qt5 (0.14.10) unstable; urgency=medium
+
+  * [hybrisadaptor] Exit on hal errors during initialization. Fixes JB#61939
+  * [hybrisadaptor] Try to avoid crashes due to broken hal blobs
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Mon, May 13 2024 14:21:14 +0300
+
+sensorfw-qt5 (0.14.9) unstable; urgency=medium
+
+  * [sensorfwd] Fix detecting support for Android sensor device API 1.0. JB#61864
+
+ -- Matti Lehtimäki <matti.lehtimaki@jolla.com>  Tue, Apr 9 2024 21:33:36 +0300
+
+sensorfw-qt5 (0.14.8) unstable; urgency=medium
+
+  * [sensorfwd] Use common constant for event queue size. JB#60382
+  * [sensorfwd] Transfer events from worker threads via pipe. Fixes JB#60382
+  * [sensorfwd] Add support for Android sensor device API 1.0. JB#60382
+  * [sensorfwd] Make it possible to use both autohybris and binder
+  * [hybrisadaptor] Fix deprecated use of QMap insertMulti
+
+ -- Simo Piiroinen <simo.piiroinen@jolla.com>  Thu, Feb 8 2024 12:25:08 +0200
+
+sensorfw-qt5 (0.14.7) unstable; urgency=medium
+
+  * [sensorfwd] Use QT6_INSTALL_LIBDIR when provided
+
+ -- Raine Mäkeläinen <raine.makelainen@jolla.com>  Wed, 01 Nov 2023 11:18:22 +0200
+
+sensorfw-qt5 (0.14.6) unstable; urgency=medium
+
+  * [sensorfwd] Fix linking race condition by avoiding duplicated SUBDIRS
+  * [sensorfwd] Update com.nokia.SensorService.role.json: Add trustLevel
+
+ -- Raine Mäkeläinen <raine.makelainen@jolla.com>  Wed, 23 Aug 2023 14:48:02 +0300
+
+sensorfw-qt5 (0.14.5) unstable; urgency=medium
+
+  * [sensorfwd] Fix build with qt6
+
+ -- Raine Mäkeläinen <raine.makelainen@jolla.com>  Wed, 23 Aug 2023 10:33:25 +0300
+
 sensorfw-qt5 (0.14.4) unstable; urgency=medium
 
   * [sensorfwd] Fix units used for sleep in sysfsadaptor. Fixes JB#60958
