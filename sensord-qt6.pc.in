@@ -4,7 +4,7 @@ libdir=${prefix}/@LIB@
 
 Name: Sensorfw-qt6
 Description: Sensord for Qt 6
-Version: 0.14.4
+Version: 0.15.2
 Requires:
 Libs: -L${libdir} -lsensorclient-qt6 -lsensordatatypes-qt6
 Cflags: -I${includedir} -I${includedir}/datatypes
