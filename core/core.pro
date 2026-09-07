@@ -93,7 +93,7 @@ lunaservice {
     HEADERS += lsclient.h
     DEFINES += SENSORFW_LUNA_SERVICE_CLIENT
     PKGCONFIG += Qt$${QT_MAJOR_VERSION}Gui json-c
-    PKGCONFIG += luna-service2 LunaSysMgrCommon LunaSysMgrIpcMessages
+    PKGCONFIG += luna-service2 LunaSysMgrCommon
 }
 
 contains(CONFIG,hybris) {
