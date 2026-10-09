@@ -255,6 +255,8 @@ private:
     friend class HybrisAdaptorReader;
 
 private:
+    bool setDelayReal(int handle, int delay_us);
+    bool setActiveReal(int handle, bool active);
     static void *eventReaderThread(void *aptr);
     float scaleSensorValue(const float value, const int type) const;
     void initEventPipe();

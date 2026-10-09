@@ -111,9 +111,9 @@ int HybrisBackendBinder::type(int index)
     return m_sensorArray[index].type;
 }
 
-bool HybrisBackendBinder::isWakeupSensor(int index)
+int HybrisBackendBinder::flags(int index)
 {
-    return m_sensorArray[index].flags & SENSOR_FLAG_WAKE_UP;
+    return m_sensorArray[index].flags;
 }
 
 void HybrisBackendBinder::initFallbackEvent(int index, sensors_event_t *eve)

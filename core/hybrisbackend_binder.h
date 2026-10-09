@@ -37,7 +37,7 @@ public:
     void initFallbackEvent(int index, sensors_event_t *eve) override;
     int handle(int index) override;
     int type(int index) override;
-    bool isWakeupSensor(int index) override;
+    int flags(int index) override;
     const char *sensorName(int index) override;
     int maxDelay(int index) override;
     int minDelay(int index) override;
