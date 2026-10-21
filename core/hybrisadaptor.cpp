@@ -420,6 +420,43 @@ void HybrisManager::initManager()
         }
         qCInfo(lcSensorFw) << "Event reader thread started";
     }
+
+    initWakeupSensorConfig();
+}
+
+void HybrisManager::initWakeupSensorConfig()
+{
+    /* Make it possible to start / stop other sensors along with wakeup sensor.
+     *
+     * Can be useful in case wakeup sensor works only in conjucation with some
+     * android sensor that is normally not used by sensorfwd. Or, in case device
+     * has multiple (virtual) wake up type sensors, for implementing any-of-many
+     * type triggering.
+     */
+    QVariant sensorType(SensorFrameworkConfig::configuration()->value("wakeup/sensor_type"));
+    bool ok = false;
+    m_wakeupSensorType = sensorType.toInt(&ok);
+    if (!ok)
+        m_wakeupSensorType = SENSOR_TYPE_WAKE_GESTURE;
+    m_wakeupSensorHandle = handleForType(m_wakeupSensorType);
+    m_secondaryWakeupSensorHandles.clear();
+    if (m_wakeupSensorHandle != -1 && m_backend->isOneshotSensor(indexForHandle(m_wakeupSensorHandle))) {
+        QVariant secondaryTypes(SensorFrameworkConfig::configuration()->value("wakeup/secondary_sensor_types"));
+        for (const auto &item : secondaryTypes.toString().split(',')) {
+            int secondaryType = item.trimmed().toInt(&ok);
+            if (ok && secondaryType != m_wakeupSensorType) {
+                int secondaryHandle = handleForType(secondaryType);
+                if (secondaryHandle != -1 && secondaryHandle != m_wakeupSensorHandle) {
+                    if (!m_secondaryWakeupSensorHandles.contains(secondaryHandle))
+                        m_secondaryWakeupSensorHandles.append(secondaryHandle);
+                }
+            }
+        }
+    }
+    if (m_secondaryWakeupSensorHandles.isEmpty()) {
+        m_wakeupSensorType = -1;
+        m_wakeupSensorHandle = -1;
+    }
 }
 
 HybrisManager::~HybrisManager()
@@ -722,7 +759,10 @@ bool HybrisManager::setDelay(int handle, int delay_us, bool force)
             // No change
             success = true;
         } else {
-            // Change
+            // Change (secondaries first)
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles)
+                    setDelayReal(secondary, getDelay(secondary));
             success = setDelayReal(handle, delay_us);
         }
     }
@@ -781,7 +821,14 @@ bool HybrisManager::setActive(int handle, bool active)
             // No change
             success = true;
         } else if (active) {
-            // Start sensor
+            // Start sensor (secondaries first)
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles) {
+                    setDelayReal(secondary, getDelay(secondary));
+                    setActiveReal(secondary, true);
+                    setDelayReal(secondary, getDelay(secondary));
+                }
+
             // Some backends invalidate data rate on sensor stop
             // Some require data rate to be set before activation
             // And some misbehave unless data rate is set after activation
@@ -792,8 +839,11 @@ bool HybrisManager::setActive(int handle, bool active)
             // Then require that sensor activation and repeated data rate set succeeds
             success = setActiveReal(handle, true) && setDelayReal(handle, getDelay(handle));
         } else {
-            // Stop sensor
+            // Stop sensor (secondaries last)
             success = setActiveReal(handle, false);
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles)
+                    setActiveReal(secondary, false);
         }
     }
     return success;
@@ -927,23 +977,45 @@ int HybrisManager::processEvents(const sensors_event_t *buffer, int numEvents)
 
     /* Push the sensor data down chains */
     for (int i = 0; i < numEvents; i++) {
-        const sensors_event_t &event = buffer[i];
-        qCDebug(lcSensorFw, "HYBRIS EVE %s", sensorTypeName(event.type));
+        sensors_event_t modified;
+        const sensors_event_t *event = &buffer[i];
+        qCDebug(lcSensorFw, "HYBRIS EVE %s", sensorTypeName(event->type));
 
-        bool oneshot = m_backend->isOneshotSensor(indexForHandle(event.sensor));
+        bool forward = true;
+        bool oneshot = m_backend->isOneshotSensor(indexForHandle(event->sensor));
 
-        /* Got data -> Clear the no longer needed fallback event */
-        sensors_event_t *fallback = eventForHandle(event.sensor);
-        if (fallback && fallback->type == event.type && fallback->sensor == event.sensor) {
-            fallback->type = fallback->sensor = 0;
+        if (m_wakeupSensorHandle != -1 && m_secondaryWakeupSensorHandles.contains(event->sensor)) {
+            if (oneshot) {
+                // Treat oneshot events from secondary sensors as event from primary sensor
+                modified = *event;
+                modified.sensor = m_wakeupSensorHandle;
+                modified.type = m_wakeupSensorType;
+#ifdef USE_BINDER
+                modified.u.data[0] = 1;
+#else
+                modified.data[0] = 1;
+#endif
+                event = &modified;
+            } else {
+                // Ignore state changes from non-oneshot secondary sensors
+                forward = false;
+            }
         }
 
-        processSample(event);
+        if (forward) {
+            /* Got data -> Clear the no longer needed fallback event */
+            sensors_event_t *fallback = eventForHandle(event->sensor);
+            if (fallback && fallback->type == event->type && fallback->sensor == event->sensor) {
+                fallback->type = fallback->sensor = 0;
+            }
 
-        if (oneshot && getActive(event.sensor)) {
+            processSample(*event);
+        }
+
+        if (oneshot && getActive(event->sensor)) {
             // The reporting sensor has already been stopped
-            // Synchronize bookkeeping
-            setActive(event.sensor, false);
+            // Synchronize bookkeeping (and stop bound sensors too)
+            setActive(event->sensor, false);
         }
     }
     return wakeupEventCount;
