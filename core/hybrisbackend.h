@@ -55,7 +55,9 @@ public:
     virtual void initFallbackEvent(int index, sensors_event_t *eve) = 0;
     virtual int handle(int index) = 0;
     virtual int type(int index) = 0;
-    virtual bool isWakeupSensor(int index) = 0;
+    virtual int flags(int index) = 0;
+    bool isWakeupSensor(int index);
+    bool isOneshotSensor(int index);
     virtual const char *sensorName(int index) = 0;
     virtual int maxDelay(int index) = 0;
     virtual int minDelay(int index) = 0;

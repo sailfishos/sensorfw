@@ -167,21 +167,17 @@ int HybrisBackendHal::type(int index)
     return m_sensorArray[index].type;
 }
 
-bool HybrisBackendHal::isWakeupSensor(int index)
+int HybrisBackendHal::flags(int index)
 {
 #if defined(SENSORS_DEVICE_API_VERSION_1_3)
     if (m_halDevice->common.version >= SENSORS_DEVICE_API_VERSION_1_3) {
-        if (m_sensorArray[index].flags & SENSOR_FLAG_WAKE_UP)
-            return true;
-    } else {
-        if (strstr(sensorName(index), "(WAKE_UP)"))
-            return true;
+        return m_sensorArray[index].flags;
     }
-#else
-    if (strstr(sensorName(index), "(WAKE_UP)"))
-        return true;
 #endif
-    return false;
+    if (strstr(sensorName(index), "(WAKE_UP)"))
+        return SENSOR_FLAG_WAKE_UP;
+
+    return 0;
 }
 
 void HybrisBackendHal::initFallbackEvent(int index, sensors_event_t *eve)
@@ -236,17 +232,7 @@ float HybrisBackendHal::resolution(int index)
 
 int HybrisBackendHal::setActive(int handle, bool active)
 {
-    int error = m_halDevice->activate(&m_halDevice->v0, handle, active);
-
-    if (!error) {
-        if (active && m_manager->getDelay(handle) != -1) {
-            qCInfo(lcSensorFw, "HYBRIS CTL FORCE DELAY UPDATE");
-            int delay_us = m_manager->getDelay(handle);
-            m_manager->setDelay(handle, delay_us, false);
-        }
-    }
-
-    return error;
+    return m_halDevice->activate(&m_halDevice->v0, handle, active);
 }
 
 int HybrisBackendHal::setDelay(int handle, int64_t delay_ns)

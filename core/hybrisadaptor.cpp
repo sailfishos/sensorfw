@@ -39,6 +39,66 @@
  * UTILITIES
  * ========================================================================= */
 
+static void append(char **ppos, char *end, const char *txt)
+{
+    char *pos = *ppos;
+    while (pos < end && *txt)
+        *pos++ = *txt++;
+    *ppos = pos;
+}
+
+static const char *sensorFlagsAsText(unsigned flags)
+{
+    static char buff[128];
+    char *pos = buff;
+    char *end = buff + sizeof buff - 1;
+
+    switch (flags & SENSOR_FLAG_MASK_REPORTING_MODE) {
+    case SENSOR_FLAG_CONTINUOUS_MODE:
+        append(&pos, end, "CONTINUOUS_MODE");
+        break;
+    case SENSOR_FLAG_ON_CHANGE_MODE:
+        append(&pos, end, "ON_CHANGE_MODE");
+        break;
+    case SENSOR_FLAG_ONE_SHOT_MODE:
+        append(&pos, end, "ONE_SHOT_MODE");
+        break;
+    case SENSOR_FLAG_SPECIAL_REPORTING_MODE:
+        append(&pos, end, "SPECIAL_REPORTING_MODE");
+        break;
+    default:
+        append(&pos, end, "UNKNOWN_MODE");
+        break;
+    }
+    flags &= ~SENSOR_FLAG_MASK_REPORTING_MODE;
+
+#define HANDLE_BIT(name) do {\
+    if (flags & (SENSOR_FLAG_##name)) {\
+        append(&pos, end, " + " #name);\
+        flags &= ~(SENSOR_FLAG_##name);\
+    }\
+} while (0)
+
+    HANDLE_BIT(WAKE_UP);
+    HANDLE_BIT(DATA_INJECTION);
+    HANDLE_BIT(DYNAMIC_SENSOR);
+    HANDLE_BIT(ADDITIONAL_INFO);
+    HANDLE_BIT(DIRECT_CHANNEL_ASHMEM);
+    HANDLE_BIT(DIRECT_CHANNEL_GRALLOC);
+
+#undef HANDLE_BIT
+
+    if (flags) {
+        char hex[32];
+        snprintf(hex, sizeof hex, " + 0x%x", flags);
+        append(&pos, end, hex);
+    }
+
+    *pos = 0;
+
+    return buff;
+}
+
 char const *
 sensorTypeName(int type)
 {
@@ -272,7 +332,15 @@ void HybrisManager::initManager()
             m_indexOfType.insert(m_backend->type(i), i);
     }
 
-    /* Initialize selected sensors */
+    /* Initialize sensors
+     *
+     * Make sure all sensors are stopped and have their data rate configuration filled in.
+     *
+     * Build a look up table for sensor variants that are selected for use by sensorfwd.
+     */
+    for (int i = 0; i < m_backend->sensorCount(); ++i)
+        setActiveReal(m_backend->handle(i), false);
+
     for (int i = 0; i < m_backend->sensorCount(); ++i) {
         const char *sensorName = m_backend->sensorName(i);
         bool use = m_indexOfType.value(m_backend->type(i)) == i;
@@ -280,64 +348,65 @@ void HybrisManager::initManager()
         qCInfo(lcSensorFw) << Q_FUNC_INFO
             << (use ? "SELECT" : "IGNORE")
             << "type:" << m_backend->type(i) << sensorTypeName(m_backend->type(i))
-            << "name:" << sensorName;
+            << "name:" << sensorName
+            << "flags:" << sensorFlagsAsText(m_backend->flags(i));
 
-        if (use) {
-            // min/max delay in hal is specified in [us]
-            int minDelay_us = m_backend->minDelay(i);
-            int maxDelay_us = m_backend->maxDelay(i); // Assume: not defined by hal
-
-            /* If HAL does not define maximum delay, we need to invent
-             * something that a) allows sensorfwd logic to see a range
-             * instead of a point, b) is unlikely to be wrong enough to
-             * cause problems...
-             *
-             * For now use: minDelay * 2, but at least 1000 ms.
-             */
-
-            if (maxDelay_us < 0 && minDelay_us > 0) {
-                maxDelay_us = (minDelay_us < 500000) ? 1000000 : (minDelay_us * 2);
-                qCInfo(lcSensorFw, "hal does not specify maxDelay, fallback: %d us", maxDelay_us);
-            }
-
-            // Positive minDelay means delay /can/ be set - but depending
-            // on sensor hal implementation it can also mean that some
-            // delay /must/ be set or the sensor does not start reporting
-            // despite being enabled -> as an protection agains clients
-            // failing to explicitly set delays / using delays that would
-            // get rejected by upper levels of sensorfwd logic -> setup
-            // 200 ms delay (capped to reported min/max range).
-            if (minDelay_us >= 0) {
-                if (maxDelay_us < minDelay_us)
-                    maxDelay_us = minDelay_us;
-
-                int delay_us = minDelay_us ? 200000 : 0;
-                if (delay_us < minDelay_us)
-                    delay_us = minDelay_us;
-                else if (delay_us > maxDelay_us)
-                    delay_us = maxDelay_us;
-
-                m_sensorState[i].m_minDelay_us = minDelay_us;
-                m_sensorState[i].m_maxDelay_us = maxDelay_us;
-
-                setDelay(m_backend->handle(i), delay_us, true);
-
-                qCInfo(lcSensorFw, "delay = %d [%d, %d]",
-                       m_sensorState[i].m_delay_us,
-                       m_sensorState[i].m_minDelay_us,
-                       m_sensorState[i].m_maxDelay_us);
-            }
+        if (use)
             m_indexOfType.insert(m_backend->type(i), i);
 
-            /* Set sane fallback values for select sensors in case the
-             * hal does not report initial values. */
+        // min/max delay in hal is specified in [us]
+        int minDelay_us = m_backend->minDelay(i);
+        int maxDelay_us = m_backend->maxDelay(i); // Assume: not defined by hal
 
-            sensors_event_t *eve = &m_sensorState[i].m_fallbackEvent;
-            m_backend->initFallbackEvent(i, eve);
+        /* If HAL does not define maximum delay, we need to invent
+         * something that a) allows sensorfwd logic to see a range
+         * instead of a point, b) is unlikely to be wrong enough to
+         * cause problems...
+         *
+         * For now use: minDelay * 2, but at least 1000 ms.
+         */
+
+        if (maxDelay_us < 0 && minDelay_us > 0) {
+            maxDelay_us = (minDelay_us < 500000) ? 1000000 : (minDelay_us * 2);
+            qCInfo(lcSensorFw, "hal does not specify maxDelay, fallback: %d us", maxDelay_us);
         }
 
-        /* Make sure all sensors are initially in stopped state */
-        setActive(m_backend->handle(i), false);
+        if (maxDelay_us < minDelay_us)
+            maxDelay_us = minDelay_us;
+
+        // Positive minDelay means delay /can/ be set - but depending
+        // on sensor hal implementation it can also mean that some
+        // delay /must/ be set or the sensor does not start reporting
+        // despite being enabled -> as an protection agains clients
+        // failing to explicitly set delays / using delays that would
+        // get rejected by upper levels of sensorfwd logic -> setup
+        // 200 ms delay (capped to reported min/max range).
+        //
+        // Also, some oneshot sensors can report nonsensical ranges
+        // with zero / negative values. And lower level logic might
+        // want to see us set something - even if the provided value
+        // is going to be ignored...
+
+        int delay_us = minDelay_us ? 200000 : 0;
+        if (delay_us < minDelay_us)
+            delay_us = minDelay_us;
+        else if (delay_us > maxDelay_us)
+            delay_us = maxDelay_us;
+
+        m_sensorState[i].m_minDelay_us = minDelay_us;
+        m_sensorState[i].m_maxDelay_us = maxDelay_us;
+        setDelayReal(m_backend->handle(i), delay_us);
+
+        qCInfo(lcSensorFw, "delay = %d [%d, %d]",
+               m_sensorState[i].m_delay_us,
+               m_sensorState[i].m_minDelay_us,
+               m_sensorState[i].m_maxDelay_us);
+
+        /* Set sane fallback values for select sensors in case the
+         * hal does not report initial values. */
+
+        sensors_event_t *eve = &m_sensorState[i].m_fallbackEvent;
+        m_backend->initFallbackEvent(i, eve);
     }
 
     if (m_backend->needsReaderThread()) {
@@ -350,6 +419,43 @@ void HybrisManager::initManager()
             return;
         }
         qCInfo(lcSensorFw) << "Event reader thread started";
+    }
+
+    initWakeupSensorConfig();
+}
+
+void HybrisManager::initWakeupSensorConfig()
+{
+    /* Make it possible to start / stop other sensors along with wakeup sensor.
+     *
+     * Can be useful in case wakeup sensor works only in conjucation with some
+     * android sensor that is normally not used by sensorfwd. Or, in case device
+     * has multiple (virtual) wake up type sensors, for implementing any-of-many
+     * type triggering.
+     */
+    QVariant sensorType(SensorFrameworkConfig::configuration()->value("wakeup/sensor_type"));
+    bool ok = false;
+    m_wakeupSensorType = sensorType.toInt(&ok);
+    if (!ok)
+        m_wakeupSensorType = SENSOR_TYPE_WAKE_GESTURE;
+    m_wakeupSensorHandle = handleForType(m_wakeupSensorType);
+    m_secondaryWakeupSensorHandles.clear();
+    if (m_wakeupSensorHandle != -1 && m_backend->isOneshotSensor(indexForHandle(m_wakeupSensorHandle))) {
+        QVariant secondaryTypes(SensorFrameworkConfig::configuration()->value("wakeup/secondary_sensor_types"));
+        for (const auto &item : secondaryTypes.toString().split(',')) {
+            int secondaryType = item.trimmed().toInt(&ok);
+            if (ok && secondaryType != m_wakeupSensorType) {
+                int secondaryHandle = handleForType(secondaryType);
+                if (secondaryHandle != -1 && secondaryHandle != m_wakeupSensorHandle) {
+                    if (!m_secondaryWakeupSensorHandles.contains(secondaryHandle))
+                        m_secondaryWakeupSensorHandles.append(secondaryHandle);
+                }
+            }
+        }
+    }
+    if (m_secondaryWakeupSensorHandles.isEmpty()) {
+        m_wakeupSensorType = -1;
+        m_wakeupSensorHandle = -1;
     }
 }
 
@@ -616,33 +722,48 @@ int HybrisManager::getDelay(int handle) const
     return delay_us;
 }
 
+bool HybrisManager::setDelayReal(int handle, int delay_us)
+{
+    bool success = false;
+    int index = indexForHandle(handle);
+
+    if (index != -1) {
+        HybrisSensorState *state = &m_sensorState[index];
+        int type = m_backend->type(index);
+        int64_t delay_ns = delay_us < 0 ? -1 : delay_us * 1000LL;
+        int error = m_backend->setDelay(handle, delay_ns);
+
+        if (error) {
+            qCWarning(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
+                      handle, sensorTypeName(type), delay_us, error, strerror(error));
+        } else {
+            qCInfo(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> success",
+                   handle, sensorTypeName(type), delay_us);
+            state->m_delay_us = delay_us;
+            success = true;
+        }
+    }
+
+    return success;
+}
+
 bool HybrisManager::setDelay(int handle, int delay_us, bool force)
 {
     bool success = false;
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        HybrisSensorState     *state  = &m_sensorState[index];
-        int handle = m_backend->handle(index);
-        int type = m_backend->type(index);
+        HybrisSensorState *state = &m_sensorState[index];
 
         if (!force && state->m_delay_us == delay_us) {
-            qCDebug(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> no-change",
-                    handle, sensorTypeName(type), delay_us);
+            // No change
             success = true;
         } else {
-            int64_t delay_ns = delay_us * 1000LL;
-            int error = m_backend->setDelay(handle, delay_ns);
-            if (error) {
-                qCWarning(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> %d=%s",
-                          handle, sensorTypeName(type), delay_us,
-                          error, strerror(error));
-            } else {
-                qCInfo(lcSensorFw, "HYBRIS CTL setDelay(%d=%s, %d) -> success",
-                       handle, sensorTypeName(type), delay_us);
-                state->m_delay_us = delay_us;
-                success = true;
-            }
+            // Change (secondaries first)
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles)
+                    setDelayReal(secondary, getDelay(secondary));
+            success = setDelayReal(handle, delay_us);
         }
     }
 
@@ -665,31 +786,64 @@ bool HybrisManager::getActive(int handle) const
     return active;
 }
 
+bool HybrisManager::setActiveReal(int handle, bool active)
+{
+    bool success = false;
+    int index = indexForHandle(handle);
+
+    if (index != -1) {
+        HybrisSensorState *state = &m_sensorState[index];
+        int type = m_backend->type(index);
+        int error = m_backend->setActive(handle, active);
+
+        if (error) {
+            qCWarning(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> %d=%s", handle,
+                      sensorTypeName(type), active ? "true" : "false", error, strerror(error));
+        } else {
+            qCInfo(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> success", handle,
+                   sensorTypeName(type), active ? "true" : "false");
+            state->m_active = active;
+            success = true;
+        }
+    }
+    return success;
+}
+
 bool HybrisManager::setActive(int handle, bool active)
 {
     bool success = false;
     int index = indexForHandle(handle);
 
     if (index != -1) {
-        HybrisSensorState     *state  = &m_sensorState[index];
-        int handle = m_backend->handle(index);
-        int type = m_backend->type(index);
+        HybrisSensorState *state = &m_sensorState[index];
 
         if (state->m_active == active) {
-            qCDebug(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> no-change",
-                    handle, sensorTypeName(type), active ? "true" : "false");
+            // No change
             success = true;
+        } else if (active) {
+            // Start sensor (secondaries first)
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles) {
+                    setDelayReal(secondary, getDelay(secondary));
+                    setActiveReal(secondary, true);
+                    setDelayReal(secondary, getDelay(secondary));
+                }
+
+            // Some backends invalidate data rate on sensor stop
+            // Some require data rate to be set before activation
+            // And some misbehave unless data rate is set after activation
+            // What ought to work with all of these variations is...
+            // Start with a fire and forget data rate set
+            setDelayReal(handle, getDelay(handle));
+
+            // Then require that sensor activation and repeated data rate set succeeds
+            success = setActiveReal(handle, true) && setDelayReal(handle, getDelay(handle));
         } else {
-            int error = m_backend->setActive(handle, active);
-            if (error) {
-                qCWarning(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> %d=%s", handle,
-                          sensorTypeName(type), active ? "true" : "false", error, strerror(error));
-            } else {
-                qCInfo(lcSensorFw, "HYBRIS CTL setActive(%d=%s, %s) -> success", handle,
-                       sensorTypeName(type), active ? "true" : "false");
-                state->m_active = active;
-                success = true;
-            }
+            // Stop sensor (secondaries last)
+            success = setActiveReal(handle, false);
+            if (handle == m_wakeupSensorHandle)
+                for (int secondary : m_secondaryWakeupSensorHandles)
+                    setActiveReal(secondary, false);
         }
     }
     return success;
@@ -823,16 +977,46 @@ int HybrisManager::processEvents(const sensors_event_t *buffer, int numEvents)
 
     /* Push the sensor data down chains */
     for (int i = 0; i < numEvents; i++) {
-        const sensors_event_t& data = buffer[i];
-        qCDebug(lcSensorFw, "HYBRIS EVE %s", sensorTypeName(data.type));
+        sensors_event_t modified;
+        const sensors_event_t *event = &buffer[i];
+        qCDebug(lcSensorFw, "HYBRIS EVE %s", sensorTypeName(event->type));
 
-        /* Got data -> Clear the no longer needed fallback event */
-        sensors_event_t *fallback = eventForHandle(data.sensor);
-        if (fallback && fallback->type == data.type && fallback->sensor == data.sensor) {
-            fallback->type = fallback->sensor = 0;
+        bool forward = true;
+        bool oneshot = m_backend->isOneshotSensor(indexForHandle(event->sensor));
+
+        if (m_wakeupSensorHandle != -1 && m_secondaryWakeupSensorHandles.contains(event->sensor)) {
+            if (oneshot) {
+                // Treat oneshot events from secondary sensors as event from primary sensor
+                modified = *event;
+                modified.sensor = m_wakeupSensorHandle;
+                modified.type = m_wakeupSensorType;
+#ifdef USE_BINDER
+                modified.u.data[0] = 1;
+#else
+                modified.data[0] = 1;
+#endif
+                event = &modified;
+            } else {
+                // Ignore state changes from non-oneshot secondary sensors
+                forward = false;
+            }
         }
 
-        processSample(data);
+        if (forward) {
+            /* Got data -> Clear the no longer needed fallback event */
+            sensors_event_t *fallback = eventForHandle(event->sensor);
+            if (fallback && fallback->type == event->type && fallback->sensor == event->sensor) {
+                fallback->type = fallback->sensor = 0;
+            }
+
+            processSample(*event);
+        }
+
+        if (oneshot && getActive(event->sensor)) {
+            // The reporting sensor has already been stopped
+            // Synchronize bookkeeping (and stop bound sensors too)
+            setActive(event->sensor, false);
+        }
     }
     return wakeupEventCount;
 }

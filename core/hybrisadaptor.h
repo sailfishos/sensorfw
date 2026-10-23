@@ -251,16 +251,22 @@ private:
     int                           m_eventPipeWriteFd;
     QSocketNotifier              *m_eventPipeNotifier;
     QSet<int>                     m_doubleStopReaderQuirkSensorTypes;
+    int                           m_wakeupSensorType = -1;
+    int                           m_wakeupSensorHandle = -1;
+    QList<int>                    m_secondaryWakeupSensorHandles;
 
     friend class HybrisAdaptorReader;
 
 private:
+    bool setDelayReal(int handle, int delay_us);
+    bool setActiveReal(int handle, bool active);
     static void *eventReaderThread(void *aptr);
     float scaleSensorValue(const float value, const int type) const;
     void initEventPipe();
     void cleanupEventPipe();
     void eventPipeWakeup(int fd);
     int processEvents(const sensors_event_t *buffer, int numEvents);
+    void initWakeupSensorConfig();
 };
 
 class HybrisAdaptor : public DeviceAdaptor

@@ -31,3 +31,13 @@ int HybrisBackend::sensorCount()
 {
     return m_sensorCount;
 }
+
+bool HybrisBackend::isWakeupSensor(int index)
+{
+    return flags(index) & SENSOR_FLAG_WAKE_UP;
+}
+
+bool HybrisBackend::isOneshotSensor(int index)
+{
+    return (flags(index) & SENSOR_FLAG_MASK_REPORTING_MODE) == SENSOR_FLAG_ONE_SHOT_MODE;
+}

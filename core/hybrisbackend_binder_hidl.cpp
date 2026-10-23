@@ -145,14 +145,6 @@ bool HybrisBackendBinderHidl::needsReaderThread()
 
 int HybrisBackendBinderHidl::setActive(int handle, bool active)
 {
-    if (active && m_manager->getDelay(handle) != -1) {
-        int index = m_manager->indexForHandle(handle);
-        qCInfo(lcSensorFw, "HYBRIS CTL FORCE PRE UPDATE %i, %s", handle,
-               sensorTypeName(m_sensorArray[index].type));
-        int delay_us = m_manager->getDelay(handle);
-        m_manager->setDelay(handle, delay_us, true);
-    }
-
     int error;
     GBinderLocalRequest *req = gbinder_client_new_request2(m_client, ACTIVATE);
     GBinderRemoteReply *reply;
