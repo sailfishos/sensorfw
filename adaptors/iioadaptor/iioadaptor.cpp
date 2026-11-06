@@ -225,6 +225,7 @@ int IioAdaptor::findSensor(const QString &sensorName)
                 iioDevice.offset = 0.0;
                 iioDevice.scale = 1.0;
                 iioDevice.frequency = 1.0;
+                iioDevice.processedChannel = false;
                 qDebug() << id() << Q_FUNC_INFO << "Syspath for sensor (" + sensorName + "):" << iioDevice.devicePath;
 
                 udev_list_entry_foreach(sysattr, udev_device_get_sysattr_list_entry(dev)) {
@@ -253,6 +254,23 @@ int IioAdaptor::findSensor(const QString &sensorName)
                         if (ok) {
                             qDebug() << id() << sensorName + ":" << "Frequency is" << iioDevice.frequency;
                         }
+                    } else if (attributeName.contains(QRegularExpression(iioDevice.channelTypeName + ".*input$"))) {
+                        /*
+                         * IIO drivers that expose IIO_CHAN_INFO_PROCESSED publish
+                         * an *_input attribute that already returns the value in
+                         * physical units, with the driver having applied scale /
+                         * offset / calibscale internally. Examples include
+                         * isl29018 (in_illuminance0_input, lux), most temperature
+                         * sensors (in_temp_input, milli-degree) and the humidity
+                         * stack. Without this branch findSensor() finds a matching
+                         * IIO device by name but binds to zero paths and the
+                         * adaptor goes "no sysfs path defined".
+                         */
+                        qDebug() << id() << "adding to paths (processed):" << iioDevice.devicePath
+                                   << attributeName << iioDevice.index;
+                        addPath(iioDevice.devicePath + attributeName, j);
+                        iioDevice.processedChannel = true;
+                        j++;
                     } else if (attributeName.contains(QRegularExpression(iioDevice.channelTypeName + ".*raw$"))) {
                         qDebug() << id() << "adding to paths:" << iioDevice.devicePath
                                    << attributeName << iioDevice.index;
@@ -463,7 +481,16 @@ void IioAdaptor::processSample(int fileId, int fd)
                 break;
             case IioAdaptor::IIO_ALS:
                 uData = alsBuffer_->nextSlot();
-                uData->value_ = (result + iioDevice.offset) * iioDevice.scale;
+                /*
+                 * Drivers exposing IIO_CHAN_INFO_PROCESSED have already
+                 * applied scale + offset on the kernel side; reusing
+                 * iioDevice.scale here would double-apply it when a
+                 * _scale attribute is also published, e.g. isl29018's
+                 * in_illuminance0_scale.
+                 */
+                uData->value_ = iioDevice.processedChannel
+                                ? static_cast<unsigned>(result)
+                                : static_cast<unsigned>((result + iioDevice.offset) * iioDevice.scale);
                 break;
             case IioAdaptor::IIO_PROXIMITY:
                 {
