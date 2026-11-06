@@ -12,6 +12,7 @@ ExecStart=/usr/sbin/sensorfwd -c=/etc/sensorfw/primaryuse.conf -d --log-level=wa
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=1
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
