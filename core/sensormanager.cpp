@@ -41,8 +41,11 @@
 #include "lsclient.h"
 #endif // SENSORFW_LUNA_SERVICE_CLIENT
 #include <QSocketNotifier>
+#include <QThread>
 #include <errno.h>
+#include <fcntl.h>
 #include <functional>
+#include <poll.h>
 #include "sockethandler.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -57,6 +60,9 @@ typedef struct {
     int size;
     void* buffer;
 } PipeData;
+
+/* Samples passed to the sockets in one go, a full pipe's worth at 64 KiB. */
+static const int maxPipeDrain = 65536 / sizeof(PipeData);
 
 const int SensorManager::SOCKET_CONNECTION_TIMEOUT_MS = 10000;
 
@@ -181,7 +187,7 @@ SensorManager::SensorManager()
 
     Q_ASSERT(socketHandler_->listen(SOCKET_NAME));
 
-    if (pipe(pipefds_) == -1) {
+    if (pipe2(pipefds_, O_NONBLOCK) == -1) {
         qCCritical(lcSensorFw) << "Failed to create pipe: " << strerror(errno);
         pipefds_[0] = pipefds_[1] = 0;
     } else {
@@ -698,23 +704,58 @@ bool SensorManager::write(int id, const void* source, int size)
 
     memcpy(buffer, source, size);
 
-    if (::write(pipefds_[1], &pipeData, sizeof(pipeData)) < (int)sizeof(pipeData)) {
+    for (;;) {
+        ssize_t written = ::write(pipefds_[1], &pipeData, sizeof(pipeData));
+        if (written == (ssize_t)sizeof(pipeData))
+            return true;
+        if (written < 0 && errno == EINTR)
+            continue;
+        if (written < 0 && errno == EAGAIN) {
+            /* The pipe is full. The hybris adaptor delivers samples on the
+             * main thread, the same thread that empties the pipe, so waiting
+             * for room here would never end. Empty it now instead. */
+            if (QThread::currentThread() == thread()) {
+                drainPipe();
+            } else {
+                struct pollfd pfd = { pipefds_[1], POLLOUT, 0 };
+                poll(&pfd, 1, -1);
+            }
+            continue;
+        }
         qCWarning(lcSensorFw) << "Failed to write all data to pipe.";
+        free(buffer);
         return false;
     }
-    return true;
 }
 
 void SensorManager::sensorDataHandler(int)
 {
-    PipeData pipeData;
-    ssize_t bytesRead = read(pipefds_[0], &pipeData, sizeof(pipeData));
+    drainPipe();
+}
 
-    if (!bytesRead || !socketHandler_->write(pipeData.id, pipeData.buffer, pipeData.size)) {
-        qCWarning(lcSensorFw) << "Failed to write data to socket.";
+void SensorManager::drainPipe()
+{
+    /* One sample per wakeup can not keep up: each sensor event fans out to
+     * every session. Bounded, so that a thread writing as fast as this reads
+     * can not hold up the main loop; the notifier fires again for the rest. */
+    for (int i = 0; i < maxPipeDrain; ++i) {
+        PipeData pipeData;
+        ssize_t bytesRead = read(pipefds_[0], &pipeData, sizeof(pipeData));
+
+        if (bytesRead < 0 && errno == EINTR)
+            continue;
+        if (bytesRead < 0 && errno == EAGAIN)
+            return;
+        if (bytesRead != (ssize_t)sizeof(pipeData)) {
+            qCWarning(lcSensorFw) << "Failed to read data from pipe.";
+            return;
+        }
+
+        if (!socketHandler_->write(pipeData.id, pipeData.buffer, pipeData.size))
+            qCWarning(lcSensorFw) << "Failed to write data to socket.";
+
+        free(pipeData.buffer);
     }
-
-    free(pipeData.buffer);
 }
 
 void SensorManager::lostClient(int sessionId)

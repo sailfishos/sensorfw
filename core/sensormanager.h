@@ -467,6 +467,12 @@ Q_SIGNALS:
 
 private:
     /**
+     * Pass the samples queued in the pipe on to the sockets. Runs on the main
+     * thread, from sensorDataHandler() and from write() when the pipe is full.
+     */
+    void drainPipe();
+
+    /**
      * Constructor.
      */
     SensorManager();
