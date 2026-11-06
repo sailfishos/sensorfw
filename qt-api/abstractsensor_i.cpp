@@ -536,7 +536,22 @@ QDBusMessage AbstractSensorChannelInterface::call(QDBus::CallMode mode,
                                                   const QVariant& arg7,
                                                   const QVariant& arg8)
 {
-    return pimpl_->call(mode, method, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+    /*
+     * Qt6's QDBus refuses to marshal an invalid QVariant, where Qt5 silently
+     * dropped trailing ones. Every call here passes all eight slots, so any
+     * call with fewer real arguments - which is nearly all of them - fails with
+     * "Marshalling failed: Invalid QVariant passed in arguments" and never
+     * reaches sensord. Pass only the arguments that were actually given.
+     */
+    QList<QVariant> args;
+    const QVariant *const slots_[] = { &arg1, &arg2, &arg3, &arg4,
+                                       &arg5, &arg6, &arg7, &arg8 };
+    for (const QVariant *slot : slots_) {
+        if (!slot->isValid())
+            break;
+        args.append(*slot);
+    }
+    return pimpl_->callWithArgumentList(mode, method, args);
 }
 
 QDBusMessage AbstractSensorChannelInterface::callWithArgumentList(QDBus::CallMode mode, const QString& method,
