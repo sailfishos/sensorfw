@@ -70,6 +70,13 @@ class IioAdaptor : public SysfsAdaptor
       int index;
       IioSensorType sensorType;
       QString channelTypeName;
+      /*
+       * True when the channel attribute we bound to is an _input
+       * (IIO_CHAN_INFO_PROCESSED) sysfs file rather than a _raw one --
+       * the driver has already applied scale / offset before exposing
+       * the value, so the read handler must not multiply by scale again.
+       */
+      bool processedChannel;
     };
 
 public:
