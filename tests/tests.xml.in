@@ -10,6 +10,9 @@
       <case name="Sensord_Dataflow" level="Component" type="Functional" description="Sensord dataflow test" timeout="15" subfeature="Sensor Framework">
         <step expected_result="0">/usr/bin/sensordataflow-test</step>
       </case>
+      <case name="Sensord_SocketHandler" level="Component" type="Functional" description="Sensord socket handler test" timeout="15" subfeature="Sensor Framework">
+        <step expected_result="0">/usr/bin/sensorsockethandler-test</step>
+      </case>
       <case name="Sensord_Adaptors" level="Component" type="Functional" description="Unit test cases for sensor adaptors" timeout="15" subfeature="Sensor Framework">
         <step expected_result="0">/usr/bin/sensoradaptors-test</step>
       </case>

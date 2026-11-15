@@ -259,8 +259,12 @@ bool SocketHandler::removeSession(int sessionId)
     if (socket) {
         disconnect(socket, SIGNAL(readyRead()), this, SLOT(socketReadable()));
         disconnect(socket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        disconnect(socket, &QLocalSocket::errorOccurred, this, &SocketHandler::socketError);
+#else
         disconnect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
                    this, SLOT(socketError(QLocalSocket::LocalSocketError)));
+#endif
         socket->deleteLater();
     }
 
@@ -287,8 +291,16 @@ void SocketHandler::newConnection()
         QLocalSocket* socket = m_server->nextPendingConnection();
         connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadable()));
         connect(socket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+        // QLocalSocket::error(LocalSocketError) became errorOccurred() in
+        // Qt 5.15 and is gone in Qt 6, where connecting to it by name only
+        // printed a warning and socket errors went unhandled. Connect by
+        // pointer there, so a missing signal fails the build instead.
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        connect(socket, &QLocalSocket::errorOccurred, this, &SocketHandler::socketError);
+#else
         connect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
                 this, SLOT(socketError(QLocalSocket::LocalSocketError)));
+#endif
 
         // Initialize socket
         socket->write("\n", 1);

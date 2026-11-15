@@ -10,7 +10,8 @@ SUBDIRS = filters\
           benchmark \
           testutils \
           deadclient \
-          metadata 
+          metadata \
+          sockethandler
 
 #disabled tests due to requirement of mcetool
 contains(CONFIG,mce) {
