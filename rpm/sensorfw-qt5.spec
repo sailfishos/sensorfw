@@ -169,6 +169,7 @@ systemctl daemon-reload || :
 %attr(755,root,root)%{_bindir}/sensorfilters-test
 %attr(755,root,root)%{_bindir}/sensormetadata-test
 %attr(755,root,root)%{_bindir}/sensorpowermanagement-test
+%attr(755,root,root)%{_bindir}/sensorsockethandler-test
 %attr(755,root,root)%{_bindir}/sensorstandbyoverride-test
 %attr(755,root,root)%{_bindir}/sensortestapp
 
